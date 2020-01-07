@@ -1,0 +1,64 @@
+/**
+  * API service definition for gRPC.
+  *
+  * By Thanh Nguyen <btnguyen2k@gmail.com>
+  * Since template-v0.4.r2
+  */
+
+/**
+rm -f *.go && protoc -I ./ api_service.proto --go_out=plugins=grpc:.
+*/
+
+syntax = "proto3";
+option go_package = "grpc";
+option optimize_for = SPEED;
+
+import "google/protobuf/empty.proto";
+
+enum PDataEncoding {
+    JSON_DEFAULT    = 0;    // Request: default='JSON string' /  Result: default=same encoding as request's
+    JSON_STRING     = 1;    // Data is encoded as 'JSON string'
+    JSON_GZIP       = 2;    // Data is encoded as 'gzipped JSON string'
+}
+
+message PApiAuth {
+    string appId        = 1;
+    string accessToken  = 2;
+}
+
+message PApiParams {
+    PDataEncoding   encoding                = 1;
+    bytes           paramsData              = 2;
+    PDataEncoding   expectedReturnEncoding  = 3;
+}
+
+message PApiResult {
+    int32           status                  = 1;
+    string          message                 = 2;
+    PDataEncoding   encoding                = 3;
+    bytes           resultData              = 4;
+    bytes           debugData               = 5;
+}
+
+message PApiContext {
+    string          apiName                 = 1;
+    PApiAuth        apiAuth                 = 2;
+    PApiParams      apiParams               = 3;
+}
+
+service PApiService {
+    /**
+      * This method is to test if server is online.
+      */
+    rpc ping(google.protobuf.Empty) returns (google.protobuf.Empty);
+
+    /**
+      * This method is to test if server is online.
+      */
+    rpc check(PApiAuth) returns (PApiResult);
+
+    /**
+      * Invoke API call.
+      */
+    rpc call(PApiContext) returns (PApiResult);
+}
