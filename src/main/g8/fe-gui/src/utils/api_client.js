@@ -17,6 +17,7 @@ const headerAccessToken = APP_CONFIG.api_client.header_access_token
 let appId = APP_CONFIG.api_client.app_id
 let accessToken = ""
 let apiLogin = "/api/login"
+let apiSystemInfo = "/api/systemInfo"
 
 function apiDoGet(apiUri, callbackSuccessful, callbackError) {
     const headers = {}
@@ -57,6 +58,7 @@ function apiDoPost(apiUri, data, callbackSuccessful, callbackError) {
 export default {
     //API_CLIENT,
     apiLogin,
+    apiSystemInfo,
     apiDoGet,
     apiDoPost
 }

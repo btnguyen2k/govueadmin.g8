@@ -42,6 +42,8 @@ Bootstrapper usually does:
 - other initializing work (e.g. creating DAO, initializing database, etc)
 */
 func (b *MyBootstrapper) Bootstrap() error {
+	go startUpdateSystemInfo()
+
 	initDaos()
 	initApiHandlers(goapi.ApiRouter)
 	initApiFilters(goapi.ApiRouter)
@@ -178,6 +180,7 @@ Setup API handlers: application register its api-handlers by calling router.SetH
 func initApiHandlers(router *itineris.ApiRouter) {
 	router.SetHandler("info", apiInfo)
 	router.SetHandler("login", apiLogin)
+	router.SetHandler("systemInfo", apiSystemInfo)
 }
 
 /*
@@ -231,4 +234,12 @@ func apiLogin(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiP
 	js, _ := json.Marshal(map[string]interface{}{"username": user.Username, "group_id": user.GroupId})
 	token := base64.StdEncoding.EncodeToString(js)
 	return itineris.NewApiResult(itineris.StatusOk).SetData(map[string]interface{}{"token": token})
+}
+
+/*
+API handler "systemInfo"
+*/
+func apiSystemInfo(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
+	data := lastSystemInfo()
+	return itineris.NewApiResult(itineris.StatusOk).SetData(data)
 }
