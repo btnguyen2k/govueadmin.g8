@@ -88,7 +88,12 @@
                         if (apiRes.status != 200) {
                             this.erroMsg = apiRes.status + ": " + apiRes.message
                         } else {
-                            utils.setUserToken(apiRes.data.token)
+                            const session = {
+                                uid: apiRes.data.uid,
+                                token: apiRes.data.token,
+                                expiry: apiRes.data.expiry,
+                            }
+                            utils.localStorageSet("usession", JSON.stringify(session))
                             this.$router.push(this.returnUrl)
                         }
                     },

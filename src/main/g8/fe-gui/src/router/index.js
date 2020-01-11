@@ -67,15 +67,43 @@ let router = new Router({
 })
 
 import utils from "@/utils/app_utils"
+import api_client from "@/utils/api_client";
 
 router.beforeEach((to, from, next) => {
     if (!to.matched.some(record => record.meta.allowGuest)) {
-        if (utils.getUserToken() == null) {
+        let str = utils.localStorageGet("usession")
+        if (str == null) {
             //redirect to login page if not logged in
-            return next({name: "Login", query: {returnUrl: to.fullPath},})
+            return next({name: "Login", query: {returnUrl: to.fullPath}})
         }
+        let lastUserTokenCheck = utils.localStorageGetAsInt("usession_lastcheck")
+        if (lastUserTokenCheck + 60 < utils.getUnixTimestamp()) {
+            lastUserTokenCheck = utils.getUnixTimestamp()
+            let session = JSON.parse(str)
+            let uid = session.uid
+            let token = session.token
+            api_client.apiDoPost(api_client.apiCheckLoginToken, {username: uid, token: token},
+                (apiRes) => {
+                    if (apiRes.status != 200) {
+                        //redirect to login page if session verification failed
+                        console.error("Session verification failed: " + JSON.stringify(apiRes))
+                        return next({name: "Login", query: {returnUrl: to.fullPath}})
+                    } else {
+                        utils.localStorageSet("usession_lastcheck", lastUserTokenCheck)
+                        next()
+                    }
+                },
+                (err) => {
+                    console.error("Session verification error: " + err)
+                    //redirect to login page if cannot verify session
+                    return next({name: "Login", query: {returnUrl: to.fullPath}})
+                })
+        } else {
+            next()
+        }
+    } else {
+        next()
     }
-    next()
 })
 
 export default router

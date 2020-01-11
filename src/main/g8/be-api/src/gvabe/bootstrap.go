@@ -7,8 +7,6 @@ Package gvabe provides backend API for GoVueAdmin Frontend.
 package gvabe
 
 import (
-	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"github.com/btnguyen2k/consu/reddo"
 	"github.com/btnguyen2k/prom"
@@ -18,9 +16,11 @@ import (
 	"main/src/gvabe/bo/group"
 	"main/src/gvabe/bo/user"
 	"main/src/itineris"
+	"main/src/utils"
 	"runtime"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var (
@@ -108,12 +108,11 @@ func initDaos() {
 	if systemAdminUser == nil {
 		pwd := "s3cr3t"
 		log.Printf("System admin user [%s] not found, creating one with password [%s]...", systemAdminUsername, pwd)
-		systemAdminUser = &user.User{
-			Username: systemAdminUsername,
-			Password: encryptPassword(systemAdminUsername, pwd),
-			Name:     systemAdminName,
-			GroupId:  systemGroupId,
-		}
+		systemAdminUser = user.NewUserBo(systemAdminUsername, "").
+			SetPassword(encryptPassword(systemAdminUsername, pwd)).
+			SetName(systemAdminName).
+			SetGroupId(systemGroupId).
+			SetAesKey(utils.RandomString(16))
 		result, err := userDao.Create(systemAdminUser)
 		if err != nil {
 			panic("error while creating user [" + systemAdminUsername + "]: " + err.Error())
@@ -180,6 +179,7 @@ Setup API handlers: application register its api-handlers by calling router.SetH
 func initApiHandlers(router *itineris.ApiRouter) {
 	router.SetHandler("info", apiInfo)
 	router.SetHandler("login", apiLogin)
+	router.SetHandler("checkLoginToken", apiCheckLoginToken)
 	router.SetHandler("systemInfo", apiSystemInfo)
 }
 
@@ -227,13 +227,43 @@ func apiLogin(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiP
 	if user == nil {
 		return itineris.NewApiResult(itineris.StatusNoPermission).SetMessage("login failed")
 	}
-	encPwd := encryptPassword(user.Username, password.(string))
-	if encPwd != user.Password {
+	encPwd := encryptPassword(user.GetUsername(), password.(string))
+	if encPwd != user.GetPassword() {
 		return itineris.NewApiResult(itineris.StatusNoPermission).SetMessage("login failed")
 	}
-	js, _ := json.Marshal(map[string]interface{}{"username": user.Username, "group_id": user.GroupId})
-	token := base64.StdEncoding.EncodeToString(js)
-	return itineris.NewApiResult(itineris.StatusOk).SetData(map[string]interface{}{"token": token})
+	if token, err := genLoginToken(user); err == nil {
+		t := time.Now()
+		return itineris.NewApiResult(itineris.StatusOk).SetData(map[string]interface{}{
+			"uid":    user.GetUsername(),
+			"token":  token,
+			"expiry": t.Unix() + 3600,
+		})
+	} else {
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+	}
+}
+
+func apiCheckLoginToken(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
+	token, _ := params.GetParamAsType("token", reddo.TypeString)
+	if token == nil || token == "" {
+		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("empty token")
+	}
+	username, _ := params.GetParamAsType("username", reddo.TypeString)
+	if username == nil || username == "" {
+		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("empty username")
+	}
+	if status, err := verifyLoginToken(username.(string), token.(string)); err != nil {
+		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage(err.Error())
+	} else {
+		switch status {
+		case sessionStatusOk:
+			return itineris.NewApiResult(itineris.StatusOk)
+		case sessionStatusInvalid, sessionStatusUserNotFound, sessionStatusExpired:
+			return itineris.NewApiResult(itineris.StatusNoPermission)
+		default:
+			return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage("Unknown error, status = " + strconv.Itoa(status))
+		}
+	}
 }
 
 /*

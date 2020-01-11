@@ -24,8 +24,8 @@ func NewUserDaoSqlite(sqlc *prom.SqlConnect, tableName string) UserDao {
 }
 
 func InitSqliteTableUser(sqlc *prom.SqlConnect, tableName string) {
-	sql := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (%s VARCHAR(64), %s VARCHAR(64), %s VARCHAR(64), %s VARCHAR(64), PRIMARY KEY (%s))",
-		tableName, colSqliteUserUsername, colSqliteUserPassword, colSqliteUserName, colSqliteUserGroupId, colSqliteUserUsername)
+	sql := fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s (%s VARCHAR(64), %s TEXT, PRIMARY KEY (%s))",
+		tableName, colSqliteUserUsername, colSqliteUserData, colSqliteUserUsername)
 	if _, err := sqlc.GetDB().Exec(sql); err != nil {
 		panic(err)
 	}
@@ -33,24 +33,18 @@ func InitSqliteTableUser(sqlc *prom.SqlConnect, tableName string) {
 
 const (
 	colSqliteUserUsername = "uname"
-	colSqliteUserPassword = "upwd"
-	colSqliteUserName     = "display_name"
-	colSqliteUserGroupId  = "gid"
+	colSqliteUserData     = "udata"
 )
 
 var (
-	colsSqliteUser              = []string{colSqliteUserUsername, colSqliteUserPassword, colSqliteUserName, colSqliteUserGroupId}
+	colsSqliteUser              = []string{colSqliteUserUsername, colSqliteUserData}
 	mapSqliteFieldToColNameUser = map[string]interface{}{
 		fieldUserUsername: colSqliteUserUsername,
-		fieldUserPassword: colSqliteUserPassword,
-		fieldUserName:     colSqliteUserName,
-		fieldUserGroupId:  colSqliteUserGroupId,
+		fieldUserData:     colSqliteUserData,
 	}
 	mapSqliteColNameToFieldUser = map[string]interface{}{
 		colSqliteUserUsername: fieldUserUsername,
-		colSqliteUserPassword: fieldUserPassword,
-		colSqliteUserName:     fieldUserName,
-		colSqliteUserGroupId:  fieldUserGroupId,
+		colSqliteUserData:     fieldUserData,
 	}
 )
 
@@ -69,13 +63,9 @@ func (dao *UserDaoSqlite) toBo(gbo godal.IGenericBo) *User {
 	if gbo == nil {
 		return nil
 	}
-	bo := &User{
-		Username: gbo.GboGetAttrUnsafe(fieldUserUsername, reddo.TypeString).(string),
-		Password: gbo.GboGetAttrUnsafe(fieldUserPassword, reddo.TypeString).(string),
-		Name:     gbo.GboGetAttrUnsafe(fieldUserName, reddo.TypeString).(string),
-		GroupId:  gbo.GboGetAttrUnsafe(fieldUserGroupId, reddo.TypeString).(string),
-	}
-	return bo
+	username := gbo.GboGetAttrUnsafe(fieldUserUsername, reddo.TypeString).(string)
+	data := gbo.GboGetAttrUnsafe(fieldUserData, reddo.TypeString).(string)
+	return NewUserBo(username, data)
 }
 
 // toGbo transforms business object to godal.IGenericBo
@@ -84,10 +74,8 @@ func (dao *UserDaoSqlite) toGbo(bo *User) godal.IGenericBo {
 		return nil
 	}
 	gbo := godal.NewGenericBo()
-	gbo.GboSetAttr(fieldUserUsername, bo.Username)
-	gbo.GboSetAttr(fieldUserPassword, bo.Password)
-	gbo.GboSetAttr(fieldUserName, bo.Name)
-	gbo.GboSetAttr(fieldUserGroupId, bo.GroupId)
+	gbo.GboSetAttr(fieldUserUsername, bo.GetUsername())
+	gbo.GboSetAttr(fieldUserData, bo.GetData())
 	return gbo
 }
 

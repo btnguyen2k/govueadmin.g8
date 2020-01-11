@@ -1,15 +1,23 @@
 package gvabe
 
 import (
+	"bytes"
+	"compress/zlib"
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/sha1"
+	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"github.com/btnguyen2k/consu/reddo"
 	"github.com/btnguyen2k/consu/semita"
 	"github.com/shirou/gopsutil/load"
 	"github.com/shirou/gopsutil/mem"
+	"io"
+	"main/src/gvabe/bo/user"
 	"math"
-	"math/rand"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -28,17 +36,114 @@ func encryptPassword(username, rawPassword string) string {
 	return strings.ToLower(hex.EncodeToString(out[:]))
 }
 
-const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-
-/*
-randomString generates a random string with specified length.
-*/
-func randomString(l int) string {
-	b := make([]byte, l)
-	for i := range b {
-		b[i] = letters[rand.Intn(len(letters))]
+// padRight adds "0" right right of a string until its length reach a specific value.
+func padRight(str string, l int) string {
+	for len(str) < l {
+		str += "0"
 	}
-	return string(b)
+	return str
+}
+
+// aesEncrypt encrypts a block of data using AES/CTR mode.
+//
+// IV is put at the beginning of the cipher data.
+func aesEncrypt(key, data []byte) ([]byte, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+	iv := []byte(padRight(strconv.FormatInt(time.Now().UnixNano(), 16), 16))
+	cipherData := make([]byte, 16+len(data))
+	copy(cipherData, iv)
+	ctr := cipher.NewCTR(block, iv)
+	ctr.XORKeyStream(cipherData[16:], data)
+	return cipherData, nil
+}
+
+// aesDecrypt decrypts a block of encrypted data using AES/CTR mode.
+//
+// Assuming IV is put at the beginning of the cipher data.
+func aesDecrypt(key, encryptedData []byte) ([]byte, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+	iv := encryptedData[0:16]
+	data := make([]byte, len(encryptedData)-16)
+	ctr := cipher.NewCTR(block, iv)
+	ctr.XORKeyStream(data, encryptedData[16:])
+	return data, nil
+}
+
+// zlibCompress compresses data using zlib.
+func zlibCompress(data []byte) []byte {
+	var b bytes.Buffer
+	w, _ := zlib.NewWriterLevel(&b, zlib.BestCompression)
+	w.Write(data)
+	w.Close()
+	return b.Bytes()
+}
+
+// zlibDecompress decompressed compressed-data using zlib.
+func zlibDecompress(compressedData []byte) ([]byte, error) {
+	r, err := zlib.NewReader(bytes.NewReader(compressedData))
+	if err != nil {
+		return nil, err
+	}
+	var b bytes.Buffer
+	_, err = io.Copy(&b, r)
+	r.Close()
+	return b.Bytes(), err
+}
+
+func genLoginToken(u *user.User) (string, error) {
+	t := time.Now()
+	data := map[string]interface{}{"u": u.GetUsername(), "gid": u.GetGroupId(), "t": t.Unix(), "e": t.Unix() + 3600}
+	if js, err := json.Marshal(data); err != nil {
+		return "", err
+	} else {
+		zip := zlibCompress(js)
+		if enc, err := aesEncrypt([]byte(u.GetAesKey()), zip); err != nil {
+			return "", err
+		} else {
+			return base64.StdEncoding.EncodeToString(enc), nil
+		}
+	}
+}
+
+const (
+	sessionStatusError        = 0
+	sessionStatusUserNotFound = 404
+	sessionStatusInvalid      = 403
+	sessionStatusExpired      = 410
+	sessionStatusOk           = 200
+)
+
+func verifyLoginToken(username string, loginToken string) (int, error) {
+	if user, err := userDao.Get(username); user == nil || err != nil {
+		return sessionStatusUserNotFound, err
+	} else if enc, err := base64.StdEncoding.DecodeString(loginToken); err != nil {
+		return sessionStatusError, err
+	} else if zip, err := aesDecrypt([]byte(user.GetAesKey()), enc); err != nil {
+		return sessionStatusError, err
+	} else if js, err := zlibDecompress(zip); err != nil {
+		return sessionStatusError, err
+	} else {
+		var data map[string]interface{}
+		if err := json.Unmarshal(js, &data); err != nil {
+			return sessionStatusError, nil
+		}
+		if u, err := reddo.ToString(data["u"]); err != nil {
+			return sessionStatusError, err
+		} else if u != user.GetUsername() {
+			return sessionStatusInvalid, nil
+		} else if expiry, err := reddo.ToInt(data["e"]); err != nil {
+			return sessionStatusError, err
+		} else if expiry < time.Now().Unix() {
+			return sessionStatusExpired, nil
+		}
+	}
+	return sessionStatusOk, nil
 }
 
 /*----------------------------------------------------------------------*/
