@@ -141,32 +141,62 @@ func initApiFilters(apiRouter *itineris.ApiRouter) {
 
 	// apiFilter = itineris.NewAddPerfInfoFilter(goapi.ApiRouter, apiFilter)
 	// apiFilter = itineris.NewLoggingFilter(goapi.ApiRouter, apiFilter, itineris.NewWriterPerfLogger(os.Stderr, appName, appVersion))
-	apiFilter = itineris.NewAuthenticationFilter(goapi.ApiRouter, apiFilter, &GVAFEApiAuthenticator{})
+	// apiFilter = itineris.NewAuthenticationFilter(goapi.ApiRouter, apiFilter, &GVAFEApiAuthenticator{})
+	apiFilter = &GVAFEAuthenticationFilter{BaseApiFilter: &itineris.BaseApiFilter{ApiRouter: apiRouter, NextFilter: apiFilter}}
 	// apiFilter = itineris.NewLoggingFilter(goapi.ApiRouter, apiFilter, itineris.NewWriterRequestLogger(os.Stdout, appName, appVersion))
 
 	apiRouter.SetApiFilter(apiFilter)
 }
 
 /*
-GVAFEApiAuthenticator is an "IApiAuthenticator" which checks:
+GVAFEAuthenticationFilter performs authentication check before calling API and issues new access token if existing one is about to expire.
 
 	- AppId must be "$shortname$_fe"
-	- AccessToken must be valid (allocated and active)s
+	- AccessToken must be valid (allocated and active)
 */
-type GVAFEApiAuthenticator struct {
+type GVAFEAuthenticationFilter struct {
+	*itineris.BaseApiFilter
 }
 
 /*
-Authenticate implements IApiAuthenticator.Authenticate.
+Call implements IApiFilter.Call
 */
-func (a *GVAFEApiAuthenticator) Authenticate(ctx *itineris.ApiContext, auth *itineris.ApiAuth) bool {
+func (f *GVAFEAuthenticationFilter) Call(handler itineris.IApiHandler, ctx *itineris.ApiContext, auth *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
+	authed, username, loginToken := f.authenticate(ctx, auth)
+	if !authed {
+		return itineris.ResultNoPermission
+	}
+	if f.NextFilter != nil {
+		return f.NextFilter.Call(handler, ctx, auth, params)
+	}
+	result := handler(ctx, auth, params)
+	if username != "" && loginToken != "" {
+		if loginData, err := decodeLoginToken(username, loginToken); err == nil && loginData != nil {
+			if expiry, err := reddo.ToInt(loginData[loginAttrExpiry]); err == nil && expiry-loginSessionNearExpiry < time.Now().Unix() {
+				if user, err := userDao.Get(username); err == nil && user != nil {
+					if loginToken, err := genLoginToken(user); err == nil {
+						result.AddExtraInfo(apiResultExtraAccessToken, username+":"+loginToken)
+					}
+				}
+			}
+		}
+	}
+	return result
+}
+
+func (f *GVAFEAuthenticationFilter) authenticate(ctx *itineris.ApiContext, auth *itineris.ApiAuth) (bool, string, string) {
 	if "$shortname$_fe" != auth.GetAppId() {
-		return false
+		return false, "", ""
 	}
-	if ctx.GetApiName() != "login" {
-		// TODO verify token
+	if ctx.GetApiName() != "info" && ctx.GetApiName() != "login" {
+		tokens := strings.SplitN(auth.GetAccessToken(), ":", 2)
+		if len(tokens) != 2 {
+			return false, "", ""
+		}
+		status, err := verifyLoginToken(tokens[0], tokens[1])
+		return err == nil && status == sessionStatusOk, tokens[0], tokens[1]
 	}
-	return true
+	return true, "", ""
 }
 
 /*----------------------------------------------------------------------*/
@@ -181,12 +211,12 @@ func initApiHandlers(router *itineris.ApiRouter) {
 	router.SetHandler("login", apiLogin)
 	router.SetHandler("checkLoginToken", apiCheckLoginToken)
 	router.SetHandler("systemInfo", apiSystemInfo)
+	router.SetHandler("groupList", apiGroupList)
+	router.SetHandler("userList", apiUserList)
 }
 
-/*
-API handler "info"
-*/
-func apiInfo(ctx *itineris.ApiContext, auth *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
+// API handler "info"
+func apiInfo(_ *itineris.ApiContext, auth *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
 	appInfo := map[string]interface{}{
 		"name":        goapi.AppConfig.GetString("app.name"),
 		"shortname":   goapi.AppConfig.GetString("app.shortname"),
@@ -208,9 +238,7 @@ func apiInfo(ctx *itineris.ApiContext, auth *itineris.ApiAuth, params *itineris.
 	return itineris.NewApiResult(itineris.StatusOk).SetData(result)
 }
 
-/*
-API handler "login"
-*/
+// API handler "login"
 func apiLogin(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
 	username, _ := params.GetParamAsType("username", reddo.TypeString)
 	if username == nil || username == "" {
@@ -236,13 +264,14 @@ func apiLogin(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiP
 		return itineris.NewApiResult(itineris.StatusOk).SetData(map[string]interface{}{
 			"uid":    user.GetUsername(),
 			"token":  token,
-			"expiry": t.Unix() + 3600,
-		})
+			"expiry": t.Unix() + 3600*8,
+		}).AddExtraInfo(apiResultExtraAccessToken, user.GetUsername()+":"+token)
 	} else {
 		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
 	}
 }
 
+// API handler "checkLoginToken"
 func apiCheckLoginToken(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
 	token, _ := params.GetParamAsType("token", reddo.TypeString)
 	if token == nil || token == "" {
@@ -266,10 +295,27 @@ func apiCheckLoginToken(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *iti
 	}
 }
 
-/*
-API handler "systemInfo"
-*/
+// API handler "systemInfo"
 func apiSystemInfo(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
+	data := lastSystemInfo()
+	return itineris.NewApiResult(itineris.StatusOk).SetData(data)
+}
+
+// API handler "groupList"
+func apiGroupList(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
+	groupList, err := groupDao.GetAll()
+	if err != nil {
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+	}
+	data := make([]map[string]interface{}, 0)
+	for _, g := range groupList {
+		data = append(data, map[string]interface{}{"id": g.Id, "name": g.Name})
+	}
+	return itineris.NewApiResult(itineris.StatusOk).SetData(data)
+}
+
+// API handler "userList"
+func apiUserList(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
 	data := lastSystemInfo()
 	return itineris.NewApiResult(itineris.StatusOk).SetData(data)
 }

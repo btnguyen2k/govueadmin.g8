@@ -289,17 +289,18 @@ var (
 ApiResult encapsulates result from an API call.
 */
 type ApiResult struct {
-	Status    int         `json:"status"`
-	Message   string      `json:"message"`
-	Data      interface{} `json:"data"`
-	DebugInfo interface{} `json:"debug"`
+	Status    int                    `json:"status"`
+	Message   string                 `json:"message"`
+	Data      interface{}            `json:"data"`
+	DebugInfo interface{}            `json:"debug"`
+	Extras    map[string]interface{} `json:"extras"`
 }
 
 /*
 NewApiResult creates a new ApiResult instance.
 */
 func NewApiResult(status int) *ApiResult {
-	return &ApiResult{Status: status}
+	return &ApiResult{Status: status, Extras: make(map[string]interface{})}
 }
 
 /*
@@ -340,6 +341,42 @@ func (rst *ApiResult) SetData(data interface{}) *ApiResult {
 }
 
 /*
+GetExtras returns result extra info.
+*/
+func (rst *ApiResult) GetExtras() map[string]interface{} {
+	return rst.Extras
+}
+
+/*
+SetExtras sets the value of result extra info.
+*/
+func (rst *ApiResult) SetExtras(extras map[string]interface{}) *ApiResult {
+	rst.Extras = extras
+	return rst
+}
+
+/*
+AddExtraInfo adds an extra info to the result.
+*/
+func (rst *ApiResult) AddExtraInfo(key string, value interface{}) *ApiResult {
+	if rst.Extras == nil {
+		rst.Extras = make(map[string]interface{})
+	}
+	rst.Extras[key] = value
+	return rst
+}
+
+/*
+RemoveExtraInfo removes an extra info from the result.
+*/
+func (rst *ApiResult) RemoveExtraInfo(key string) *ApiResult {
+	if rst.Extras != nil {
+		delete(rst.Extras, key)
+	}
+	return rst
+}
+
+/*
 GetDebugInfo returns result debug info.
 */
 func (rst *ApiResult) GetDebugInfo() interface{} {
@@ -363,6 +400,7 @@ func (rst *ApiResult) Clone() *ApiResult {
 		Message:   rst.Message,
 		Data:      rst.Data,
 		DebugInfo: rst.DebugInfo,
+		Extras:    rst.Extras,
 	}
 }
 
@@ -389,6 +427,9 @@ func (rst *ApiResult) ToMap() map[string]interface{} {
 	}
 	if rst.DebugInfo != nil {
 		m["debug"] = rst.DebugInfo
+	}
+	if rst.Extras != nil {
+		m["extras"] = rst.Extras
 	}
 	return m
 }

@@ -30,6 +30,24 @@ const (
 	systemAdminName     = "Adam Local"
 )
 
+const (
+	sessionStatusError        = 0
+	sessionStatusUserNotFound = 404
+	sessionStatusInvalid      = 403
+	sessionStatusExpired      = 410
+	sessionStatusOk           = 200
+
+	apiResultExtraAccessToken = "_access_token_"
+
+	loginAttrUsername  = "u"
+	loginAttrGroupId   = "gid"
+	loginAttrTimestamp = "t"
+	loginAttrExpiry    = "e"
+
+	loginSessionTtl        = 3600 * 8
+	loginSessionNearExpiry = 3600
+)
+
 func encryptPassword(username, rawPassword string) string {
 	saltAndPwd := username + "." + rawPassword
 	out := sha1.Sum([]byte(saltAndPwd))
@@ -98,7 +116,12 @@ func zlibDecompress(compressedData []byte) ([]byte, error) {
 
 func genLoginToken(u *user.User) (string, error) {
 	t := time.Now()
-	data := map[string]interface{}{"u": u.GetUsername(), "gid": u.GetGroupId(), "t": t.Unix(), "e": t.Unix() + 3600}
+	data := map[string]interface{}{
+		loginAttrUsername:  u.GetUsername(),
+		loginAttrGroupId:   u.GetGroupId(),
+		loginAttrTimestamp: t.Unix(),
+		loginAttrExpiry:    t.Unix() + loginSessionTtl,
+	}
 	if js, err := json.Marshal(data); err != nil {
 		return "", err
 	} else {
@@ -111,33 +134,35 @@ func genLoginToken(u *user.User) (string, error) {
 	}
 }
 
-const (
-	sessionStatusError        = 0
-	sessionStatusUserNotFound = 404
-	sessionStatusInvalid      = 403
-	sessionStatusExpired      = 410
-	sessionStatusOk           = 200
-)
-
-func verifyLoginToken(username string, loginToken string) (int, error) {
+func decodeLoginToken(username string, loginToken string) (map[string]interface{}, error) {
 	if user, err := userDao.Get(username); user == nil || err != nil {
-		return sessionStatusUserNotFound, err
+		return nil, err
 	} else if enc, err := base64.StdEncoding.DecodeString(loginToken); err != nil {
-		return sessionStatusError, err
+		return nil, err
 	} else if zip, err := aesDecrypt([]byte(user.GetAesKey()), enc); err != nil {
-		return sessionStatusError, err
+		return nil, err
 	} else if js, err := zlibDecompress(zip); err != nil {
-		return sessionStatusError, err
+		return nil, err
 	} else {
 		var data map[string]interface{}
 		if err := json.Unmarshal(js, &data); err != nil {
-			return sessionStatusError, nil
+			return nil, nil
 		}
-		if u, err := reddo.ToString(data["u"]); err != nil {
+		return data, nil
+	}
+}
+
+func verifyLoginToken(username string, loginToken string) (int, error) {
+	if data, err := decodeLoginToken(username, loginToken); err != nil {
+		return sessionStatusError, err
+	} else if data == nil {
+		return sessionStatusUserNotFound, nil
+	} else {
+		if u, err := reddo.ToString(data[loginAttrUsername]); err != nil {
 			return sessionStatusError, err
-		} else if u != user.GetUsername() {
+		} else if u != username {
 			return sessionStatusInvalid, nil
-		} else if expiry, err := reddo.ToInt(data["e"]); err != nil {
+		} else if expiry, err := reddo.ToInt(data[loginAttrExpiry]); err != nil {
 			return sessionStatusError, err
 		} else if expiry < time.Now().Unix() {
 			return sessionStatusExpired, nil

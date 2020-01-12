@@ -18,14 +18,6 @@ function getUnixTimestamp() {
     return Math.round((new Date()).getTime() / 1000)
 }
 
-// function getUserToken() {
-//     return localStorage.getItem("utoken")
-// }
-//
-// function setUserToken(token) {
-//     localStorage.setItem("utoken", token)
-// }
-
 export default {
     localStorageGet,
     localStorageSet,
