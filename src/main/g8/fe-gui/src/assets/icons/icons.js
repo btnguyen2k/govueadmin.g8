@@ -34,6 +34,9 @@ import {
     cifPl
 } from '@coreui/icons'
 import {
+    cilArrowCircleLeft,
+    cilArrowCircleRight,
+    cilArrowLeft,
     cilArrowRight,
     cilBan,
     cilBasket,
@@ -72,6 +75,7 @@ import {
     cilPlaylistAdd,
     cilPlus,
     cilPuzzle,
+    cilSave,
     cilSettings,
     cilShieldAlt,
     cilSpeech,
@@ -87,6 +91,9 @@ import {
 export const iconsSet = Object.assign(
     {},
     {
+        cilArrowCircleLeft,
+        cilArrowCircleRight,
+        cilArrowLeft,
         cilArrowRight,
         cilBan,
         cilBasket,
@@ -125,6 +132,7 @@ export const iconsSet = Object.assign(
         cilPlaylistAdd,
         cilPlus,
         cilPuzzle,
+        cilSave,
         cilSettings,
         cilShieldAlt,
         cilSpeech,

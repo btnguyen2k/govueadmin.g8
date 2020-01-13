@@ -5,7 +5,7 @@
                 <CCardGroup>
                     <CCard class="p-4">
                         <CCardBody>
-                            <CForm @submit.prevent="handleSubmit" method="post">
+                            <CForm @submit.prevent="doSubmit" method="post">
                                 <h1>Login</h1>
                                 <p v-if="erroMsg!=''" class="alert alert-danger">{{erroMsg}}</p>
                                 <p class="text-muted">Please sign in to continue</p>
@@ -78,7 +78,7 @@
                 e.preventDefault()
                 alert("Not implemented")
             },
-            handleSubmit(e) {
+            doSubmit(e) {
                 e.preventDefault()
                 let data = {username: this.form.username, password: this.form.password}
                 clientUtils.apiDoPost(
@@ -88,12 +88,11 @@
                         if (apiRes.status != 200) {
                             this.erroMsg = apiRes.status + ": " + apiRes.message
                         } else {
-                            const session = {
+                            utils.saveLoginSession({
                                 uid: apiRes.data.uid,
                                 token: apiRes.data.token,
                                 expiry: apiRes.data.expiry,
-                            }
-                            utils.localStorageSet("usession", JSON.stringify(session))
+                            })
                             this.$router.push(this.returnUrl)
                         }
                     },

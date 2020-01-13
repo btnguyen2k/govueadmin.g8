@@ -45,7 +45,7 @@ const (
 	loginAttrExpiry    = "e"
 
 	loginSessionTtl        = 3600 * 8
-	loginSessionNearExpiry = 3600
+	loginSessionNearExpiry = 3600 * 3
 )
 
 func encryptPassword(username, rawPassword string) string {

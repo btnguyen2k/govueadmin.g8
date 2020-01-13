@@ -18,9 +18,20 @@ function getUnixTimestamp() {
     return Math.round((new Date()).getTime() / 1000)
 }
 
+function getLoginSession() {
+    let str = localStorageGet("usession")
+    return str != null ? JSON.parse(str) : null
+}
+
+function saveLoginSession(session) {
+    localStorageSet("usession", JSON.stringify(session))
+}
+
 export default {
     localStorageGet,
     localStorageSet,
     localStorageGetAsInt,
     getUnixTimestamp,
+    loadLoginSession: getLoginSession,
+    saveLoginSession
 }

@@ -7,6 +7,9 @@ const TheContainer = () => import('@/containers/TheContainer')
 // Views
 const Dashboard = () => import('@/views/Dashboard')
 
+// Groups
+const CreateGroup = () => import('@/views/groups/CreateGroup')
+
 const Colors = () => import('@/views/theme/Colors')
 const Typography = () => import('@/views/theme/Typography')
 
@@ -71,18 +74,17 @@ import api_client from "@/utils/api_client";
 
 router.beforeEach((to, from, next) => {
     if (!to.matched.some(record => record.meta.allowGuest)) {
-        let str = utils.localStorageGet("usession")
-        if (str == null) {
+        let session = utils.loadLoginSession()
+        if (session == null) {
             //redirect to login page if not logged in
             return next({name: "Login", query: {returnUrl: to.fullPath}})
         }
         let lastUserTokenCheck = utils.localStorageGetAsInt("usession_lastcheck")
         if (lastUserTokenCheck + 60 < utils.getUnixTimestamp()) {
             lastUserTokenCheck = utils.getUnixTimestamp()
-            let session = JSON.parse(str)
             let uid = session.uid
             let token = session.token
-            api_client.apiDoPost(api_client.apiCheckLoginToken, {username: uid, token: token},
+            api_client.apiDoPost(api_client.apiCheckLoginToken, {uid: uid, token: token},
                 (apiRes) => {
                     if (apiRes.status != 200) {
                         //redirect to login page if session verification failed
@@ -120,6 +122,33 @@ function configRoutes() {
                     path: 'dashboard',
                     name: 'Dashboard',
                     component: Dashboard
+                },
+                {
+                    path: 'groups',
+                    meta: {label: 'Groups'},
+                    component: {
+                        render(c) {
+                            return c('router-view')
+                        }
+                    },
+                    children: [
+                        // {
+                        //     path: '',
+                        //     component: Users,
+                        // },
+                        // {
+                        //     path: ':id',
+                        //     meta: {label: 'User Details'},
+                        //     name: 'User',
+                        //     component: User,
+                        // },
+                        {
+                            path: '_create',
+                            meta: {label: 'Create New Group'},
+                            name: 'CreateGroup',
+                            component: CreateGroup,
+                        },
+                    ]
                 },
                 {
                     path: 'theme',
