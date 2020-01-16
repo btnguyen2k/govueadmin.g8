@@ -10,7 +10,9 @@ const Dashboard = () => import('@/views/Dashboard')
 // Groups
 const Groups = () => import('@/views/groups/Groups')
 const CreateGroup = () => import('@/views/groups/CreateGroup')
-const Group = () => import('@/views/groups/Group')
+const EditGroup = () => import('@/views/groups/EditGroup')
+const DeleteGroup = () => import('@/views/groups/DeleteGroup')
+// const Group = () => import('@/views/groups/Group')
 
 const Colors = () => import('@/views/theme/Colors')
 const Typography = () => import('@/views/theme/Typography')
@@ -148,10 +150,16 @@ function configRoutes() {
                             component: CreateGroup,
                         },
                         {
-                            path: ':id',
-                            meta: {label: 'Group Details'},
-                            name: 'Group',
-                            component: Group,
+                            path: '_edit/:id',
+                            meta: {label: 'Edit Group'},
+                            name: 'EditGroup',
+                            component: EditGroup,
+                        },
+                        {
+                            path: '_delete/:id',
+                            meta: {label: 'Delete Group'},
+                            name: 'DeleteGroup',
+                            component: DeleteGroup,
                         },
                     ]
                 },

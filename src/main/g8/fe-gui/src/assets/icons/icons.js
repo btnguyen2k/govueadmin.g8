@@ -34,6 +34,7 @@ import {
     cifPl
 } from '@coreui/icons'
 import {
+    cilAddressBook,
     cilArrowCircleLeft,
     cilArrowCircleRight,
     cilArrowLeft,
@@ -91,6 +92,7 @@ import {
 export const iconsSet = Object.assign(
     {},
     {
+        cilAddressBook,
         cilArrowCircleLeft,
         cilArrowCircleRight,
         cilArrowLeft,

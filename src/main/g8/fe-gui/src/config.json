@@ -6,7 +6,7 @@
     "version": "$version$"
   },
   "api_client": {
-    "bo_api_base_url": "http://127.0.0.1:3000",
+    "bo_api_base_url": "http://127.0.0.1:8000",
     "app_id": "$shortname$_fe",
     "header_app_id": "X-App-Id",
     "header_access_token": "X-Access-Token"

@@ -3,25 +3,24 @@
         <CRow>
             <CCol sm="12">
                 <CCard>
-                    <CCardHeader>Create New Group</CCardHeader>
+                    <CCardHeader>Edit Group</CCardHeader>
                     <CForm @submit.prevent="doSubmit" method="post">
                         <CCardBody>
+                            <p v-if="!found" class="alert alert-danger">Group [{{this.$route.params.id}}] not found</p>
                             <p v-if="erroMsg!=''" class="alert alert-danger">{{erroMsg}}</p>
-                            <CInput
+                            <CInput v-if="found"
                                     id="id" name="id"
                                     type="text"
-                                    v-model="form.id"
+                                    v-model="group.id"
                                     label="Id"
                                     placeholder="Enter group id"
                                     horizontal
-                                    :is-valid="validatorGroupId"
-                                    invalid-feedback="Please enter group id, format [0-9a-z_]+, must be unique."
-                                    valid-feedback="Please enter group id, format [0-9a-z_]+, must be unique."
+                                    readonly="readonly"
                             />
-                            <CInput
+                            <CInput v-if="found"
                                     id="name" name="name"
                                     type="text"
-                                    v-model="form.name"
+                                    v-model="group.name"
                                     label="Name"
                                     description="Please enter group name"
                                     placeholder="Enter group name..."
@@ -31,11 +30,11 @@
                             />
                         </CCardBody>
                         <CCardFooter>
-                            <CButton type="submit" color="primary" style="width: 96px">
+                            <CButton v-if="found" type="submit" color="primary" style="width: 96px">
                                 <CIcon name="cil-save"/>
                                 Submit
                             </CButton>
-                            <!--                            <CButton type="reset" color="warning" style="width: 96px">-->
+                            <!--                            <CButton v-if="found" type="reset" color="warning" style="width: 96px">-->
                             <!--                                <CIcon name="cil-ban"/>-->
                             <!--                                Reset-->
                             <!--                            </CButton>-->
@@ -55,14 +54,23 @@
     import router from "@/router"
     import clientUtils from "@/utils/api_client";
 
-    let patternGroupId = /^[0-9a-z_]+$/
-
     export default {
-        name: 'CreateGroup',
+        name: 'EditGroup',
         data() {
+            clientUtils.apiDoGet(clientUtils.apiGetGroup + "/" + this.$route.params.id,
+                (apiRes) => {
+                    this.found = apiRes.status == 200
+                    if (apiRes.status == 200) {
+                        this.group = apiRes.data
+                    }
+                },
+                (err) => {
+                    this.erroMsg = err
+                })
             return {
-                form: {id: "", name: ""},
+                group: {id: "", name: ""},
                 erroMsg: "",
+                found: true,
             }
         },
         methods: {
@@ -71,26 +79,25 @@
             },
             doSubmit(e) {
                 e.preventDefault()
-                let data = {id: this.form.id, name: this.form.name}
-                clientUtils.apiDoPost(
-                    clientUtils.apiGroupList, data,
+                let data = {name: this.group.name}
+                clientUtils.apiDoPut(
+                    clientUtils.apiGetGroup + "/" + this.$route.params.id, data,
                     (apiRes) => {
                         if (apiRes.status != 200) {
+                            console.error(apiRes)
                             this.erroMsg = apiRes.status + ": " + apiRes.message
                         } else {
                             this.$router.push({
                                 name: "Groups",
-                                params: {flashMsg: "Group [" + this.form.id + "] has been created successfully."},
+                                params: {flashMsg: "Group [" + this.group.id + "] has been updated successfully."},
                             })
                         }
                     },
                     (err) => {
+                        console.error(err)
                         this.erroMsg = err
                     }
                 )
-            },
-            validatorGroupId(val) {
-                return val ? patternGroupId.test(val.toString()) : false
             },
         }
     }

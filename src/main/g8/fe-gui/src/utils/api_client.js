@@ -21,7 +21,8 @@ let appId = APP_CONFIG.api_client.app_id
 let apiLogin = "/api/login"
 let apiCheckLoginToken = "/api/checkLoginToken"
 let apiSystemInfo = "/api/systemInfo"
-let apiGroups = "/api/groups"
+let apiGroupList = "/api/groups"
+let apiGetGroup = "/api/group"
 let apiUsers = "/api/users"
 
 function _apiOnSuccess(resp, apiUri, callbackSuccessful) {
@@ -71,13 +72,36 @@ function apiDoPost(apiUri, data, callbackSuccessful, callbackError) {
     }).then(res => _apiOnSuccess(res, apiUri, callbackSuccessful)).catch(err => _apiOnError(err, apiUri, callbackError))
 }
 
+function apiDoPut(apiUri, data, callbackSuccessful, callbackError) {
+    let session = utils.loadLoginSession()
+    const headers = {}
+    headers[headerAppId] = appId
+    headers[headerAccessToken] = session != null ? session.uid + ":" + session.token : ""
+    apiClient.put(apiUri, data, {
+        headers: headers
+    }).then(res => _apiOnSuccess(res, apiUri, callbackSuccessful)).catch(err => _apiOnError(err, apiUri, callbackError))
+}
+
+function apiDoDelete(apiUri, callbackSuccessful, callbackError) {
+    let session = utils.loadLoginSession()
+    const headers = {}
+    headers[headerAppId] = appId
+    headers[headerAccessToken] = session != null ? session.uid + ":" + session.token : ""
+    apiClient.delete(apiUri, {
+        headers: headers
+    }).then(res => _apiOnSuccess(res, apiUri, callbackSuccessful)).catch(err => _apiOnError(err, apiUri, callbackError))
+}
+
 export default {
     apiLogin,
     apiCheckLoginToken,
     apiSystemInfo,
-    apiGroups,
+    apiGroupList,
+    apiGetGroup,
     apiUsers,
 
     apiDoGet,
-    apiDoPost
+    apiDoPost,
+    apiDoPut,
+    apiDoDelete,
 }

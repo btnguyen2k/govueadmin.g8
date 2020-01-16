@@ -203,7 +203,7 @@
             )
 
             let groupList = {data: []}
-            clientUtils.apiDoGet(clientUtils.apiGroups,
+            clientUtils.apiDoGet(clientUtils.apiGroupList,
                 (apiRes) => {
                     if (apiRes.status == 200) {
                         groupList.data = apiRes.data

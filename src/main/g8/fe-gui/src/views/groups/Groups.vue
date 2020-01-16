@@ -20,7 +20,11 @@
                     <p v-if="flashMsg" class="alert alert-success">{{flashMsg}}</p>
                     <CDataTable :items="groupList.data" :fields="['id','name','actions']">
                         <template #actions="{item}">
-                            <td>{{item}}</td>
+                            <td>
+                                <CLink @click="clickEditGroup(item.id)" label="Edit">
+                                    <CIcon name="cil-pencil"/>
+                                </CLink>
+                            </td>
                         </template>
                     </CDataTable>
                 </CCardBody>
@@ -36,7 +40,7 @@
         name: 'Groups',
         data: () => {
             let groupList = {data: []}
-            clientUtils.apiDoGet(clientUtils.apiGroups,
+            clientUtils.apiDoGet(clientUtils.apiGroupList,
                 (apiRes) => {
                     if (apiRes.status == 200) {
                         groupList.data = apiRes.data
@@ -54,6 +58,9 @@
         methods: {
             clickAddGroup(e) {
                 this.$router.push({name: "CreateGroup"})
+            },
+            clickEditGroup(id) {
+                this.$router.push({name: "EditGroup", params: {id: id.toString()}})
             },
         }
     }

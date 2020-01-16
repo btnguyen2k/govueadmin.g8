@@ -223,8 +223,12 @@ func initApiHandlers(router *itineris.ApiRouter) {
 	router.SetHandler("login", apiLogin)
 	router.SetHandler("checkLoginToken", apiCheckLoginToken)
 	router.SetHandler("systemInfo", apiSystemInfo)
+
 	router.SetHandler("groupList", apiGroupList)
+	router.SetHandler("getGroup", apiGetGroup)
 	router.SetHandler("createGroup", apiCreateGroup)
+	router.SetHandler("updateGroup", apiUpdateGroup)
+
 	router.SetHandler("userList", apiUserList)
 }
 
@@ -344,6 +348,48 @@ func apiGroupList(_ *itineris.ApiContext, _ *itineris.ApiAuth, _ *itineris.ApiPa
 		data = append(data, map[string]interface{}{"id": g.Id, "name": g.Name})
 	}
 	return itineris.NewApiResult(itineris.StatusOk).SetData(data)
+}
+
+// API handler "getGroup"
+func apiGetGroup(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
+	id, _ := params.GetParamAsType("id", reddo.TypeString)
+	if id == nil || strings.TrimSpace(id.(string)) == "" {
+		return itineris.NewApiResult(itineris.StatusNotFound).SetMessage(fmt.Sprintf("Group [%s] not found", id))
+	}
+	if group, err := groupDao.Get(id.(string)); err != nil {
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+	} else if group == nil {
+		return itineris.NewApiResult(itineris.StatusNotFound).SetMessage(fmt.Sprintf("Group [%s] not found", id))
+	} else {
+		return itineris.NewApiResult(itineris.StatusOk).SetData(map[string]interface{}{"id": group.Id, "name": group.Name})
+	}
+}
+
+// API handler "updateGroup"
+func apiUpdateGroup(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
+	id, _ := params.GetParamAsType("id", reddo.TypeString)
+	if id == nil || strings.TrimSpace(id.(string)) == "" {
+		return itineris.NewApiResult(itineris.StatusNotFound).SetMessage(fmt.Sprintf("Group [%s] not found", id))
+	}
+	if group, err := groupDao.Get(id.(string)); err != nil {
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+	} else if group == nil {
+		return itineris.NewApiResult(itineris.StatusNotFound).SetMessage(fmt.Sprintf("Group [%s] not found", id))
+	} else {
+		// TODO check current user's permission
+
+		name, _ := params.GetParamAsType("name", reddo.TypeString)
+		if name == nil || strings.TrimSpace(name.(string)) == "" {
+			return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("Missing or empty parameter [name]")
+		}
+		group.Name = strings.TrimSpace(name.(string))
+		if ok, err := groupDao.Update(group); err != nil {
+			return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		} else if !ok {
+			return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(fmt.Sprintf("Group [%s] has not been updated", id.(string)))
+		}
+		return itineris.NewApiResult(itineris.StatusOk).SetData(map[string]interface{}{"id": group.Id, "name": group.Name})
+	}
 }
 
 // API handler "createGroup"
