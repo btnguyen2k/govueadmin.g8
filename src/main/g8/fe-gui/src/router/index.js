@@ -8,7 +8,9 @@ const TheContainer = () => import('@/containers/TheContainer')
 const Dashboard = () => import('@/views/Dashboard')
 
 // Groups
+const Groups = () => import('@/views/groups/Groups')
 const CreateGroup = () => import('@/views/groups/CreateGroup')
+const Group = () => import('@/views/groups/Group')
 
 const Colors = () => import('@/views/theme/Colors')
 const Typography = () => import('@/views/theme/Typography')
@@ -132,21 +134,24 @@ function configRoutes() {
                         }
                     },
                     children: [
-                        // {
-                        //     path: '',
-                        //     component: Users,
-                        // },
-                        // {
-                        //     path: ':id',
-                        //     meta: {label: 'User Details'},
-                        //     name: 'User',
-                        //     component: User,
-                        // },
+                        {
+                            path: '',
+                            meta: {label: 'Group List'},
+                            name: 'Groups',
+                            component: Groups,
+                            props: true,
+                        },
                         {
                             path: '_create',
                             meta: {label: 'Create New Group'},
                             name: 'CreateGroup',
                             component: CreateGroup,
+                        },
+                        {
+                            path: ':id',
+                            meta: {label: 'Group Details'},
+                            name: 'Group',
+                            component: Group,
                         },
                     ]
                 },

@@ -17,11 +17,12 @@ const apiClient = Axios.create({
 const headerAppId = APP_CONFIG.api_client.header_app_id
 const headerAccessToken = APP_CONFIG.api_client.header_access_token
 let appId = APP_CONFIG.api_client.app_id
+
 let apiLogin = "/api/login"
 let apiCheckLoginToken = "/api/checkLoginToken"
 let apiSystemInfo = "/api/systemInfo"
-let apiGroupList = "/api/groupList"
-let apiUserList = "/api/userList"
+let apiGroups = "/api/groups"
+let apiUsers = "/api/users"
 
 function _apiOnSuccess(resp, apiUri, callbackSuccessful) {
     if (apiUri != apiLogin && apiUri != apiCheckLoginToken && resp.hasOwnProperty("data") && resp.data.status == 403) {
@@ -74,8 +75,8 @@ export default {
     apiLogin,
     apiCheckLoginToken,
     apiSystemInfo,
-    apiGroupList,
-    apiUserList,
+    apiGroups,
+    apiUsers,
 
     apiDoGet,
     apiDoPost

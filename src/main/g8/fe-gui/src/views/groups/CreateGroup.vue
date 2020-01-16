@@ -6,24 +6,28 @@
                     <CCardHeader>Create New Group</CCardHeader>
                     <CForm @submit.prevent="doSubmit" method="post">
                         <CCardBody>
+                            <p v-if="erroMsg!=''" class="alert alert-danger">{{erroMsg}}</p>
                             <CInput
                                     id="id" name="id"
                                     type="text"
-                                    description="Please enter group id, format [0-9a-z_]+, must be unique."
+                                    v-model="form.id"
                                     label="Id"
                                     placeholder="Enter group id"
                                     horizontal
-                                    required
                                     :is-valid="validatorGroupId"
-                                    was-validated
+                                    invalid-feedback="Please enter group id, format [0-9a-z_]+, must be unique."
+                                    valid-feedback="Please enter group id, format [0-9a-z_]+, must be unique."
                             />
                             <CInput
                                     id="name" name="name"
                                     type="text"
-                                    description="Please enter group name"
+                                    v-model="form.name"
                                     label="Name"
+                                    description="Please enter group name"
                                     placeholder="Enter group name..."
                                     horizontal
+                                    required
+                                    was-validated
                             />
                         </CCardBody>
                         <CCardFooter>
@@ -51,41 +55,46 @@
 
 <script>
     import router from "@/router"
-    let patternGroupId = /^[0-9a-z_]$/
+    import clientUtils from "@/utils/api_client";
+    import utils from "@/utils/app_utils";
+
+    let patternGroupId = /^[0-9a-z_]+$/
 
     export default {
-        name: 'Forms',
+        name: 'CreateGroup',
         data() {
             return {
-                // selected: [], // Must be an array reference!
-                // show: true,
-                // horizontal: {label: 'col-3', input: 'col-9'},
-                // options: ['Option 1', 'Option 2', 'Option 3'],
-                // selectOptions: [
-                //     'Option 1', 'Option 2', 'Option 3',
-                //     {
-                //         value: ['some value', 'another value'],
-                //         label: 'Selected option'
-                //     }
-                // ],
-                // selectedOption: ['some value', 'another value'],
-                //
-                // formCollapsed: true,
-                // checkboxNames: ['Checkboxes', 'Inline Checkboxes',
-                //     'Checkboxes - custom', 'Inline Checkboxes - custom'],
-                // radioNames: ['Radios', 'Inline Radios',
-                //     'Radios - custom', 'Inline Radios - custom']
+                form: {id: "", name: ""},
+                erroMsg: "",
             }
         },
         methods: {
             doCancel() {
-                router.push({name: "Groups"})
+                router.push("/groups")
             },
             doSubmit(e) {
                 e.preventDefault()
+                let data = {id: this.form.id, name: this.form.name}
+                clientUtils.apiDoPost(
+                    clientUtils.apiGroups, data,
+                    (apiRes) => {
+                        console.log(apiRes)
+                        if (apiRes.status != 200) {
+                            this.erroMsg = apiRes.status + ": " + apiRes.message
+                        } else {
+                            this.$router.push({
+                                name: "Groups",
+                                params: {flashMsg: "Group [" + this.form.id + "] has been created successfully."},
+                            })
+                        }
+                    },
+                    (err) => {
+                        this.erroMsg = err
+                    }
+                )
             },
             validatorGroupId(val) {
-                return val ? patternGroupId.test(val) : false
+                return val ? patternGroupId.test(val.toString()) : false
             },
         }
     }

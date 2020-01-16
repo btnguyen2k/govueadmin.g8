@@ -17,6 +17,7 @@ import (
 	"main/src/gvabe/bo/user"
 	"main/src/itineris"
 	"main/src/utils"
+	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
@@ -141,7 +142,6 @@ func initApiFilters(apiRouter *itineris.ApiRouter) {
 
 	// apiFilter = itineris.NewAddPerfInfoFilter(goapi.ApiRouter, apiFilter)
 	// apiFilter = itineris.NewLoggingFilter(goapi.ApiRouter, apiFilter, itineris.NewWriterPerfLogger(os.Stderr, appName, appVersion))
-	// apiFilter = itineris.NewAuthenticationFilter(goapi.ApiRouter, apiFilter, &GVAFEApiAuthenticator{})
 	apiFilter = &GVAFEAuthenticationFilter{BaseApiFilter: &itineris.BaseApiFilter{ApiRouter: apiRouter, NextFilter: apiFilter}}
 	// apiFilter = itineris.NewLoggingFilter(goapi.ApiRouter, apiFilter, itineris.NewWriterRequestLogger(os.Stdout, appName, appVersion))
 
@@ -224,6 +224,7 @@ func initApiHandlers(router *itineris.ApiRouter) {
 	router.SetHandler("checkLoginToken", apiCheckLoginToken)
 	router.SetHandler("systemInfo", apiSystemInfo)
 	router.SetHandler("groupList", apiGroupList)
+	router.SetHandler("createGroup", apiCreateGroup)
 	router.SetHandler("userList", apiUserList)
 }
 
@@ -327,13 +328,13 @@ func apiCheckLoginToken(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *iti
 }
 
 // API handler "systemInfo"
-func apiSystemInfo(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
+func apiSystemInfo(_ *itineris.ApiContext, _ *itineris.ApiAuth, _ *itineris.ApiParams) *itineris.ApiResult {
 	data := lastSystemInfo()
 	return itineris.NewApiResult(itineris.StatusOk).SetData(data)
 }
 
 // API handler "groupList"
-func apiGroupList(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
+func apiGroupList(_ *itineris.ApiContext, _ *itineris.ApiAuth, _ *itineris.ApiParams) *itineris.ApiResult {
 	groupList, err := groupDao.GetAll()
 	if err != nil {
 		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
@@ -343,6 +344,40 @@ func apiGroupList(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.
 		data = append(data, map[string]interface{}{"id": g.Id, "name": g.Name})
 	}
 	return itineris.NewApiResult(itineris.StatusOk).SetData(data)
+}
+
+// API handler "createGroup"
+func apiCreateGroup(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
+	id, _ := params.GetParamAsType("id", reddo.TypeString)
+	if id == nil || strings.TrimSpace(id.(string)) == "" {
+		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("Missing or empty parameter [id]")
+	}
+	id = strings.TrimSpace(strings.ToLower(id.(string)))
+	if !regexp.MustCompile("^[0-9a-z_]+$").Match([]byte(id.(string))) {
+		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("Invalid value for parameter [id]")
+	}
+
+	name, _ := params.GetParamAsType("name", reddo.TypeString)
+	if name == nil || strings.TrimSpace(name.(string)) == "" {
+		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("Missing or empty parameter [name]")
+	}
+	name = strings.TrimSpace(name.(string))
+
+	if group, err := groupDao.Get(id.(string)); err != nil {
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+	} else if group != nil {
+		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage(fmt.Sprintf("Group [%s] already existed", id))
+	}
+	group := &group.Group{
+		Id:   strings.TrimSpace(strings.ToLower(id.(string))),
+		Name: strings.TrimSpace(name.(string)),
+	}
+	if ok, err := groupDao.Create(group); err != nil {
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+	} else if !ok {
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(fmt.Sprintf("Group [%s] has not been created", id))
+	}
+	return itineris.NewApiResult(itineris.StatusOk).SetData(group)
 }
 
 // API handler "userList"

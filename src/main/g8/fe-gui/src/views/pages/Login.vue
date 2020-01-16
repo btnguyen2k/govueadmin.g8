@@ -84,7 +84,6 @@
                 clientUtils.apiDoPost(
                     clientUtils.apiLogin, data,
                     (apiRes) => {
-                        console.log(apiRes)
                         if (apiRes.status != 200) {
                             this.erroMsg = apiRes.status + ": " + apiRes.message
                         } else {

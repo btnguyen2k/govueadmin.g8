@@ -99,7 +99,7 @@
             <CCol sm="12" md="6">
                 <CCard accent-color="info">
                     <CCardHeader>
-                        <strong>Group (1)</strong>
+                        <strong>Group ({{groupList.data.length}})</strong>
                         <div class="card-header-actions">
                             <CLink class="card-header-action btn-minimize" @click="clickAddGroup">
                                 <CIcon name="cil-library-add"/>
@@ -203,7 +203,7 @@
             )
 
             let groupList = {data: []}
-            clientUtils.apiDoGet(clientUtils.apiGroupList,
+            clientUtils.apiDoGet(clientUtils.apiGroups,
                 (apiRes) => {
                     if (apiRes.status == 200) {
                         groupList.data = apiRes.data
