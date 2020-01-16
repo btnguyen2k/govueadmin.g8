@@ -227,6 +227,7 @@ func initApiHandlers(router *itineris.ApiRouter) {
 	router.SetHandler("groupList", apiGroupList)
 	router.SetHandler("getGroup", apiGetGroup)
 	router.SetHandler("createGroup", apiCreateGroup)
+	router.SetHandler("deleteGroup", apiDeleteGroup)
 	router.SetHandler("updateGroup", apiUpdateGroup)
 
 	router.SetHandler("userList", apiUserList)
@@ -388,7 +389,33 @@ func apiUpdateGroup(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineri
 		} else if !ok {
 			return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(fmt.Sprintf("Group [%s] has not been updated", id.(string)))
 		}
-		return itineris.NewApiResult(itineris.StatusOk).SetData(map[string]interface{}{"id": group.Id, "name": group.Name})
+		return itineris.NewApiResult(itineris.StatusOk)
+	}
+}
+
+// API handler "deleteGroup"
+func apiDeleteGroup(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
+	id, _ := params.GetParamAsType("id", reddo.TypeString)
+	if id == nil || strings.TrimSpace(id.(string)) == "" {
+		return itineris.NewApiResult(itineris.StatusNotFound).SetMessage(fmt.Sprintf("Group [%s] not found", id))
+	}
+	if group, err := groupDao.Get(id.(string)); err != nil {
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+	} else if group == nil {
+		return itineris.NewApiResult(itineris.StatusNotFound).SetMessage(fmt.Sprintf("Group [%s] not found", id))
+	} else {
+		// TODO check current user's permission
+
+		if group.Id == systemGroupId {
+			return itineris.NewApiResult(itineris.StatusNoPermission).SetMessage(fmt.Sprintf("Cannot delete system group [%s]", group.Id))
+		}
+
+		if ok, err := groupDao.Delete(group); err != nil {
+			return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		} else if !ok {
+			return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(fmt.Sprintf("Group [%s] has not been deleted", id.(string)))
+		}
+		return itineris.NewApiResult(itineris.StatusOk)
 	}
 }
 

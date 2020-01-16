@@ -22,15 +22,15 @@ let apiLogin = "/api/login"
 let apiCheckLoginToken = "/api/checkLoginToken"
 let apiSystemInfo = "/api/systemInfo"
 let apiGroupList = "/api/groups"
-let apiGetGroup = "/api/group"
+let apiGroup = "/api/group"
 let apiUsers = "/api/users"
 
 function _apiOnSuccess(resp, apiUri, callbackSuccessful) {
-    if (apiUri != apiLogin && apiUri != apiCheckLoginToken && resp.hasOwnProperty("data") && resp.data.status == 403) {
-        console.error("Error 403 from API [" + apiUri + "], redirecting to login page...")
-        router.push({name: "Login", query: {returnUrl: router.currentRoute.fullPath}})
-        return
-    }
+    // if (apiUri != apiLogin && apiUri != apiCheckLoginToken && resp.hasOwnProperty("data") && resp.data.status == 403) {
+    //     console.error("Error 403 from API [" + apiUri + "], redirecting to login page...")
+    //     router.push({name: "Login", query: {returnUrl: router.currentRoute.fullPath}})
+    //     return
+    // }
     if (resp.hasOwnProperty("data") && resp.data.hasOwnProperty("extras") && resp.data.extras.hasOwnProperty("_access_token_")) {
         console.log("Update new access token from API [" + apiUri + "]")
         let tokens = resp.data.extras._access_token_.split(":")
@@ -97,7 +97,7 @@ export default {
     apiCheckLoginToken,
     apiSystemInfo,
     apiGroupList,
-    apiGetGroup,
+    apiGroup,
     apiUsers,
 
     apiDoGet,

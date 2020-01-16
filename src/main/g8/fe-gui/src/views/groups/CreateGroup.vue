@@ -33,12 +33,8 @@
                         <CCardFooter>
                             <CButton type="submit" color="primary" style="width: 96px">
                                 <CIcon name="cil-save"/>
-                                Submit
+                                Create
                             </CButton>
-                            <!--                            <CButton type="reset" color="warning" style="width: 96px">-->
-                            <!--                                <CIcon name="cil-ban"/>-->
-                            <!--                                Reset-->
-                            <!--                            </CButton>-->
                             <CButton type="button" color="info" class="ml-2" style="width: 96px" @click="doCancel">
                                 <CIcon name="cil-arrow-circle-left"/>
                                 Back
@@ -85,6 +81,7 @@
                         }
                     },
                     (err) => {
+                        console.error(err)
                         this.erroMsg = err
                     }
                 )

@@ -32,12 +32,8 @@
                         <CCardFooter>
                             <CButton v-if="found" type="submit" color="primary" style="width: 96px">
                                 <CIcon name="cil-save"/>
-                                Submit
+                                Save
                             </CButton>
-                            <!--                            <CButton v-if="found" type="reset" color="warning" style="width: 96px">-->
-                            <!--                                <CIcon name="cil-ban"/>-->
-                            <!--                                Reset-->
-                            <!--                            </CButton>-->
                             <CButton type="button" color="info" class="ml-2" style="width: 96px" @click="doCancel">
                                 <CIcon name="cil-arrow-circle-left"/>
                                 Back
@@ -57,7 +53,7 @@
     export default {
         name: 'EditGroup',
         data() {
-            clientUtils.apiDoGet(clientUtils.apiGetGroup + "/" + this.$route.params.id,
+            clientUtils.apiDoGet(clientUtils.apiGroup + "/" + this.$route.params.id,
                 (apiRes) => {
                     this.found = apiRes.status == 200
                     if (apiRes.status == 200) {
@@ -81,10 +77,9 @@
                 e.preventDefault()
                 let data = {name: this.group.name}
                 clientUtils.apiDoPut(
-                    clientUtils.apiGetGroup + "/" + this.$route.params.id, data,
+                    clientUtils.apiGroup + "/" + this.$route.params.id, data,
                     (apiRes) => {
                         if (apiRes.status != 200) {
-                            console.error(apiRes)
                             this.erroMsg = apiRes.status + ": " + apiRes.message
                         } else {
                             this.$router.push({
@@ -94,7 +89,6 @@
                         }
                     },
                     (err) => {
-                        console.error(err)
                         this.erroMsg = err
                     }
                 )

@@ -21,8 +21,12 @@
                     <CDataTable :items="groupList.data" :fields="['id','name','actions']">
                         <template #actions="{item}">
                             <td>
-                                <CLink @click="clickEditGroup(item.id)" label="Edit">
+                                <CLink @click="clickEditGroup(item.id)" label="Edit" class="btn btn-primary">
                                     <CIcon name="cil-pencil"/>
+                                </CLink>
+                                &nbsp;
+                                <CLink @click="clickDeleteGroup(item.id)" label="Delete" class="btn btn-danger">
+                                    <CIcon name="cil-trash"/>
                                 </CLink>
                             </td>
                         </template>
@@ -61,6 +65,9 @@
             },
             clickEditGroup(id) {
                 this.$router.push({name: "EditGroup", params: {id: id.toString()}})
+            },
+            clickDeleteGroup(id) {
+                this.$router.push({name: "DeleteGroup", params: {id: id.toString()}})
             },
         }
     }
