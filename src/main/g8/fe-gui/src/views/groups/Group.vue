@@ -23,7 +23,7 @@
 </template>
 
 <script>
-import usersData from './UsersData'
+//import usersData from './UsersData'
 export default {
   name: 'User',
   fields: [
