@@ -7,7 +7,7 @@
                     <CForm @submit.prevent="doSubmit" method="post">
                         <CCardBody>
                             <p v-if="!found" class="alert alert-danger">Group [{{this.$route.params.id}}] not found</p>
-                            <p v-if="erroMsg!=''" class="alert alert-danger">{{erroMsg}}</p>
+                            <p v-if="errorMsg!=''" class="alert alert-danger">{{errorMsg}}</p>
                             <CInput v-if="found"
                                     id="id" name="id"
                                     type="text"
@@ -59,11 +59,11 @@
                     }
                 },
                 (err) => {
-                    this.erroMsg = err
+                    this.errorMsg = err
                 })
             return {
                 group: {id: "", name: ""},
-                erroMsg: "",
+                errorMsg: "",
                 found: true,
             }
         },
@@ -77,7 +77,7 @@
                     clientUtils.apiGroup + "/" + this.$route.params.id,
                     (apiRes) => {
                         if (apiRes.status != 200) {
-                            this.erroMsg = apiRes.status + ": " + apiRes.message
+                            this.errorMsg = apiRes.status + ": " + apiRes.message
                         } else {
                             this.$router.push({
                                 name: "Groups",
@@ -86,7 +86,7 @@
                         }
                     },
                     (err) => {
-                        this.erroMsg = err
+                        this.errorMsg = err
                     }
                 )
             },

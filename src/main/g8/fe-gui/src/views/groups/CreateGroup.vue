@@ -6,13 +6,13 @@
                     <CCardHeader>Create New Group</CCardHeader>
                     <CForm @submit.prevent="doSubmit" method="post">
                         <CCardBody>
-                            <p v-if="erroMsg!=''" class="alert alert-danger">{{erroMsg}}</p>
+                            <p v-if="errorMsg!=''" class="alert alert-danger">{{errorMsg}}</p>
                             <CInput
                                     id="id" name="id"
                                     type="text"
                                     v-model="form.id"
                                     label="Id"
-                                    placeholder="Enter group id"
+                                    placeholder="Enter group id..."
                                     horizontal
                                     :is-valid="validatorGroupId"
                                     invalid-feedback="Please enter group id, format [0-9a-z_]+, must be unique."
@@ -58,7 +58,7 @@
         data() {
             return {
                 form: {id: "", name: ""},
-                erroMsg: "",
+                errorMsg: "",
             }
         },
         methods: {
@@ -72,7 +72,7 @@
                     clientUtils.apiGroupList, data,
                     (apiRes) => {
                         if (apiRes.status != 200) {
-                            this.erroMsg = apiRes.status + ": " + apiRes.message
+                            this.errorMsg = apiRes.status + ": " + apiRes.message
                         } else {
                             this.$router.push({
                                 name: "Groups",
@@ -82,7 +82,7 @@
                     },
                     (err) => {
                         console.error(err)
-                        this.erroMsg = err
+                        this.errorMsg = err
                     }
                 )
             },

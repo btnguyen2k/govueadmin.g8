@@ -5,7 +5,7 @@
                 <CCardHeader>
                     <strong>User ({{userList.data.length}})</strong>
                     <div class="card-header-actions">
-                        <CButton class="btn-sm btn-primary" @click="clickAddGroup">
+                        <CButton class="btn-sm btn-primary" @click="clickAddUser">
                             <CIcon name="cil-playlist-add"/>
                             Create New User
                         </CButton>

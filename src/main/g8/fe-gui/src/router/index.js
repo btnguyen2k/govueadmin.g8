@@ -15,7 +15,7 @@ const DeleteGroup = () => import('@/views/groups/DeleteGroup')
 
 // Users
 const Users = () => import('@/views/users/Users')
-// const CreateUser = () => import('@/views/users/CreateUser')
+const CreateUser = () => import('@/views/users/CreateUser')
 // const EditUser = () => import('@/views/users/EditUser')
 // const DeleteUser = () => import('@/views/users/DeleteUser')
 
@@ -181,12 +181,12 @@ function configRoutes() {
                             component: Users,
                             props: true,
                         },
-                        // {
-                        //     path: '_create',
-                        //     meta: {label: 'Create New User'},
-                        //     name: 'CreateUser',
-                        //     component: CreateUser,
-                        // },
+                        {
+                            path: '_create',
+                            meta: {label: 'Create New User'},
+                            name: 'CreateUser',
+                            component: CreateUser,
+                        },
                         // {
                         //     path: '_edit/:id',
                         //     meta: {label: 'Edit User'},
