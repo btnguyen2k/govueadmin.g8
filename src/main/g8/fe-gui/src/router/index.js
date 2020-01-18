@@ -12,7 +12,12 @@ const Groups = () => import('@/views/groups/Groups')
 const CreateGroup = () => import('@/views/groups/CreateGroup')
 const EditGroup = () => import('@/views/groups/EditGroup')
 const DeleteGroup = () => import('@/views/groups/DeleteGroup')
-// const Group = () => import('@/views/groups/Group')
+
+// Users
+const Users = () => import('@/views/users/Users')
+// const CreateUser = () => import('@/views/users/CreateUser')
+// const EditUser = () => import('@/views/users/EditUser')
+// const DeleteUser = () => import('@/views/users/DeleteUser')
 
 const Colors = () => import('@/views/theme/Colors')
 const Typography = () => import('@/views/theme/Typography')
@@ -60,9 +65,6 @@ const Page500 = () => import('@/views/pages/Page500')
 const Login = () => import('@/views/pages/Login')
 const Register = () => import('@/views/pages/Register')
 
-// Users
-const Users = () => import('@/views/users/Users')
-const User = () => import('@/views/users/User')
 
 Vue.use(Router)
 
@@ -164,6 +166,43 @@ function configRoutes() {
                     ]
                 },
                 {
+                    path: 'users',
+                    meta: {label: 'Users'},
+                    component: {
+                        render(c) {
+                            return c('router-view')
+                        }
+                    },
+                    children: [
+                        {
+                            path: '',
+                            meta: {label: 'User List'},
+                            name: 'Users',
+                            component: Users,
+                            props: true,
+                        },
+                        // {
+                        //     path: '_create',
+                        //     meta: {label: 'Create New User'},
+                        //     name: 'CreateUser',
+                        //     component: CreateUser,
+                        // },
+                        // {
+                        //     path: '_edit/:id',
+                        //     meta: {label: 'Edit User'},
+                        //     name: 'EditUser',
+                        //     component: EditUser,
+                        // },
+                        // {
+                        //     path: '_delete/:id',
+                        //     meta: {label: 'Delete User'},
+                        //     name: 'DeleteUser',
+                        //     component: DeleteUser,
+                        // },
+                    ]
+                },
+
+                {
                     path: 'theme',
                     redirect: '/theme/colors',
                     name: 'Theme',
@@ -194,27 +233,6 @@ function configRoutes() {
                     path: 'widgets',
                     name: 'Widgets',
                     component: Widgets
-                },
-                {
-                    path: 'users',
-                    meta: {label: 'Users'},
-                    component: {
-                        render(c) {
-                            return c('router-view')
-                        }
-                    },
-                    children: [
-                        {
-                            path: '',
-                            component: Users,
-                        },
-                        {
-                            path: ':id',
-                            meta: {label: 'User Details'},
-                            name: 'User',
-                            component: User,
-                        },
-                    ]
                 },
                 {
                     path: 'base',

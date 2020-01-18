@@ -231,6 +231,10 @@ func initApiHandlers(router *itineris.ApiRouter) {
 	router.SetHandler("updateGroup", apiUpdateGroup)
 
 	router.SetHandler("userList", apiUserList)
+	router.SetHandler("getUser", apiGetUser)
+	router.SetHandler("createUser", apiCreateUser)
+	router.SetHandler("deleteUser", apiDeleteUser)
+	router.SetHandler("updateUser", apiUpdateUser)
 }
 
 // API handler "info"
@@ -337,6 +341,8 @@ func apiSystemInfo(_ *itineris.ApiContext, _ *itineris.ApiAuth, _ *itineris.ApiP
 	data := lastSystemInfo()
 	return itineris.NewApiResult(itineris.StatusOk).SetData(data)
 }
+
+/*----------------------------------------------------------------------*/
 
 // API handler "groupList"
 func apiGroupList(_ *itineris.ApiContext, _ *itineris.ApiAuth, _ *itineris.ApiParams) *itineris.ApiResult {
@@ -453,8 +459,124 @@ func apiCreateGroup(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineri
 	return itineris.NewApiResult(itineris.StatusOk).SetData(group)
 }
 
+/*----------------------------------------------------------------------*/
+
 // API handler "userList"
-func apiUserList(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
-	data := lastSystemInfo()
+func apiUserList(_ *itineris.ApiContext, _ *itineris.ApiAuth, _ *itineris.ApiParams) *itineris.ApiResult {
+	userList, err := userDao.GetAll()
+	if err != nil {
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+	}
+	data := make([]map[string]interface{}, 0)
+	for _, u := range userList {
+		data = append(data, map[string]interface{}{
+			"username": u.GetUsername(), "name": u.GetName(), "gid": u.GetGroupId(),
+		})
+	}
 	return itineris.NewApiResult(itineris.StatusOk).SetData(data)
+}
+
+// API handler "getUser"
+func apiGetUser(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
+	username, _ := params.GetParamAsType("username", reddo.TypeString)
+	if username == nil || strings.TrimSpace(username.(string)) == "" {
+		return itineris.NewApiResult(itineris.StatusNotFound).SetMessage(fmt.Sprintf("User [%s] not found", username))
+	}
+	if user, err := userDao.Get(username.(string)); err != nil {
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+	} else if user == nil {
+		return itineris.NewApiResult(itineris.StatusNotFound).SetMessage(fmt.Sprintf("User [%s] not found", username))
+	} else {
+		return itineris.NewApiResult(itineris.StatusOk).SetData(map[string]interface{}{
+			"username": user.GetUsername(), "name": user.GetName(), "gid": user.GetGroupId(),
+		})
+	}
+}
+
+// API handler "updateUser"
+func apiUpdateUser(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
+	username, _ := params.GetParamAsType("username", reddo.TypeString)
+	if username == nil || strings.TrimSpace(username.(string)) == "" {
+		return itineris.NewApiResult(itineris.StatusNotFound).SetMessage(fmt.Sprintf("User [%s] not found", username))
+	}
+	if user, err := userDao.Get(username.(string)); err != nil {
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+	} else if user == nil {
+		return itineris.NewApiResult(itineris.StatusNotFound).SetMessage(fmt.Sprintf("User [%s] not found", username))
+	} else {
+		// TODO check current user's permission
+
+		name, _ := params.GetParamAsType("name", reddo.TypeString)
+		if name == nil || strings.TrimSpace(name.(string)) == "" {
+			return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("Missing or empty parameter [name]")
+		}
+		user.SetName(strings.TrimSpace(name.(string)))
+		if ok, err := userDao.Update(user); err != nil {
+			return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		} else if !ok {
+			return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(fmt.Sprintf("User [%s] has not been updated", username.(string)))
+		}
+		return itineris.NewApiResult(itineris.StatusOk)
+	}
+}
+
+// API handler "deleteUser"
+func apiDeleteUser(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
+	username, _ := params.GetParamAsType("username", reddo.TypeString)
+	if username == nil || strings.TrimSpace(username.(string)) == "" {
+		return itineris.NewApiResult(itineris.StatusNotFound).SetMessage(fmt.Sprintf("User [%s] not found", username))
+	}
+	if user, err := userDao.Get(username.(string)); err != nil {
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+	} else if user == nil {
+		return itineris.NewApiResult(itineris.StatusNotFound).SetMessage(fmt.Sprintf("User [%s] not found", username))
+	} else {
+		// TODO check current user's permission
+
+		if user.GetUsername() == systemAdminUsername {
+			return itineris.NewApiResult(itineris.StatusNoPermission).SetMessage(fmt.Sprintf("Cannot delete system admin user [%s]", user.GetUsername()))
+		}
+
+		if ok, err := userDao.Delete(user); err != nil {
+			return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		} else if !ok {
+			return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(fmt.Sprintf("User [%s] has not been deleted", username.(string)))
+		}
+		return itineris.NewApiResult(itineris.StatusOk)
+	}
+}
+
+// API handler "createUser"
+func apiCreateUser(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
+	username, _ := params.GetParamAsType("username", reddo.TypeString)
+	if username == nil || strings.TrimSpace(username.(string)) == "" {
+		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("Missing or empty parameter [username]")
+	}
+	username = strings.TrimSpace(strings.ToLower(username.(string)))
+	if !regexp.MustCompile("^[0-9a-z_]+$").Match([]byte(username.(string))) {
+		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("Invalid value for parameter [username]")
+	}
+
+	name, _ := params.GetParamAsType("name", reddo.TypeString)
+	if name == nil || strings.TrimSpace(name.(string)) == "" {
+		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("Missing or empty parameter [name]")
+	}
+	name = strings.TrimSpace(name.(string))
+
+	if user, err := userDao.Get(username.(string)); err != nil {
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+	} else if user != nil {
+		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage(fmt.Sprintf("User [%s] already existed", username))
+	}
+	user := user.NewUserBo(username.(string), "")
+	// user := &group.Group{
+	// 	Id:   strings.TrimSpace(strings.ToLower(username.(string))),
+	// 	Name: strings.TrimSpace(name.(string)),
+	// }
+	// if ok, err := groupDao.Create(group); err != nil {
+	// 	return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+	// } else if !ok {
+	// 	return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(fmt.Sprintf("Group [%s] has not been created", username))
+	// }
+	return itineris.NewApiResult(itineris.StatusOk).SetData(user)
 }

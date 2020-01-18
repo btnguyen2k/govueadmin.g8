@@ -22,6 +22,16 @@ export default [
                 //     text: 'NEW'
                 // }
             },
+            {
+                _name: 'CSidebarNavItem',
+                name: 'Users',
+                to: '/users',
+                icon: 'cil-user',
+                // badge: {
+                //     color: 'primary',
+                //     text: 'NEW'
+                // }
+            },
             // {
             //   _name: 'CSidebarNavTitle',
             //   _children: ['Theme']

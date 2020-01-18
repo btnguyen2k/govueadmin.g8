@@ -104,41 +104,27 @@
                             <CLink class="card-header-action btn-minimize" @click="clickAddGroup">
                                 <CIcon name="cil-library-add"/>
                             </CLink>
-                            <CLink class="card-header-action btn-minimize" @click="isCollapsed = !isCollapsed">
-                                <CIcon :name="`cil-chevron-${isCollapsed ? 'bottom' : 'top'}`"/>
+                            <CLink class="card-header-action btn-minimize"
+                                   @click="isCollapsedGroups = !isCollapsedGroups">
+                                <CIcon :name="`cil-chevron-${isCollapsedGroups ? 'bottom' : 'top'}`"/>
                             </CLink>
                         </div>
                     </CCardHeader>
-                    <CCollapse :show="isCollapsed" :duration="400">
+                    <CCollapse :show="isCollapsedGroups" :duration="400">
                         <CCardBody>
-                            <CDataTable
-                                    :items="groupList.data"
-                                    :fields="['id','name','actions']"
-                            >
+                            <CDataTable :items="groupList.data" :fields="['id','name','actions']">
                                 <template #actions="{item}">
-                                    <td>{{item}}</td>
-                                </template>
-                            </CDataTable>
-                            <!--
-                            <CDataTable
-                                    :hover="hover"
-                                    :striped="striped"
-                                    :bordered="bordered"
-                                    :small="small"
-                                    :fixed="fixed"
-                                    :items="items"
-                                    :fields="fields"
-                                    :items-per-page="small ? 10 : 5"
-                                    :dark="dark"
-                                    pagination
-                            >
-                                <template #status="{item}">
                                     <td>
-                                        <CBadge :color="getBadge(item.status)">{{item.status}}</CBadge>
+                                        <CLink @click="clickEditGroup(item.id)" label="Edit" class="btn-sm btn-primary">
+                                            <CIcon name="cil-pencil"/>
+                                        </CLink>
+                                        &nbsp;
+                                        <CLink @click="clickDeleteGroup(item.id)" label="Delete" class="btn-sm btn-danger">
+                                            <CIcon name="cil-trash"/>
+                                        </CLink>
                                     </td>
                                 </template>
                             </CDataTable>
-                            -->
                         </CCardBody>
                     </CCollapse>
                 </CCard>
@@ -146,16 +132,32 @@
             <CCol sm="12" md="6">
                 <CCard accent-color="success">
                     <CCardHeader>
-                        <strong>User (2)</strong>
+                        <strong>User ({{userList.data.length}})</strong>
                         <div class="card-header-actions">
-                            <CLink class="card-header-action btn-minimize" @click="isCollapsed = !isCollapsed">
-                                <CIcon :name="`cil-chevron-${isCollapsed ? 'bottom' : 'top'}`"/>
+                            <CLink class="card-header-action btn-minimize" @click="clickAddUser">
+                                <CIcon name="cil-playlist-add"/>
+                            </CLink>
+                            <CLink class="card-header-action btn-minimize"
+                                   @click="isCollapsedUsers = !isCollapsedUsers">
+                                <CIcon :name="`cil-chevron-${isCollapsedUsers ? 'bottom' : 'top'}`"/>
                             </CLink>
                         </div>
                     </CCardHeader>
-                    <CCollapse :show="isCollapsed" :duration="400">
+                    <CCollapse :show="isCollapsedUsers" :duration="400">
                         <CCardBody>
-                            {{loremIpsum}}
+                            <CDataTable :items="userList.data" :fields="['username','name',{key:'gid',label:'Group'},'actions']">
+                                <template #actions="{item}">
+                                    <td>
+                                        <CLink @click="clickEditUser(item.id)" label="Edit" class="btn-sm btn-primary">
+                                            <CIcon name="cil-pencil"/>
+                                        </CLink>
+                                        &nbsp;
+                                        <CLink @click="clickDeleteUser(item.id)" label="Delete" class="btn-sm btn-danger">
+                                            <CIcon name="cil-trash"/>
+                                        </CLink>
+                                    </td>
+                                </template>
+                            </CDataTable>
                         </CCardBody>
                     </CCollapse>
                 </CCard>
@@ -165,20 +167,13 @@
 </template>
 
 <script>
-    import MainChartExample from './charts/MainChartExample'
-    import WidgetsDropdown from './widgets/WidgetsDropdown'
-    import WidgetsBrand from './widgets/WidgetsBrand'
-    import {CChartLineSimple, CChartBarSimple} from './charts/index.js'
+    import {CChartLineSimple} from './charts/index.js'
     import clientUtils from "@/utils/api_client"
-    import CTableWrapper from '@/views/base/Table.vue'
 
     export default {
         name: 'Dashboard',
         components: {
-            MainChartExample,
-            WidgetsDropdown,
-            WidgetsBrand,
-            CChartLineSimple, CChartBarSimple, CTableWrapper,
+            CChartLineSimple,
         },
         data() {
             let systemInfo = {
@@ -196,9 +191,11 @@
                         systemInfo.app_memory = apiRes.data.app_memory
                         systemInfo.go_routines = apiRes.data.go_routines
                     } else {
+                        console.error("Getting system info was unsuccessful: " + apiRes)
                     }
                 },
                 (err) => {
+                    console.error("Error getting system info: " + err)
                 }
             )
 
@@ -208,81 +205,52 @@
                     if (apiRes.status == 200) {
                         groupList.data = apiRes.data
                     } else {
+                        console.error("Getting group list was unsuccessful: " + apiRes)
                     }
                 },
                 (err) => {
+                    console.error("Error getting group list: " + err)
                 })
-            return {
-                isCollapsed: true,
-                loremIpsum: 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.',
 
+            let userList = {data: []}
+            clientUtils.apiDoGet(clientUtils.apiUserList,
+                (apiRes) => {
+                    if (apiRes.status == 200) {
+                        userList.data = apiRes.data
+                    } else {
+                        console.error("Getting user list was unsuccessful: " + apiRes)
+                    }
+                },
+                (err) => {
+                    console.error("Error getting user list: " + err)
+                })
+
+            return {
+                isCollapsedGroups: true,
+                isCollapsedUsers: true,
                 systemInfo: systemInfo,
                 groupList: groupList,
-
-                selected: 'Month',
-                tableItems: [
-                    {
-                        avatar: {url: 'img/avatars/1.jpg', status: 'success'},
-                        user: {name: 'Yiorgos Avraamu', new: true, registered: 'Jan 1, 2015'},
-                        country: {name: 'USA', flag: 'cif-us'},
-                        usage: {value: 50, period: 'Jun 11, 2015 - Jul 10, 2015'},
-                        payment: {name: 'Mastercard', icon: 'cib-cc-mastercard'},
-                        activity: '10 sec ago'
-                    },
-                    {
-                        avatar: {url: 'img/avatars/2.jpg', status: 'danger'},
-                        user: {name: 'Avram Tarasios', new: false, registered: 'Jan 1, 2015'},
-                        country: {name: 'Brazil', flag: 'cif-br'},
-                        usage: {value: 22, period: 'Jun 11, 2015 - Jul 10, 2015'},
-                        payment: {name: 'Visa', icon: 'cib-cc-visa'},
-                        activity: '5 minutes ago'
-                    },
-                    {
-                        avatar: {url: 'img/avatars/3.jpg', status: 'warning'},
-                        user: {name: 'Quintin Ed', new: true, registered: 'Jan 1, 2015'},
-                        country: {name: 'India', flag: 'cif-in'},
-                        usage: {value: 74, period: 'Jun 11, 2015 - Jul 10, 2015'},
-                        payment: {name: 'Stripe', icon: 'cib-stripe'},
-                        activity: '1 hour ago'
-                    },
-                    {
-                        avatar: {url: 'img/avatars/4.jpg', status: ''},
-                        user: {name: 'Enéas Kwadwo', new: true, registered: 'Jan 1, 2015'},
-                        country: {name: 'France', flag: 'cif-fr'},
-                        usage: {value: 98, period: 'Jun 11, 2015 - Jul 10, 2015'},
-                        payment: {name: 'PayPal', icon: 'cib-paypal'},
-                        activity: 'Last month'
-                    },
-                    {
-                        avatar: {url: 'img/avatars/5.jpg', status: 'success'},
-                        user: {name: 'Agapetus Tadeáš', new: true, registered: 'Jan 1, 2015'},
-                        country: {name: 'Spain', flag: 'cif-es'},
-                        usage: {value: 22, period: 'Jun 11, 2015 - Jul 10, 2015'},
-                        payment: {name: 'Google Wallet', icon: 'cib-google-pay'},
-                        activity: 'Last week'
-                    },
-                    {
-                        avatar: {url: 'img/avatars/6.jpg', status: 'danger'},
-                        user: {name: 'Friderik Dávid', new: true, registered: 'Jan 1, 2015'},
-                        country: {name: 'Poland', flag: 'cif-pl'},
-                        usage: {value: 43, period: 'Jun 11, 2015 - Jul 10, 2015'},
-                        payment: {name: 'Amex', icon: 'cib-cc-amex'},
-                        activity: 'Last week'
-                    }
-                ],
-                tableFields: [
-                    {key: 'avatar', label: '', _classes: 'text-center'},
-                    {key: 'user'},
-                    {key: 'country', _classes: 'text-center'},
-                    {key: 'usage'},
-                    {key: 'payment', label: 'Payment method', _classes: 'text-center'},
-                    {key: 'activity'},
-                ]
+                userList: userList,
             }
         },
         methods: {
             clickAddGroup(e) {
-                this.$router.push({name:"CreateGroup"})
+                this.$router.push({name: "CreateGroup"})
+            },
+            clickEditGroup(id) {
+                this.$router.push({name: "EditGroup", params: {id: id.toString()}})
+            },
+            clickDeleteGroup(id) {
+                this.$router.push({name: "DeleteGroup", params: {id: id.toString()}})
+            },
+            clickAddUser(e) {
+                this.$router.push({name: "CreateUser"})
+            },
+            clickEditUser(username) {
+                this.$router.push({name: "EditUser", params: {username: username.toString()}})
+            },
+            clickDeleteUser(username) {
+                this.$router.push({name: "DeleteUser", params: {username: username.toString()}})
             },
         }
     }

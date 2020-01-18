@@ -1,81 +1,71 @@
 <template>
     <CRow>
-        <CCol col="12" xl="8">
-            <transition name="slide">
-                <CCard>
-                    <CCardHeader>
-                        Users
-                    </CCardHeader>
-                    <CCardBody>
-                        <CDataTable
-                                hover
-                                striped
-                                :items="items"
-                                :fields="fields"
-                                :items-per-page="perPage"
-                                @row-clicked="rowClicked"
-                                :pagination="$options.paginationProps"
-                                index-column
-                                clickable-rows
-                        >
-                            <template #username="data">
-                                <td>
-                                    <strong>{{data.item.username}}</strong>
-                                </td>
-                            </template>
-
-                            <template #status="data">
-                                <td>
-                                    <CBadge :color="getBadge(data.item.status)">
-                                        {{data.item.status}}
-                                    </CBadge>
-                                </td>
-                            </template>
-                        </CDataTable>
-                    </CCardBody>
-                </CCard>
-            </transition>
+        <CCol sm="12">
+            <CCard accent-color="info">
+                <CCardHeader>
+                    <strong>User ({{userList.data.length}})</strong>
+                    <div class="card-header-actions">
+                        <CButton class="btn-sm btn-primary" @click="clickAddGroup">
+                            <CIcon name="cil-playlist-add"/>
+                            Create New User
+                        </CButton>
+                    </div>
+                </CCardHeader>
+                <CCardBody>
+                    <p v-if="flashMsg" class="alert alert-success">{{flashMsg}}</p>
+                    <CDataTable :items="userList.data" :fields="['username','name',{key:'gid',label:'Group'},'actions']">
+                        <template #actions="{item}">
+                            <td>
+                                <CLink @click="clickEditUser(item.id)" label="Edit" class="btn btn-primary">
+                                    <CIcon name="cil-pencil"/>
+                                </CLink>
+                                &nbsp;
+                                <CLink @click="clickDeleteUser(item.id)" label="Delete" class="btn btn-danger">
+                                    <CIcon name="cil-trash"/>
+                                </CLink>
+                            </td>
+                        </template>
+                    </CDataTable>
+                </CCardBody>
+            </CCard>
         </CCol>
     </CRow>
 </template>
 
 <script>
-    import usersData from './UsersData'
+    import clientUtils from "@/utils/api_client";
 
     export default {
         name: 'Users',
         data: () => {
+            let userList = {data: []}
+            clientUtils.apiDoGet(clientUtils.apiUserList,
+                (apiRes) => {
+                    if (apiRes.status == 200) {
+                        userList.data = apiRes.data
+                    } else {
+                        console.error("Getting user list was unsuccessful: " + apiRes)
+                    }
+                },
+                (err) => {
+                    console.error("Error getting user list: " + err)
+                })
+
             return {
-                items: usersData,
-                fields: [
-                    {key: 'username', label: 'Name'},
-                    {key: 'registered'},
-                    {key: 'role'},
-                    {key: 'status'}
-                ],
-                perPage: 5,
+                userList: userList,
             }
         },
-        paginationProps: {
-            align: 'center',
-            doubleArrows: false,
-            previousButtonHtml: 'prev',
-            nextButtonHtml: 'next'
-        },
+        props: ["flashMsg"],
         methods: {
-            getBadge(status) {
-                return status === 'Active' ? 'success'
-                    : status === 'Inactive' ? 'secondary'
-                        : status === 'Pending' ? 'warning'
-                            : status === 'Banned' ? 'danger' : 'primary'
+            clickAddUser(e) {
+                this.$router.push({name: "CreateUser"})
             },
-            userLink(id) {
-                return `users/${id.toString()}`
+            clickEditUser(username) {
+                this.$router.push({name: "EditUser", params: {username: username.toString()}})
             },
-            rowClicked(item, index) {
-                const userLink = this.userLink(index + 1)
-                this.$router.push({path: userLink})
-            }
+            clickDeleteUser(username) {
+                this.$router.push({name: "DeleteUser", params: {username: username.toString()}})
+            },
         }
     }
 </script>

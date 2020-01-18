@@ -9,11 +9,6 @@
                             <CIcon name="cil-library-add"/>
                             Create New Group
                         </CButton>
-                        <!--
-                        <CLink class="card-header-action btn-minimize" @click="clickAddGroup">
-                            <CIcon name="cil-library-add"/>
-                        </CLink>
-                        -->
                     </div>
                 </CCardHeader>
                 <CCardBody>
@@ -49,9 +44,11 @@
                     if (apiRes.status == 200) {
                         groupList.data = apiRes.data
                     } else {
+                        console.error("Getting group list was unsuccessful: " + apiRes)
                     }
                 },
                 (err) => {
+                    console.error("Error getting group list: " + err)
                 })
 
             return {

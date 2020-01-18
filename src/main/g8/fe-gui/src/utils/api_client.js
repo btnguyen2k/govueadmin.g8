@@ -6,8 +6,7 @@ Client to make call to API server using Axios.
 */
 import Axios from "axios"
 import APP_CONFIG from "./app_config"
-import router from "@/router/index"
-import utils from "@/utils/app_utils";
+import utils from "@/utils/app_utils"
 
 const apiClient = Axios.create({
     baseURL: APP_CONFIG.api_client.bo_api_base_url,
@@ -23,7 +22,8 @@ let apiCheckLoginToken = "/api/checkLoginToken"
 let apiSystemInfo = "/api/systemInfo"
 let apiGroupList = "/api/groups"
 let apiGroup = "/api/group"
-let apiUsers = "/api/users"
+let apiUserList = "/api/users"
+let apiUser = "/api/user"
 
 function _apiOnSuccess(resp, apiUri, callbackSuccessful) {
     // if (apiUri != apiLogin && apiUri != apiCheckLoginToken && resp.hasOwnProperty("data") && resp.data.status == 403) {
@@ -98,7 +98,8 @@ export default {
     apiSystemInfo,
     apiGroupList,
     apiGroup,
-    apiUsers,
+    apiUserList,
+    apiUser,
 
     apiDoGet,
     apiDoPost,
