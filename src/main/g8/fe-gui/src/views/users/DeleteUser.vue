@@ -3,26 +3,34 @@
         <CRow>
             <CCol sm="12">
                 <CCard>
-                    <CCardHeader>Delete Group</CCardHeader>
+                    <CCardHeader>Delete User</CCardHeader>
                     <CForm @submit.prevent="doSubmit" method="post">
                         <CCardBody>
-                            <p v-if="!found" class="alert alert-danger">Group [{{this.$route.params.id}}] not found</p>
+                            <p v-if="!found" class="alert alert-danger">User [{{this.$route.params.username}}] not
+                                found</p>
                             <p v-if="errorMsg!=''" class="alert alert-danger">{{errorMsg}}</p>
                             <CInput v-if="found"
                                     type="text"
-                                    v-model="group.id"
-                                    label="Id"
-                                    placeholder="Enter group id"
+                                    v-model="user.username"
+                                    label="Username"
+                                    placeholder="Enter user's username..."
                                     horizontal
-                                    readonly="readonly"
+                                    disabled="disabled"
                             />
                             <CInput v-if="found"
                                     type="text"
-                                    v-model="group.name"
+                                    v-model="user.name"
                                     label="Name"
-                                    placeholder="Enter group name..."
+                                    placeholder="Enter user's name..."
                                     horizontal
-                                    readonly="readonly"
+                                    disabled="disabled"
+                            />
+                            <CSelect v-if="found"
+                                     label="Group"
+                                     :options="groupList"
+                                     :value.sync="user.groupId"
+                                     horizontal
+                                     disabled="disabled"
                             />
                         </CCardBody>
                         <CCardFooter>
@@ -48,40 +56,58 @@
     import utils from "@/utils/app_utils"
 
     export default {
-        name: 'DeleteGroup',
+        name: 'DeleteUser',
         data() {
-            clientUtils.apiDoGet(clientUtils.apiGroup + "/" + this.$route.params.id,
+            let groupList = {data: []}
+            clientUtils.apiDoGet(clientUtils.apiGroupList,
                 (apiRes) => {
-                    this.found = apiRes.status == 200
                     if (apiRes.status == 200) {
-                        this.group = apiRes.data
+                        apiRes.data.every(function (e) {
+                            groupList.data.push({value: e.id, label: e.name})
+                            return true
+                        })
+                        clientUtils.apiDoGet(clientUtils.apiUser + "/" + this.$route.params.username,
+                            (apiRes) => {
+                                this.found = apiRes.status == 200
+                                if (apiRes.status == 200) {
+                                    this.user.username = apiRes.data.username
+                                    this.user.name = apiRes.data.name
+                                    this.user.groupId = apiRes.data.gid
+                                }
+                            },
+                            (err) => {
+                                this.errorMsg = err
+                            })
+                    } else {
+                        console.error("Getting group list was unsuccessful: " + apiRes)
                     }
                 },
                 (err) => {
-                    this.errorMsg = err
+                    console.error("Error getting group list: " + err)
                 })
             return {
-                group: {id: "", name: ""},
+                user: {username: "", name: "", groupId: ""},
+                groupList: groupList.data,
                 errorMsg: "",
                 found: true,
             }
         },
         methods: {
             doCancel() {
-                router.push("/groups")
+                router.push("/users")
             },
             doSubmit(e) {
                 e.preventDefault()
                 clientUtils.apiDoDelete(
-                    clientUtils.apiGroup + "/" + this.$route.params.id,
+                    clientUtils.apiUser + "/" + this.$route.params.username,
                     (apiRes) => {
                         if (apiRes.status != 200) {
                             this.errorMsg = apiRes.status + ": " + apiRes.message
                         } else {
                             utils.localStorageSet(utils.lskeyLoginSessionLastCheck, null)
                             this.$router.push({
-                                name: "Groups",
-                                params: {flashMsg: "Group [" + this.group.id + "] has been deleted successfully."},
+                                name: "Users",
+                                params: {flashMsg: "User [" + this.user.username + "] has been deleted successfully."},
                             })
                         }
                     },

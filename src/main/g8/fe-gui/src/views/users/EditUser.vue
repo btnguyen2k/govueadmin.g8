@@ -109,7 +109,8 @@
 
 <script>
     import router from "@/router"
-    import clientUtils from "@/utils/api_client";
+    import clientUtils from "@/utils/api_client"
+    import utils from "@/utils/app_utils"
 
     export default {
         name: 'EditUser',
@@ -161,13 +162,13 @@
                     new_password: this.user.newPassword,
                     new_password2: this.user.newPassword2,
                 }
-                console.log(data)
                 clientUtils.apiDoPut(
                     clientUtils.apiUser + "/" + this.$route.params.username, data,
                     (apiRes) => {
                         if (apiRes.status != 200) {
                             this.errorMsg = apiRes.status + ": " + apiRes.message
                         } else {
+                            utils.localStorageSet(utils.lskeyLoginSessionLastCheck, null)
                             this.$router.push({
                                 name: "Users",
                                 params: {flashMsg: "User [" + this.user.username + "] has been updated successfully."},

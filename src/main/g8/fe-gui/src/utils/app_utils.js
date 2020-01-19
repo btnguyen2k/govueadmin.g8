@@ -1,3 +1,6 @@
+const lskeyLoginSession = "usession"
+const lskeyLoginSessionLastCheck = "usession_lastcheck"
+
 function localStorageGet(key) {
     return localStorage.getItem(key)
 }
@@ -19,15 +22,18 @@ function getUnixTimestamp() {
 }
 
 function getLoginSession() {
-    let str = localStorageGet("usession")
+    let str = localStorageGet(lskeyLoginSession)
     return str != null ? JSON.parse(str) : null
 }
 
 function saveLoginSession(session) {
-    localStorageSet("usession", JSON.stringify(session))
+    localStorageSet(lskeyLoginSession, JSON.stringify(session))
 }
 
 export default {
+    lskeyLoginSession,
+    lskeyLoginSessionLastCheck,
+
     localStorageGet,
     localStorageSet,
     localStorageGetAsInt,
