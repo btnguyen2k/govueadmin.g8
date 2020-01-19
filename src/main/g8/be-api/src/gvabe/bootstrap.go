@@ -286,8 +286,7 @@ func apiLogin(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiP
 	if user == nil {
 		return itineris.NewApiResult(itineris.StatusNoPermission).SetMessage("login failed")
 	}
-	encPwd := encryptPassword(user.GetUsername(), password.(string))
-	if encPwd != user.GetPassword() {
+	if encryptPassword(user.GetUsername(), password.(string)) != user.GetPassword() {
 		return itineris.NewApiResult(itineris.StatusNoPermission).SetMessage("login failed")
 	}
 	if token, err := genLoginToken(user); err == nil {
@@ -509,6 +508,11 @@ func apiUpdateUser(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris
 		password, _ := params.GetParamAsType("password", reddo.TypeString)
 		var newPassword, newPassword2 interface{}
 		if password != nil && strings.TrimSpace(password.(string)) != "" {
+			password = strings.TrimSpace(password.(string))
+			if encryptPassword(user.GetUsername(), password.(string)) != user.GetPassword() {
+				return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("Current password does not match")
+			}
+
 			newPassword, _ = params.GetParamAsType("new_password", reddo.TypeString)
 			if newPassword == nil || strings.TrimSpace(newPassword.(string)) == "" {
 				return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("Missing or empty parameter [new_password]")
@@ -538,8 +542,11 @@ func apiUpdateUser(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris
 		}
 
 		user.SetName(strings.TrimSpace(name.(string))).
-			SetGroupId(groupId.(string)).
-			SetPassword(encryptPassword(newPassword.(string), user.GetUsername()))
+			SetGroupId(groupId.(string))
+		if password != nil && strings.TrimSpace(password.(string)) != "" {
+			user.SetPassword(encryptPassword(user.GetUsername(), newPassword.(string)))
+		}
+
 		if ok, err := userDao.Update(user); err != nil {
 			return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
 		} else if !ok {

@@ -152,7 +152,7 @@
             doCancel() {
                 router.push("/users")
             },
-            doSubmitUpdate(e) {
+            doSubmit(e) {
                 e.preventDefault()
                 let data = {
                     name: this.user.name,
@@ -161,22 +161,23 @@
                     new_password: this.user.newPassword,
                     new_password2: this.user.newPassword2,
                 }
-                // clientUtils.apiDoPut(
-                //     clientUtils.apiUser + "/" + this.$route.params.username, data,
-                //     (apiRes) => {
-                //         if (apiRes.status != 200) {
-                //             this.errorMsg = apiRes.status + ": " + apiRes.message
-                //         } else {
-                //             this.$router.push({
-                //                 name: "Users",
-                //                 params: {flashMsg: "User [" + this.user.username + "] has been updated successfully."},
-                //             })
-                //         }
-                //     },
-                //     (err) => {
-                //         this.errorMsg = err
-                //     }
-                // )
+                console.log(data)
+                clientUtils.apiDoPut(
+                    clientUtils.apiUser + "/" + this.$route.params.username, data,
+                    (apiRes) => {
+                        if (apiRes.status != 200) {
+                            this.errorMsg = apiRes.status + ": " + apiRes.message
+                        } else {
+                            this.$router.push({
+                                name: "Users",
+                                params: {flashMsg: "User [" + this.user.username + "] has been updated successfully."},
+                            })
+                        }
+                    },
+                    (err) => {
+                        this.errorMsg = err
+                    }
+                )
             },
             validatorPassword(val) {
                 return this.user.password == "" || this.user.newPassword == this.user.newPassword2
