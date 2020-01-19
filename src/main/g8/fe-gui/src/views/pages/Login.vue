@@ -28,7 +28,7 @@
                                         </CButton>
                                     </CCol>
                                     <CCol col="6" class="text-right">
-                                        <CButton color="link" class="px-0" @click="jsNotImplemented">Forgot password?
+                                        <CButton color="link" class="px-0" @click="funcNotImplemented">Forgot password?
                                         </CButton>
                                     </CCol>
                                 </CRow>
@@ -74,8 +74,7 @@
         //     this.returnUrl = this.$route.query.returnUrl
         // },
         methods: {
-            jsNotImplemented(e) {
-                e.preventDefault()
+            funcNotImplemented() {
                 alert("Not implemented")
             },
             doSubmit(e) {
