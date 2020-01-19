@@ -506,11 +506,40 @@ func apiUpdateUser(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris
 	} else {
 		// TODO check current user's permission
 
+		password, _ := params.GetParamAsType("password", reddo.TypeString)
+		var newPassword, newPassword2 interface{}
+		if password != nil && strings.TrimSpace(password.(string)) != "" {
+			newPassword, _ = params.GetParamAsType("new_password", reddo.TypeString)
+			if newPassword == nil || strings.TrimSpace(newPassword.(string)) == "" {
+				return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("Missing or empty parameter [new_password]")
+			}
+			newPassword = strings.TrimSpace(newPassword.(string))
+			newPassword2, _ = params.GetParamAsType("new_password2", reddo.TypeString)
+			if newPassword2 == nil || strings.TrimSpace(newPassword2.(string)) != newPassword {
+				return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("New password does not match confirmed one")
+			}
+		}
+
 		name, _ := params.GetParamAsType("name", reddo.TypeString)
 		if name == nil || strings.TrimSpace(name.(string)) == "" {
 			return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("Missing or empty parameter [name]")
 		}
-		user.SetName(strings.TrimSpace(name.(string)))
+		name = strings.TrimSpace(name.(string))
+
+		groupId, _ := params.GetParamAsType("group_id", reddo.TypeString)
+		if groupId == nil || strings.TrimSpace(groupId.(string)) == "" {
+			return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("Missing or empty parameter [group_id]")
+		}
+		groupId = strings.TrimSpace(strings.ToLower(groupId.(string)))
+		if group, err := groupDao.Get(groupId.(string)); err != nil {
+			return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		} else if group == nil {
+			return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage(fmt.Sprintf("Group [%s] does not exist", groupId))
+		}
+
+		user.SetName(strings.TrimSpace(name.(string))).
+			SetGroupId(groupId.(string)).
+			SetPassword(encryptPassword(newPassword.(string), user.GetUsername()))
 		if ok, err := userDao.Update(user); err != nil {
 			return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
 		} else if !ok {
@@ -557,26 +586,47 @@ func apiCreateUser(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris
 		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("Invalid value for parameter [username]")
 	}
 
+	password, _ := params.GetParamAsType("password", reddo.TypeString)
+	if password == nil || strings.TrimSpace(password.(string)) == "" {
+		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("Missing or empty parameter [password]")
+	}
+	password = strings.TrimSpace(password.(string))
+	password2, _ := params.GetParamAsType("password2", reddo.TypeString)
+	if password2 == nil || strings.TrimSpace(password2.(string)) != password {
+		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("Password does not match confirmed one")
+	}
+
 	name, _ := params.GetParamAsType("name", reddo.TypeString)
 	if name == nil || strings.TrimSpace(name.(string)) == "" {
 		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("Missing or empty parameter [name]")
 	}
 	name = strings.TrimSpace(name.(string))
 
+	groupId, _ := params.GetParamAsType("group_id", reddo.TypeString)
+	if groupId == nil || strings.TrimSpace(groupId.(string)) == "" {
+		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("Missing or empty parameter [group_id]")
+	}
+	groupId = strings.TrimSpace(strings.ToLower(groupId.(string)))
+	if group, err := groupDao.Get(groupId.(string)); err != nil {
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+	} else if group == nil {
+		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage(fmt.Sprintf("Group [%s] does not exist", groupId))
+	}
+
 	if user, err := userDao.Get(username.(string)); err != nil {
 		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
 	} else if user != nil {
 		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage(fmt.Sprintf("User [%s] already existed", username))
 	}
-	user := user.NewUserBo(username.(string), "")
-	// user := &group.Group{
-	// 	Id:   strings.TrimSpace(strings.ToLower(username.(string))),
-	// 	Name: strings.TrimSpace(name.(string)),
-	// }
-	// if ok, err := groupDao.Create(group); err != nil {
-	// 	return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
-	// } else if !ok {
-	// 	return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(fmt.Sprintf("Group [%s] has not been created", username))
-	// }
-	return itineris.NewApiResult(itineris.StatusOk).SetData(user)
+	user := user.NewUserBo(username.(string), "").
+		SetPassword(encryptPassword(username.(string), password.(string))).
+		SetName(name.(string)).
+		SetGroupId(groupId.(string)).
+		SetAesKey(utils.RandomString(16))
+	if ok, err := userDao.Create(user); err != nil {
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+	} else if !ok {
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(fmt.Sprintf("User [%s] has not been created", username))
+	}
+	return itineris.NewApiResult(itineris.StatusOk)
 }

@@ -8,33 +8,52 @@
                         <CCardBody>
                             <p v-if="errorMsg!=''" class="alert alert-danger">{{errorMsg}}</p>
                             <CInput
-                                    id="username" name="username"
                                     type="text"
                                     v-model="form.username"
                                     label="Username"
                                     placeholder="Enter user's username..."
                                     horizontal
                                     :is-valid="validatorUsername"
-                                    invalid-feedback="Please enter user's username, format [0-9a-z_]+, must be unique."
-                                    valid-feedback="Please enter user's username, format [0-9a-z_]+, must be unique."
+                                    invalid-feedback="Enter user's username, format [0-9a-z_]+, must be unique."
+                                    valid-feedback="Enter user's username, format [0-9a-z_]+, must be unique."
                             />
                             <CInput
-                                    id="name" name="name"
+                                    type="password"
+                                    v-model="form.password"
+                                    label="Password"
+                                    description="Enter user's password"
+                                    placeholder="Enter user's password..."
+                                    horizontal
+                                    required
+                                    :is-valid="validatorPassword"
+                                    invalid-feedback="Password must match the confirmed one"
+                            />
+                            <CInput
+                                    type="password"
+                                    v-model="form.password2"
+                                    label="Confirmed Password"
+                                    description="Confirm user's password"
+                                    placeholder="Enter user's password again..."
+                                    horizontal
+                                    required
+                                    :is-valid="validatorPassword"
+                                    invalid-feedback="Password must match the confirmed one"
+                            />
+                            <CInput
                                     type="text"
                                     v-model="form.name"
                                     label="Name"
-                                    description="Please enter user's name"
+                                    description="Enter user's name"
                                     placeholder="Enter user's name..."
                                     horizontal
                                     required
                                     was-validated
                             />
                             <CSelect
-                                    id="groupId" name="groupId"
-                                    v-model="form.groupId"
                                     label="Group"
-                                    description="Please assign user to group"
+                                    description="Assign user to group"
                                     :options="groupList"
+                                    :value.sync="form.groupId"
                                     horizontal
                             />
                         </CCardBody>
@@ -65,10 +84,18 @@
         name: 'CreateUser',
         data() {
             let groupList = {data: []}
+            let form = {
+                username: "", password: "", password2: "",
+                name: "",
+                groupId: groupList.data.length > 0 ? groupList.data[0].value : ""
+            }
             clientUtils.apiDoGet(clientUtils.apiGroupList,
                 (apiRes) => {
                     if (apiRes.status == 200) {
                         apiRes.data.every(function (e) {
+                            if (form.groupId == "") {
+                                form.groupId = e.id
+                            }
                             groupList.data.push({value: e.id, label: e.name})
                             return true
                         })
@@ -81,7 +108,7 @@
                 })
             return {
                 groupList: groupList.data,
-                form: {username: "", name: "", groupId: ""},
+                form: form,
                 errorMsg: "",
             }
         },
@@ -91,7 +118,11 @@
             },
             doSubmit(e) {
                 e.preventDefault()
-                let data = {username: this.form.username, name: this.form.name, group_id: this.form.groupId}
+                let data = {
+                    username: this.form.username,
+                    password: this.form.password, password2: this.form.password2,
+                    name: this.form.name, group_id: this.form.groupId
+                }
                 clientUtils.apiDoPost(
                     clientUtils.apiUserList, data,
                     (apiRes) => {
@@ -112,6 +143,9 @@
             },
             validatorUsername(val) {
                 return val ? patternUsername.test(val.toString()) : false
+            },
+            validatorPassword(val) {
+                return this.form.password == this.form.password2
             },
         }
     }

@@ -148,11 +148,11 @@
                             <CDataTable :items="userList.data" :fields="['username','name',{key:'gid',label:'Group'},'actions']">
                                 <template #actions="{item}">
                                     <td>
-                                        <CLink @click="clickEditUser(item.id)" label="Edit" class="btn-sm btn-primary">
+                                        <CLink @click="clickEditUser(item.username)" label="Edit" class="btn-sm btn-primary">
                                             <CIcon name="cil-pencil"/>
                                         </CLink>
                                         &nbsp;
-                                        <CLink @click="clickDeleteUser(item.id)" label="Delete" class="btn-sm btn-danger">
+                                        <CLink @click="clickDeleteUser(item.username)" label="Delete" class="btn-sm btn-danger">
                                             <CIcon name="cil-trash"/>
                                         </CLink>
                                     </td>

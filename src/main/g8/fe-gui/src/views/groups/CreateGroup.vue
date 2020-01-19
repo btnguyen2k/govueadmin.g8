@@ -8,7 +8,6 @@
                         <CCardBody>
                             <p v-if="errorMsg!=''" class="alert alert-danger">{{errorMsg}}</p>
                             <CInput
-                                    id="id" name="id"
                                     type="text"
                                     v-model="form.id"
                                     label="Id"
@@ -19,7 +18,6 @@
                                     valid-feedback="Please enter group id, format [0-9a-z_]+, must be unique."
                             />
                             <CInput
-                                    id="name" name="name"
                                     type="text"
                                     v-model="form.name"
                                     label="Name"

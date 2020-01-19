@@ -70,9 +70,9 @@
                 erroMsg: "",
             }
         },
-        created() {
-            this.returnUrl = this.$route.query.returnUrl
-        },
+        // created() {
+        //     this.returnUrl = this.$route.query.returnUrl
+        // },
         methods: {
             jsNotImplemented(e) {
                 e.preventDefault()
@@ -92,7 +92,7 @@
                                 token: apiRes.data.token,
                                 expiry: apiRes.data.expiry,
                             })
-                            this.$router.push(this.returnUrl)
+                            this.$router.push(this.returnUrl != "" ? this.returnUrl : "/")
                         }
                     },
                     (err) => {

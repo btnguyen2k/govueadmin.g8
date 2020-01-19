@@ -9,7 +9,6 @@
                             <p v-if="!found" class="alert alert-danger">Group [{{this.$route.params.id}}] not found</p>
                             <p v-if="errorMsg!=''" class="alert alert-danger">{{errorMsg}}</p>
                             <CInput v-if="found"
-                                    id="id" name="id"
                                     type="text"
                                     v-model="group.id"
                                     label="Id"
@@ -18,7 +17,6 @@
                                     readonly="readonly"
                             />
                             <CInput v-if="found"
-                                    id="name" name="name"
                                     type="text"
                                     v-model="group.name"
                                     label="Name"

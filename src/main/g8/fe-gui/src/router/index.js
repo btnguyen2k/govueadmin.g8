@@ -16,7 +16,7 @@ const DeleteGroup = () => import('@/views/groups/DeleteGroup')
 // Users
 const Users = () => import('@/views/users/Users')
 const CreateUser = () => import('@/views/users/CreateUser')
-// const EditUser = () => import('@/views/users/EditUser')
+const EditUser = () => import('@/views/users/EditUser')
 // const DeleteUser = () => import('@/views/users/DeleteUser')
 
 const Colors = () => import('@/views/theme/Colors')
@@ -187,12 +187,12 @@ function configRoutes() {
                             name: 'CreateUser',
                             component: CreateUser,
                         },
-                        // {
-                        //     path: '_edit/:id',
-                        //     meta: {label: 'Edit User'},
-                        //     name: 'EditUser',
-                        //     component: EditUser,
-                        // },
+                        {
+                            path: '_edit/:username',
+                            meta: {label: 'Edit User'},
+                            name: 'EditUser',
+                            component: EditUser,
+                        },
                         // {
                         //     path: '_delete/:id',
                         //     meta: {label: 'Delete User'},
