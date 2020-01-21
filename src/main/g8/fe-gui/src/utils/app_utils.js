@@ -10,11 +10,16 @@ function localStorageGetAsInt(key) {
     if (str == null) {
         return 0
     }
-    return Number.parseInt(str, 10)
+    let v = Number.parseInt(str, 10)
+    return isNaN(v) ? 0 : v
 }
 
 function localStorageSet(key, value) {
-    return localStorage.setItem(key, value)
+    if (value == null) {
+        localStorage.removeItem(key)
+    } else {
+        localStorage.setItem(key, value)
+    }
 }
 
 function getUnixTimestamp() {

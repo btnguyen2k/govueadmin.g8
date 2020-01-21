@@ -70,7 +70,8 @@ Vue.use(Router)
 let router = new Router({
     mode: 'hash', // https://router.vuejs.org/api/#mode
     linkActiveClass: 'active',
-    scrollBehavior: () => ({y: 0}),
+    //scrollBehavior: () => ({y: 0}),
+    base: "/app/",
     routes: configRoutes()
 })
 

@@ -7,11 +7,13 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"google.golang.org/grpc"
+	"io/ioutil"
 	"log"
 	pb "main/grpc"
 	"main/src/itineris"
 	"main/src/utils"
 	"net"
+	"net/http"
 	"os"
 	"regexp"
 	"time"
@@ -117,6 +119,35 @@ func initEchoServer() {
 			AllowOrigins: allowOgirins,
 		}))
 	}
+
+	const fePath = "/app"
+	const feDir = "./frontend"
+	e.Static(fePath, feDir)
+	e.GET("/", func(c echo.Context) error {
+		return c.Redirect(http.StatusFound, fePath+"/")
+	})
+	e.GET(fePath+"/", func(c echo.Context) error {
+		if fcontent, err := ioutil.ReadFile(feDir + "/index.html"); err != nil {
+			if os.IsNotExist(err) {
+				return c.HTML(http.StatusNotFound, "Not found: "+fePath+"/index.html")
+			} else {
+				return err
+			}
+		} else {
+			return c.HTMLBlob(http.StatusOK, fcontent)
+		}
+	})
+	e.GET("/manifest.json", func(c echo.Context) error {
+		if fcontent, err := ioutil.ReadFile(feDir + "/manifest.json"); err != nil {
+			if os.IsNotExist(err) {
+				return c.HTML(http.StatusNotFound, "Not found: manifest.json")
+			} else {
+				return err
+			}
+		} else {
+			return c.JSONBlob(http.StatusOK, fcontent)
+		}
+	})
 
 	// register API http endpoints
 	hasEndpoints := false

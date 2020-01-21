@@ -203,9 +203,13 @@ func (f *GVAFEAuthenticationFilter) authenticate(ctx *itineris.ApiContext, auth 
 	if ctx.GetApiName() != "info" && ctx.GetApiName() != "login" {
 		tokens := strings.SplitN(auth.GetAccessToken(), ":", 2)
 		if len(tokens) != 2 {
+			log.Printf("API authentication failed [API: %s / Token: %s", ctx.GetApiName(), auth.GetAccessToken())
 			return false, "", ""
 		}
 		status, err := verifyLoginToken(tokens[0], tokens[1])
+		if err == nil && status != sessionStatusOk {
+			log.Printf("API authentication failed [API: %s / User: %s / Status: %d", ctx.GetApiName(), tokens[0], status)
+		}
 		return err == nil && status == sessionStatusOk, tokens[0], tokens[1]
 	}
 	return true, "", ""

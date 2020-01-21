@@ -191,7 +191,7 @@
                         systemInfo.app_memory = apiRes.data.app_memory
                         systemInfo.go_routines = apiRes.data.go_routines
                     } else {
-                        console.error("Getting system info was unsuccessful: " + apiRes)
+                        console.error("Getting system info was unsuccessful: " + JSON.stringify(apiRes))
                     }
                 },
                 (err) => {
@@ -205,7 +205,7 @@
                     if (apiRes.status == 200) {
                         groupList.data = apiRes.data
                     } else {
-                        console.error("Getting group list was unsuccessful: " + apiRes)
+                        console.error("Getting group list was unsuccessful: " + JSON.stringify(apiRes))
                     }
                 },
                 (err) => {
@@ -218,7 +218,7 @@
                     if (apiRes.status == 200) {
                         userList.data = apiRes.data
                     } else {
-                        console.error("Getting user list was unsuccessful: " + apiRes)
+                        console.error("Getting user list was unsuccessful: " + JSON.stringify(apiRes))
                     }
                 },
                 (err) => {

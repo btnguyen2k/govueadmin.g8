@@ -1,16 +1,16 @@
-# $name$
+# $name$ Backend
 
-**$desc$** by **$author$ - $organization$**, based on [go_echo-microservices-seed.g8](https://github.com/btnguyen2k/go_echo-microservices-seed.g8).
+**$desc$** by **$author$ - $organization$**, based on [govueadmin.g8](https://github.com/btnguyen2k/govueadmin.g8).
 
 Copyright (C) by **$organization$**.
 
-Latest release version: `$version$`. See [RELEASE-NOTES.md](RELEASE-NOTES.md).
+Latest release version: `$version$`. See [RELEASE-NOTES.md](../RELEASE-NOTES.md).
 
 ## Getting Started
 
 ### Application Bootstrapper & API Handlers
 
-Implement application bootstrapper by implementing interface `ggoapi.IBootstrapper`.
+Implement application bootstrapper by implementing interface `goapi.IBootstrapper`.
 
 API handler is defined as
 
@@ -56,13 +56,6 @@ api {
     header_access_token = "X-Access-Token"
   }
 
-  grpc {
-    # Listen address & port for gRPC API gateway.
-    # set listen_port=0 to disable gRPC API gateway.
-    listen_addr = "0.0.0.0"
-    listen_port = 8090
-  }
-
   # Client cannot send request that exceeds this size
   # - absolute number: size in bytes
   # - or, number+suffix: https://github.com/lightbend/config/blob/master/HOCON.md#size-in-bytes-format
@@ -100,4 +93,4 @@ api {
 
 ## LICENSE & COPYRIGHT
 
-See [LICENSE.md](LICENSE.md).
+See [LICENSE.md](../LICENSE.md).
