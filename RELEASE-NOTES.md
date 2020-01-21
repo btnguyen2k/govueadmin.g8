@@ -1,6 +1,6 @@
 # govueadmin.g8 Release Notes
 
-## 2020-01-20: template-v0.4.r1
+## 2020-01-21: template-v0.1.0
 
 - Frontend using [CoreUI for Vue.js](https://coreui.io/vue/) `v3.0.0-beta.3`.
 - Backend using [Echo](https://echo.labstack.com) `v4.1.x`.

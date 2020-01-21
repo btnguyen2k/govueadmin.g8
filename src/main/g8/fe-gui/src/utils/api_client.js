@@ -2,7 +2,7 @@
 Client to make call to API server using Axios.
 
 @author Thanh Nguyen <btnguyen2k@gmail.com>
-@since template-v0.4.r1
+@since template-v0.1.0
 */
 import Axios from "axios"
 import APP_CONFIG from "./app_config"

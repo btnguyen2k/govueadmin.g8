@@ -36,32 +36,47 @@ stages:
   - docker-build
   - docker-release
 
-build:
+build-fe:
   stage: build
   script:
     - whoami && pwd && date
-    - cd $APP_ROOT && go build -o main
+    - cd $APP_ROOT/fe-gui && npm install && npm run build
   tags:
-    ## Define tags if needed
-    #- gitlabci-build
-    #- golang
+  ## Define tags if needed
+  #- gitlabci-build
+  #- node
 
-test:
+test-fe:
   stage: test
-  only:
-    # Run ony if commit has tag release-x.y.z.t or staging-x.y.z.t or test-x.y.z.t
-    - /^release-.*$/
-    - /^staging-.*$/
-    - /^test-.*$/
   script:
     - whoami && pwd && date
-    #- cd $APP_ROOT && go test -v -count=1
+    #- cd $APP_ROOT/fe-gui && npm install && npm run test
+  tags:
+  ## Define tags if needed
+  #- gitlabci-build
+  #- node
+
+build-be:
+  stage: build
+  script:
+    - whoami && pwd && date
+    - cd $APP_ROOT/be-api && go build -o main
   tags:
     ## Define tags if needed
     #- gitlabci-build
     #- golang
 
-build docker image:
+test-be:
+  stage: test
+  script:
+    - whoami && pwd && date
+    #- cd $APP_ROOT/be-api && go test -v -count=1
+  tags:
+    ## Define tags if needed
+    #- gitlabci-build
+    #- golang
+
+build docker image frontend:
   stage: docker-build
   only:
     # Run ony if commit has tag release-x.y.z.t or staging-x.y.z.t or test-x.y.z.t
@@ -70,16 +85,77 @@ build docker image:
     - /^test-.*$/
   script:
     - whoami && pwd && date
-    - cd $APP_ROOT && go build -o main
     ## Remove --squash if docker's experimental features are not enabled
-    - cd $APP_ROOT && docker build --force-rm --squash -t $DOCKER_REGISTRY_SERVER/$CI_PROJECT_NAME:$CI_PROJECT_VERSION .
+    - cd $APP_ROOT/fe-gui && docker build --force-rm --squash -t $DOCKER_REGISTRY_SERVER/$CI_PROJECT_NAME-fe:$CI_PROJECT_VERSION .
+    - docker rmi $(docker images -f "dangling=true" -q)
+  tags:
+  ## Define tags if needed
+  #- gitlabci-build
+  #- node
+
+build docker image backend:
+  stage: docker-build
+  only:
+    # Run ony if commit has tag release-x.y.z.t or staging-x.y.z.t or test-x.y.z.t
+    - /^release-.*$/
+    - /^staging-.*$/
+    - /^test-.*$/
+  script:
+    - whoami && pwd && date
+    ## Remove --squash if docker's experimental features are not enabled
+    - cd $APP_ROOT/be-api && docker build --force-rm --squash -t $DOCKER_REGISTRY_SERVER/$CI_PROJECT_NAME-be:$CI_PROJECT_VERSION .
     - docker rmi $(docker images -f "dangling=true" -q)
   tags:
     ## Define tags if needed
     #- gitlabci-build
     #- golang
 
-push test to docker registry:
+build docker image all-in-one:
+  stage: docker-build
+  only:
+    # Run ony if commit has tag release-x.y.z.t or staging-x.y.z.t or test-x.y.z.t
+    - /^release-.*$/
+    - /^staging-.*$/
+    - /^test-.*$/
+  script:
+    - whoami && pwd && date
+    ## Remove --squash if docker's experimental features are not enabled
+    - cd $APP_ROOT && docker build --force-rm --squash -t $DOCKER_REGISTRY_SERVER/$CI_PROJECT_NAME:$CI_PROJECT_VERSION .
+    - docker rmi $(docker images -f "dangling=true" -q)
+  tags:
+  ## Define tags if needed
+  #- gitlabci-build
+  #- golang
+
+push test frontend to docker registry:
+  stage: docker-release
+  only:
+    - /^test-.*$/
+  script:
+    - whoami && pwd && date
+    - docker login -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_PASSWORD $DOCKER_REGISTRY_SERVER
+    - docker tag ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/$CI_PROJECT_NAME-fe:$CI_PROJECT_VERSION ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/$CI_PROJECT_NAME-fe:$CI_PROJECT_VERSION-test
+    - docker push ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/$CI_PROJECT_NAME-fe:$CI_PROJECT_VERSION-test
+  tags:
+    ## Define tags if needed
+    #- gitlabci-build
+  when: manual
+
+push test backend to docker registry:
+  stage: docker-release
+  only:
+    - /^test-.*$/
+  script:
+    - whoami && pwd && date
+    - docker login -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_PASSWORD $DOCKER_REGISTRY_SERVER
+    - docker tag ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/$CI_PROJECT_NAME-be:$CI_PROJECT_VERSION ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/$CI_PROJECT_NAME-be:$CI_PROJECT_VERSION-test
+    - docker push ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/$CI_PROJECT_NAME-be:$CI_PROJECT_VERSION-test
+  tags:
+  ## Define tags if needed
+  #- gitlabci-build
+  when: manual
+
+push test all-in-one to docker registry:
   stage: docker-release
   only:
     - /^test-.*$/
@@ -89,11 +165,39 @@ push test to docker registry:
     - docker tag ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/$CI_PROJECT_NAME:$CI_PROJECT_VERSION ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/$CI_PROJECT_NAME:$CI_PROJECT_VERSION-test
     - docker push ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/$CI_PROJECT_NAME:$CI_PROJECT_VERSION-test
   tags:
+  ## Define tags if needed
+  #- gitlabci-build
+  when: manual
+
+push staging frontend to docker registry:
+  stage: docker-release
+  only:
+    - /^staging-.*$/
+  script:
+    - whoami && pwd && date
+    - docker login -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_PASSWORD $DOCKER_REGISTRY_SERVER
+    - docker tag ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/$CI_PROJECT_NAME-fe:$CI_PROJECT_VERSION ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/$CI_PROJECT_NAME-fe:$CI_PROJECT_VERSION-staging
+    - docker push ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/$CI_PROJECT_NAME-fe:$CI_PROJECT_VERSION-staging
+  tags:
     ## Define tags if needed
     #- gitlabci-build
   when: manual
 
-push staging to docker registry:
+push staging backend to docker registry:
+  stage: docker-release
+  only:
+    - /^staging-.*$/
+  script:
+    - whoami && pwd && date
+    - docker login -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_PASSWORD $DOCKER_REGISTRY_SERVER
+    - docker tag ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/$CI_PROJECT_NAME-be:$CI_PROJECT_VERSION ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/$CI_PROJECT_NAME-be:$CI_PROJECT_VERSION-staging
+    - docker push ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/$CI_PROJECT_NAME-be:$CI_PROJECT_VERSION-staging
+  tags:
+  ## Define tags if needed
+  #- gitlabci-build
+  when: manual
+
+push staging all-in-one to docker registry:
   stage: docker-release
   only:
     - /^staging-.*$/
@@ -103,11 +207,41 @@ push staging to docker registry:
     - docker tag ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/$CI_PROJECT_NAME:$CI_PROJECT_VERSION ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/$CI_PROJECT_NAME:$CI_PROJECT_VERSION-staging
     - docker push ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/$CI_PROJECT_NAME:$CI_PROJECT_VERSION-staging
   tags:
+  ## Define tags if needed
+  #- gitlabci-build
+  when: manual
+
+push release frontend to docker registry:
+  stage: docker-release
+  only:
+    - /^release-.*$/
+  script:
+    - whoami && pwd && date
+    - docker login -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_PASSWORD $DOCKER_REGISTRY_SERVER
+    - docker tag ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/$CI_PROJECT_NAME-fe:$CI_PROJECT_VERSION ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/$CI_PROJECT_NAME-fe:latest
+    - docker push ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/$CI_PROJECT_NAME-fe:$CI_PROJECT_VERSION
+    - docker push ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/$CI_PROJECT_NAME-fe:latest
+  tags:
     ## Define tags if needed
     #- gitlabci-build
   when: manual
 
-push release to docker registry:
+push release backend to docker registry:
+  stage: docker-release
+  only:
+    - /^release-.*$/
+  script:
+    - whoami && pwd && date
+    - docker login -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_PASSWORD $DOCKER_REGISTRY_SERVER
+    - docker tag ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/$CI_PROJECT_NAME-be:$CI_PROJECT_VERSION ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/$CI_PROJECT_NAME-be:latest
+    - docker push ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/$CI_PROJECT_NAME-be:$CI_PROJECT_VERSION
+    - docker push ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/$CI_PROJECT_NAME-be:latest
+  tags:
+  ## Define tags if needed
+  #- gitlabci-build
+  when: manual
+
+push release all-in-one to docker registry:
   stage: docker-release
   only:
     - /^release-.*$/
@@ -118,6 +252,6 @@ push release to docker registry:
     - docker push ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/$CI_PROJECT_NAME:$CI_PROJECT_VERSION
     - docker push ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/$CI_PROJECT_NAME:latest
   tags:
-    ## Define tags if needed
-    #- gitlabci-build
+  ## Define tags if needed
+  #- gitlabci-build
   when: manual

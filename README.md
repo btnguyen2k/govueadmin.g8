@@ -2,7 +2,7 @@
 
 Giter8 template to develop `Admin Control Panel` in Go with VueJS-based frontend.
 
-Latest release: [template-v0.4.r1](RELEASE-NOTES.md).
+Latest release: [template-v0.1.0](RELEASE-NOTES.md).
 
 ## Features
 
