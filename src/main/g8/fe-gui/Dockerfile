@@ -6,7 +6,7 @@ FROM node:13.6-alpine3.11 AS builder
 MAINTAINER $author$
 RUN mkdir /build
 COPY . /build
-RUN cd /build && npm install && npm run build
+RUN cd /build && rm -rf dist node_modules && npm install && npm run build
 
 FROM nginx:1.17-alpine
 COPY nginx.conf /etc/nginx/nginx.conf
