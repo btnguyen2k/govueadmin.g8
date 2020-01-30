@@ -8,8 +8,6 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
-      - run: date && whoami && pwd
-      - run: curl https://cli-assets.heroku.com/install.sh | sh
       - run:
           name: Build Docker Image
           command: cd src/main/g8 && docker build --force-rm -t govueadmin -f Dockerfile.local .
@@ -19,53 +17,44 @@ jobs:
           root: caches
           paths:
             - docker_cache.tar
-#  push_docker_image:
-#    docker:
-#      - image: circleci/golang:1.13
-#    steps:
-#      - setup_remote_docker
-#      - attach_workspace:
-#          at: caches
-#      - run:
-#          name: Login Docker Hub
-#          command: echo $DOCKER_REGISTRY_PASSWORD | docker login -u $DOCKER_REGISTRY_USER --password-stdin $DOCKER_REGISTRY_SERVER
-#      - run:
-#          name: Push Docker Image
-#          command: echo $CIRCLE_TAG
-#            && docker load -i caches/docker_cache.tar
-#            && export CI_PROJECT_VERSION=`echo $CIRCLE_TAG | cut -d'-' -f 2`
-#            && docker tag prista:$CI_PROJECT_VERSION ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/prista:$CI_PROJECT_VERSION
-#            && docker tag prista:$CI_PROJECT_VERSION ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/prista:latest
-#            && docker images
-#            && docker push ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/prista:$CI_PROJECT_VERSION
-#            && docker push ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/prista:latest
+  push_docker_image:
+    docker:
+      - image: circleci/golang:1.13
+    steps:
+      - setup_remote_docker
+      - attach_workspace:
+          at: caches
+      - run:
+          name: Login Docker Registry
+          command: echo $DOCKER_REGISTRY_PASSWORD | docker login -u $DOCKER_REGISTRY_USER --password-stdin $DOCKER_REGISTRY_SERVER
+      - run:
+          name: Push Docker Image
+          command: docker load -i caches/docker_cache.tar
+            && docker tag govueadmin ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/demo-govueadmin/web
+            && docker images
+            && docker push ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/demo-govueadmin/web
+  release_demo:
+    docker:
+      - image: circleci/golang:1.13
+    steps:
+      - run:
+          name: Install Heroku CLI
+          command: curl https://cli-assets.heroku.com/install.sh | sh
+      - run:
+          name: Release Heroku App
+          command: heroku container:release web -a demo-govueadmin
 workflows:
   version: 2
   build_docker_image_and_release:
     jobs:
       - build_docker_image
-#  build_docker_image_and_release:
-#    jobs:
-#      - build_docker_image:
-#          filters:
-#            tags:
-#              only: /^release-.*$/
-#            branches:
-#              ignore: /.*/
-#      - hold_for_approval:
-#          type: approval
-#          requires:
-#            - build_docker_image
-#          filters:
-#            tags:
-#              only: /^release-.*$/
-#            branches:
-#              ignore: /.*/
-#      - push_docker_image:
-#          requires:
-#            - hold_for_approval
-#          filters:
-#            tags:
-#              only: /^release-.*$/
-#            branches:
-#              ignore: /.*/
+      - hold_for_approval:
+          type: approval
+          requires:
+            - build_docker_image
+      - push_docker_image:
+          requires:
+            - hold_for_approval
+      - release_demo:
+          requires:
+            - push_docker_image
