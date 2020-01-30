@@ -8,6 +8,8 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
+      - run: date && whoiam && pwd
+      - run: curl https://cli-assets.heroku.com/install.sh | sh
       - run:
           name: Build Docker Image
           command: cd src/main/g8 && docker build --force-rm -t govueadmin -f Dockerfile.local .
