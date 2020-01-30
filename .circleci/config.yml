@@ -10,10 +10,8 @@ jobs:
       - setup_remote_docker
       - run:
           name: Build Docker Image
-          command: date && whoami && pwd
-            && mkdir caches
-            && cd src/main/g8 && docker build --force-rm -t govueadmin -f Dockerfile.local .
-            && docker save -o caches/docker_cache.tar govueadmin
+          command: cd src/main/g8 && docker build --force-rm -t govueadmin -f Dockerfile.local .
+            && cd ../../../ && mkdir caches && docker save -o caches/docker_cache.tar govueadmin
             && docker images
       - persist_to_workspace:
           root: caches
