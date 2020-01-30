@@ -58,6 +58,9 @@ func createSqlConnect() *prom.SqlConnect {
 		dir := goapi.AppConfig.GetString("gvabe.db.sqlite.directory")
 		dbname := goapi.AppConfig.GetString("gvabe.db.sqlite.dbname")
 		return bo.NewSqliteConnection(dir, dbname)
+	case "pg", "pgsql", "postgres", "postgresql":
+		url := goapi.AppConfig.GetString("gvabe.db.pgsql.url")
+		return bo.NewPgsqlConnection(url, goapi.AppConfig.GetString("timezone"))
 	}
 	panic(fmt.Sprintf("unknown databbase type: %s", dbtype))
 }
@@ -67,6 +70,8 @@ func createGroupDao(sqlc *prom.SqlConnect) group.GroupDao {
 	switch dbtype {
 	case "sqlite":
 		return group.NewGroupDaoSqlite(sqlc, bo.TableGroup)
+	case "pg", "pgsql", "postgres", "postgresql":
+		return group.NewGroupDaoPgsql(sqlc, bo.TableGroup)
 	}
 	panic(fmt.Sprintf("unknown databbase type: %s", dbtype))
 }
@@ -76,14 +81,23 @@ func createUserDao(sqlc *prom.SqlConnect) user.UserDao {
 	switch dbtype {
 	case "sqlite":
 		return user.NewUserDaoSqlite(sqlc, bo.TableUser)
+	case "pg", "pgsql", "postgres", "postgresql":
+		return user.NewUserDaoPgsql(sqlc, bo.TableUser)
 	}
 	panic(fmt.Sprintf("unknown databbase type: %s", dbtype))
 }
 
 func initDaos() {
 	sqlc := createSqlConnect()
-	group.InitSqliteTableGroup(sqlc, bo.TableGroup)
-	user.InitSqliteTableUser(sqlc, bo.TableUser)
+	dbtype := strings.ToLower(goapi.AppConfig.GetString("gvabe.db.type"))
+	switch dbtype {
+	case "sqlite":
+		group.InitSqliteTableGroup(sqlc, bo.TableGroup)
+		user.InitSqliteTableUser(sqlc, bo.TableUser)
+	case "pg", "pgsql", "postgres", "postgresql":
+		group.InitPgsqlTableGroup(sqlc, bo.TableGroup)
+		user.InitPgsqlTableUser(sqlc, bo.TableUser)
+	}
 
 	groupDao = createGroupDao(sqlc)
 	systemGroup, err := groupDao.Get(systemGroupId)
@@ -388,6 +402,11 @@ func apiUpdateGroup(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineri
 	} else {
 		// TODO check current user's permission
 
+		// FIXME this is for demo purpose only!
+		if group.Id == systemGroupId {
+			return itineris.NewApiResult(itineris.StatusNoPermission).SetMessage(fmt.Sprintf("Cannot edit system group [%s]", group.Id))
+		}
+
 		name, _ := params.GetParamAsType("name", reddo.TypeString)
 		if name == nil || strings.TrimSpace(name.(string)) == "" {
 			return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("Missing or empty parameter [name]")
@@ -415,6 +434,7 @@ func apiDeleteGroup(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineri
 	} else {
 		// TODO check current user's permission
 
+		// FIXME this is for demo purpose only!
 		if group.Id == systemGroupId {
 			return itineris.NewApiResult(itineris.StatusNoPermission).SetMessage(fmt.Sprintf("Cannot delete system group [%s]", group.Id))
 		}
@@ -509,6 +529,11 @@ func apiUpdateUser(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris
 	} else {
 		// TODO check current user's permission
 
+		// FIXME this is for demo purpose only!
+		if user.GetUsername() == systemAdminUsername {
+			return itineris.NewApiResult(itineris.StatusNoPermission).SetMessage(fmt.Sprintf("Cannot edit system admin user [%s]", user.GetUsername()))
+		}
+
 		password, _ := params.GetParamAsType("password", reddo.TypeString)
 		var newPassword, newPassword2 interface{}
 		if password != nil && strings.TrimSpace(password.(string)) != "" {
@@ -573,6 +598,7 @@ func apiDeleteUser(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris
 	} else {
 		// TODO check current user's permission
 
+		// FIXME this is for demo purpose only!
 		if user.GetUsername() == systemAdminUsername {
 			return itineris.NewApiResult(itineris.StatusNoPermission).SetMessage(fmt.Sprintf("Cannot delete system admin user [%s]", user.GetUsername()))
 		}

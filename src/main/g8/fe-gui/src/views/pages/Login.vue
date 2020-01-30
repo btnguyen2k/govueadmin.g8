@@ -35,19 +35,17 @@
                             </CForm>
                         </CCardBody>
                     </CCard>
-                    <CCard
-                            color="primary"
-                            text-color="white"
-                            class="text-center py-5 d-md-down-none"
-                            style="width:44%"
-                            body-wrapper
-                    >
-                        <h2>Sign up</h2>
-                        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut
-                            labore et dolore magna aliqua.</p>
+                    <CCard color="primary" text-color="white" class="text-center py-5 d-md-down-none" style="width:44%"
+                           body-wrapper>
+                        <h2>Demo</h2>
+                        <p>This is instance is for demo purpose only. Login with administrator account <strong>admin/s3cr3t</strong>.
+                            You can create/edit/delete other user group or user account. This special admin account,
+                            however, can not be modified or deleted.</p>
+                        <!--
                         <CButton color="primary" class="active mt-3" :to="pageRegister">
                             Register Now!
                         </CButton>
+                        -->
                     </CCard>
                 </CCardGroup>
             </CCol>

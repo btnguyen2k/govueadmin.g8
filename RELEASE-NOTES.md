@@ -1,5 +1,10 @@
 # govueadmin.g8 Release Notes
 
+## 2020-01-30: template-v0.1.2
+
+- PostgreSQL implementation of BO & DAO.
+
+
 ## 2020-01-21: template-v0.1.0
 
 - Frontend using [CoreUI for Vue.js](https://coreui.io/vue/) `v3.0.0-beta.3`.

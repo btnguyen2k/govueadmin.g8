@@ -2,7 +2,9 @@
 
 Giter8 template to develop `Admin Control Panel` in Go with VueJS-based frontend.
 
-Latest release: [template-v0.1.0](RELEASE-NOTES.md).
+Latest release: [template-v0.1.1](RELEASE-NOTES.md).
+
+Demo: https://demo-govueadmin.herokuapp.com/.
 
 ## Features
 
@@ -14,7 +16,9 @@ Latest release: [template-v0.1.0](RELEASE-NOTES.md).
   - Dashboard
   - User group management (list, create, update, delete)
   - User management (list, create, update, delete, change password)
-  - BO & DAO implementation using [SQLite3](https://github.com/mattn/go-sqlite3)
+  - BO & DAO:
+    - [SQLite3](https://github.com/mattn/go-sqlite3) implementation.
+    - PostgreSQL implementation.
 - Sample `.gitlab-ci.yaml` & `Dockerfile` to package application as Docker image.
 
 

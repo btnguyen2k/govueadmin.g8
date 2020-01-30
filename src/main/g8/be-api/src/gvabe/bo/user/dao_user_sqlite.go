@@ -19,7 +19,7 @@ func NewUserDaoSqlite(sqlc *prom.SqlConnect, tableName string) UserDao {
 		ColNameToGboFieldTranslator: map[string]map[string]interface{}{tableName: mapSqliteColNameToFieldUser},
 		ColumnsListMap:              map[string][]string{tableName: colsSqliteUser},
 	})
-	dao.SetSqlFlavor(prom.FlavorMySql)
+	dao.SetSqlFlavor(prom.FlavorDefault)
 	return dao
 }
 

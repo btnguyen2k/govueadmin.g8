@@ -1,0 +1,71 @@
+# CircleCI 2.0 configuration file to build & deploy demo on Heroku
+version: 2
+jobs:
+  build_docker_image:
+    docker:
+      - image: circleci/golang:1.13
+    working_directory: /go/src/github.com/btnguyen2k/govueadmin.g8
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Build Docker Image
+          command: date && whoami && pwd
+            && mkdir caches
+            && cd src/main/g8 && docker build --force-rm -t govueadmin -f Dockerfile.local .
+            && docker save -o caches/docker_cache.tar govueadmin
+            && docker images
+      - persist_to_workspace:
+          root: caches
+          paths:
+            - docker_cache.tar
+#  push_docker_image:
+#    docker:
+#      - image: circleci/golang:1.13
+#    steps:
+#      - setup_remote_docker
+#      - attach_workspace:
+#          at: caches
+#      - run:
+#          name: Login Docker Hub
+#          command: echo $DOCKER_REGISTRY_PASSWORD | docker login -u $DOCKER_REGISTRY_USER --password-stdin $DOCKER_REGISTRY_SERVER
+#      - run:
+#          name: Push Docker Image
+#          command: echo $CIRCLE_TAG
+#            && docker load -i caches/docker_cache.tar
+#            && export CI_PROJECT_VERSION=`echo $CIRCLE_TAG | cut -d'-' -f 2`
+#            && docker tag prista:$CI_PROJECT_VERSION ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/prista:$CI_PROJECT_VERSION
+#            && docker tag prista:$CI_PROJECT_VERSION ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/prista:latest
+#            && docker images
+#            && docker push ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/prista:$CI_PROJECT_VERSION
+#            && docker push ${DOCKER_REGISTRY_SERVER}${DOCKER_REGISTRY_NAMESPACE}/prista:latest
+workflows:
+  version: 2
+  build_docker_image_and_release:
+    jobs:
+      - build_docker_image
+#  build_docker_image_and_release:
+#    jobs:
+#      - build_docker_image:
+#          filters:
+#            tags:
+#              only: /^release-.*$/
+#            branches:
+#              ignore: /.*/
+#      - hold_for_approval:
+#          type: approval
+#          requires:
+#            - build_docker_image
+#          filters:
+#            tags:
+#              only: /^release-.*$/
+#            branches:
+#              ignore: /.*/
+#      - push_docker_image:
+#          requires:
+#            - hold_for_approval
+#          filters:
+#            tags:
+#              only: /^release-.*$/
+#            branches:
+#              ignore: /.*/
