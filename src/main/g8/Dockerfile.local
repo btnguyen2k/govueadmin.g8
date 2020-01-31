@@ -6,7 +6,7 @@ FROM node:13.6-alpine3.11 AS builder_fe
 RUN mkdir /build
 COPY ./fe-gui /build
 COPY ./fe-gui/src/config_one_image.json /build/src/config.json
-RUN cd /build && rm -rf dist node_modules && export BUILD=`date +%Y%M%d%H%m` && sed -i 's/\$shortname\$ - \$name\$ v\$version\$/GoVueAdmin v0.1.1 b'$BUILD/g public/index.html && npm install && npm run build
+RUN cd /build && rm -rf dist node_modules && export BUILD=`date +%Y%m%d%H%M` && sed -i 's/\$shortname\$ - \$name\$ v\$version\$/GoVueAdmin v0.1.1 b'$BUILD/g public/index.html && npm install && npm run build
 
 FROM golang:1.12-alpine AS builder_be
 RUN apk add git build-base
