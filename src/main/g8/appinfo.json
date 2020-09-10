@@ -1,0 +1,7 @@
+{
+    "name"       : "$name$",
+    "shortname"  : "$shortname$",
+    "initial"    : "$initial$",
+    "version"    : "$version$",
+    "description": "$description$"
+}
