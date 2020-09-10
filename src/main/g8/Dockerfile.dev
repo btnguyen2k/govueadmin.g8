@@ -1,6 +1,6 @@
 ## Sample Dockerfile to package the whole application (backend + frontend) as a docker image.
 # Sample build command:
-# docker build --rm -t $shortname$:$version$ .
+# docker build --rm -t govueadmin -f Dockerfile.dev .
 
 FROM node:12-alpine AS builder_fe
 RUN mkdir /build
@@ -12,6 +12,7 @@ RUN cd /build \
     && export APP_INITIAL=`jq -r '.initial' appinfo.json` \
     && export APP_VERSION=`jq -r '.version' appinfo.json` \
     && export APP_DESC=`jq -r '.description' appinfo.json` \
+    && export APP_VERSION=${APP_VERSION}-b`date +%Y%m%d%H%M` \
     && cd /build/fe-gui \
     && rm -rf .env \
     && rm -rf dist node_modules \
@@ -38,6 +39,7 @@ RUN cd /build \
     && export APP_INITIAL=`jq -r '.initial' appinfo.json` \
     && export APP_VERSION=`jq -r '.version' appinfo.json` \
     && export APP_DESC=`jq -r '.description' appinfo.json` \
+    && export APP_VERSION=${APP_VERSION}-b`date +%Y%m%d%H%M` \
     && cd /build/be-api \
     && sed -i s/#{appName}/"$APP_NAME"/g config/application.conf \
     && sed -i s/#{appInitial}/"$APP_INITIAL"/g config/application.conf \
@@ -47,14 +49,14 @@ RUN cd /build \
     && go build -o main
 
 FROM alpine:3.12
-LABEL maintainer="$author$"
+LABEL maintainer="Thanh Nguyen"
 RUN mkdir -p /app/frontend
 COPY --from=builder_be /build/be-api/main /app/main
 COPY --from=builder_be /build/be-api/config /app/config
 COPY --from=builder_fe /build/fe-gui/dist /app/frontend
 RUN apk add --no-cache -U tzdata bash ca-certificates \
     && update-ca-certificates \
-    && cp /usr/share/zoneinfo/$timezone$ /etc/localtime \
+    && cp /usr/share/zoneinfo/Asia/Ho_Chi_Minh /etc/localtime \
     && chmod 711 /app/main \
     && rm -rf /var/cache/apk/*
 WORKDIR /app
