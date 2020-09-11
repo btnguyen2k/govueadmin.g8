@@ -1,3 +1,4 @@
+//#GovueAdmin-Customized
 export default [
     {
         _name: 'CSidebarNav',
