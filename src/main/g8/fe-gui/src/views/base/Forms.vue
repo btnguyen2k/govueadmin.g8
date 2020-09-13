@@ -175,6 +175,7 @@
                 horizontal
                 :options="options"
                 placeholder="Please select"
+                custom
               />
               <CSelect
                 label="Select"
@@ -184,7 +185,7 @@
                 disabled
               />
               <template v-for="(name, key) in checkboxNames">
-                <div class="form-group form-row" :key="name">
+                <CRow form class="form-group" :key="name">
                   <CCol tag="label" sm="3" class="col-form-label">
                     {{name}}
                   </CCol>
@@ -200,27 +201,65 @@
                       :inline="key % 2 === 1"
                     />
                   </CCol>
-                </div>
+                </CRow>
               </template>
+              <CRow form class="form-group">
+                  <CCol tag="label" sm="3" class="col-form-label">
+                    Switch checkboxes
+                  </CCol>
+                  <CCol sm="9">
+                    <CSwitch
+                      class="mr-1"
+                      color="primary"
+                      :checked="true"
+                    />
+                    <CSwitch
+                      class="mr-1"
+                      color="success"
+                      :checked="true"
+                      variant="outline"
+                    />
+                    <CSwitch
+                      class="mr-1"
+                      color="warning"
+                      :checked="true"
+                      variant="opposite"
+                    />
+                    <CSwitch
+                      class="mr-1"
+                      color="danger"
+                      :checked="true"
+                      shape="pill"
+                    />
+                    <CSwitch
+                      class="mr-1"
+                      color="info"
+                      :checked="true"
+                      shape="pill"
+                      variant="outline"
+                    />
+                    <CSwitch
+                      class="mr-1"
+                      color="dark"
+                      :checked="true"
+                      shape="pill"
+                      variant="opposite"
+                    />
+                  </CCol>
+                </CRow>
               <template v-for="(name, key) in radioNames">
-                <div class="form-row form-group" :key="name">
+                <CRow form class="form-group" :key="name">
                   <CCol sm="3">
                     {{name}}
                   </CCol>
-                  <CCol sm="9" :class="key % 2 === 1 ? 'form-inline' : ''">
-                    <CInputRadio
-                      v-for="(option, optionIndex) in options"
-                      :key="key + option"
-                      :label="option"
-                      type="radio"
-                      :value="option"
-                      :custom="key > 1"
-                      :name="`Option 1${key}`"
-                      :checked="optionIndex === key"
-                      :inline="key % 2 === 1"
-                    />
-                  </CCol>
-                </div>
+                  <CInputRadioGroup
+                    class="col-sm-9"
+                    :options="options"
+                    :custom="key > 1"
+                    :checked="`Option ${key}`"
+                    :inline="key % 2 === 1"
+                  />
+                </CRow>
               </template>
               <CInputFile
                 label="File input"
@@ -539,10 +578,10 @@
               autocomplete="email"
             >
               <template #prepend>
-                <CButton color="primary"><CIcon name="cib-facebook" height="14"/></CButton>
+                <CButton color="primary"><CIcon name="cib-facebook"/></CButton>
               </template>
               <template #append>
-                <CButton color="primary"><CIcon name="cib-twitter" height="14"/></CButton>
+                <CButton color="primary"><CIcon name="cib-twitter"/></CButton>
               </template>
             </CInput>
           </CCardBody>
@@ -865,11 +904,11 @@ export default {
       selectOptions: [
         'Option 1', 'Option 2', 'Option 3',
         { 
-          value: ['some value', 'another value'], 
+          value: 'some value', 
           label: 'Selected option'
         }
       ],
-      selectedOption: ['some value', 'another value'],
+      selectedOption: 'some value',
 
       formCollapsed: true,
       checkboxNames: ['Checkboxes', 'Inline Checkboxes',

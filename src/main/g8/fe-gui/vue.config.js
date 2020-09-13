@@ -1,3 +1,4 @@
+//#GovueAdmin-Customized
 module.exports = {
     publicPath: '/app/',
     lintOnSave: false,
@@ -8,4 +9,7 @@ module.exports = {
             symlinks: false
         }
     },
+    transpileDependencies: [
+        '@coreui/utils'
+    ]
 }
