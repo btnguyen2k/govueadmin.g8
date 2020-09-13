@@ -3,7 +3,8 @@
     <CCard>
       <CCardHeader>
         <CIcon name="cil-justify-center"/>
-        <strong> Responsive bootstrap Pagination</strong>
+        <strong> Pagination </strong>
+        <small>size</small>
         <div class="card-header-actions">
           <a 
             href="https://coreui.io/vue/docs/components/pagination" 
@@ -20,7 +21,6 @@
         <CPagination
           :active-page.sync="currentPage"
           :pages="10"
-          responsive
         />
         <br>
 
@@ -31,13 +31,12 @@
           :pages="10"/>
         <br>
 
-        <div>
+        <div class="d-md-down-none">
           <h6>Large</h6>
           <CPagination
             size="lg"
             :active-page.sync="currentPage"
             :pages="10"
-            responsive
           />
           <br>
         </div>
@@ -86,7 +85,7 @@ export default {
   name: 'Paginations',
   data () {
     return {
-      currentPage: 3,
+      currentPage: 3
     }
   }
 }

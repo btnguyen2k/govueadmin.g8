@@ -1,5 +1,13 @@
 # govueadmin.g8 Release Notes
 
+## 2020-09-11: template-v0.2.0
+
+- Use [Gravatar](https://gravatar.com/) for user profile picture.
+- AB#21: Migrate to CoreUI-vue v3.1.1
+- Vuejs: replace `data` with `computed` (https://techformist.com/data-vs-computed-vs-watcher-in-vue-components/).
+- Other fixes and enhancements.
+
+
 ## 2020-01-30: template-v0.1.2
 
 - PostgreSQL implementation of BO & DAO.
