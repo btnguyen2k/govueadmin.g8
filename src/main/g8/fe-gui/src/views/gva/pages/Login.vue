@@ -95,19 +95,18 @@ export default {
             if (apiResp.status != 200) {
               this.errorMsg = apiResp.status + ": " + apiResp.message
             } else {
-              console.log(apiResp.data)
-              // const jwt = utils.parseJwt(apiResp.data)
-              // if (!jwt) {
-              //   this.errorMsg = 'Error parsing login-token.'
-              // } else {
-              //   let rUrl = this.returnUrl
-              //   if (rUrl == "" || rUrl == null || rUrl == '#') {
-              //     rUrl = this.$router.resolve({name: 'Dashboard'}).href
-              //   }
-              //   utils.saveLoginSession({uid: jwt.payloadObj.uid, name: jwt.payloadObj.name, token: apiResp.data})
-              //   // window.location.href = rUrl
-              //   this.$router.push(rUrl)
-              // }
+              const jwt = utils.parseJwt(apiResp.data)
+              if (!jwt) {
+                this.errorMsg = 'Error parsing login-token.'
+              } else {
+                let rUrl = this.returnUrl
+                if (rUrl == "" || rUrl == null || rUrl == '#') {
+                  rUrl = this.$router.resolve({name: 'Dashboard'}).href
+                }
+                utils.saveLoginSession({uid: jwt.payloadObj.uid, name: jwt.payloadObj.name, token: apiResp.data})
+                // window.location.href = rUrl
+                this.$router.push(rUrl)
+              }
             }
           },
           (err) => {

@@ -3,24 +3,31 @@ package gvabe
 import (
 	"bytes"
 	"compress/zlib"
-	"crypto/aes"
-	"crypto/cipher"
+	"crypto/rsa"
 	"crypto/sha1"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"io"
+	"math"
+	"runtime"
+	"strings"
+	"sync"
+	"time"
+
 	"github.com/btnguyen2k/consu/reddo"
 	"github.com/btnguyen2k/consu/semita"
 	"github.com/shirou/gopsutil/load"
 	"github.com/shirou/gopsutil/mem"
-	"io"
+
 	"main/src/gvabe/bo/user"
-	"math"
-	"runtime"
-	"strconv"
-	"strings"
-	"sync"
-	"time"
+)
+
+var DEBUG = false
+
+var (
+	rsaPrivKey *rsa.PrivateKey
+	rsaPubKey  *rsa.PublicKey
 )
 
 const (
@@ -54,45 +61,6 @@ func encryptPassword(username, rawPassword string) string {
 	return strings.ToLower(hex.EncodeToString(out[:]))
 }
 
-// padRight adds "0" right right of a string until its length reach a specific value.
-func padRight(str string, l int) string {
-	for len(str) < l {
-		str += "0"
-	}
-	return str
-}
-
-// aesEncrypt encrypts a block of data using AES/CTR mode.
-//
-// IV is put at the beginning of the cipher data.
-func aesEncrypt(key, data []byte) ([]byte, error) {
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
-	iv := []byte(padRight(strconv.FormatInt(time.Now().UnixNano(), 16), 16))
-	cipherData := make([]byte, 16+len(data))
-	copy(cipherData, iv)
-	ctr := cipher.NewCTR(block, iv)
-	ctr.XORKeyStream(cipherData[16:], data)
-	return cipherData, nil
-}
-
-// aesDecrypt decrypts a block of encrypted data using AES/CTR mode.
-//
-// Assuming IV is put at the beginning of the cipher data.
-func aesDecrypt(key, encryptedData []byte) ([]byte, error) {
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
-	iv := encryptedData[0:16]
-	data := make([]byte, len(encryptedData)-16)
-	ctr := cipher.NewCTR(block, iv)
-	ctr.XORKeyStream(data, encryptedData[16:])
-	return data, nil
-}
-
 // zlibCompress compresses data using zlib.
 func zlibCompress(data []byte) []byte {
 	var b bytes.Buffer
@@ -112,6 +80,21 @@ func zlibDecompress(compressedData []byte) ([]byte, error) {
 	_, err = io.Copy(&b, r)
 	r.Close()
 	return b.Bytes(), err
+}
+
+// available since template-v0.2.0
+func zipAndEncrypt(data []byte) ([]byte, error) {
+	zip := zlibCompress(data)
+	return rsaEncrypt(RsaModeAuto, zip, rsaPubKey)
+}
+
+// available since template-v0.2.0
+func decryptAndUnzip(encdata []byte) ([]byte, error) {
+	if zip, err := rsaDecrypt(RsaModeAuto, encdata, rsaPrivKey); err != nil {
+		return nil, err
+	} else {
+		return zlibDecompress(zip)
+	}
 }
 
 func genLoginToken(u *user.User) (string, error) {

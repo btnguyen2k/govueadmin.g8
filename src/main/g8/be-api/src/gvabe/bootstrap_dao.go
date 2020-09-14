@@ -1,19 +1,37 @@
 package gvabe
 
 import (
+	"fmt"
 	"log"
 	"strings"
+
+	"github.com/btnguyen2k/prom"
 
 	"main/src/goapi"
 	"main/src/gvabe/bo"
 	"main/src/gvabe/bo/group"
 	"main/src/gvabe/bo/user"
+	"main/src/henge"
 	"main/src/utils"
 )
 
+func _createSqlConnect(dbtype string) *prom.SqlConnect {
+	switch dbtype {
+	case "sqlite":
+		dir := goapi.AppConfig.GetString("gvabe.db.sqlite.directory")
+		dbname := goapi.AppConfig.GetString("gvabe.db.sqlite.dbname")
+		return henge.NewSqliteConnection(dir, dbname)
+	case "pg", "pgsql", "postgres", "postgresql":
+		url := goapi.AppConfig.GetString("gvabe.db.pgsql.url")
+		return henge.NewPgsqlConnection(url, goapi.AppConfig.GetString("timezone"))
+	}
+	panic(fmt.Sprintf("unknown databbase type: %s", dbtype))
+}
+
 func initDaos() {
-	sqlc := createSqlConnect()
 	dbtype := strings.ToLower(goapi.AppConfig.GetString("gvabe.db.type"))
+	sqlc := _createSqlConnect(dbtype)
+
 	switch dbtype {
 	case "sqlite":
 		group.InitSqliteTableGroup(sqlc, bo.TableGroup)
