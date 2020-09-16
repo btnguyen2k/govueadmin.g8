@@ -57,42 +57,16 @@
   </CHeader>
 </template>
 
-<template>
-  <CHeader fixed with-subheader light>
-    <CHeaderNav class="mr-4">
-      <CHeaderNavItem class="d-md-down-none mx-2">
-        <CHeaderNavLink>
-          <CIcon name="cil-bell"/>
-        </CHeaderNavLink>
-      </CHeaderNavItem>
-      <CHeaderNavItem class="d-md-down-none mx-2">
-        <CHeaderNavLink>
-          <CIcon name="cil-list"/>
-        </CHeaderNavLink>
-      </CHeaderNavItem>
-      <CHeaderNavItem class="d-md-down-none mx-2">
-        <CHeaderNavLink>
-          <CIcon name="cil-envelope-open"/>
-        </CHeaderNavLink>
-      </CHeaderNavItem>
-      <TheHeaderDropdownAccnt/>
-    </CHeaderNav>
-    <CSubheader class="px-3">
-      <CBreadcrumbRouter class="border-0"/>
-    </CSubheader>
-  </CHeader>
-</template>
-
 <script>
 import TheHeaderDropdownAccnt from './TheHeaderDropdownAccnt'
 import cfg from '@/utils/app_config'
 
 export default {
   name: 'TheHeader',
-  data() {
-    return {
-      appName: cfg.APP_CONFIG.app.name,
-    }
+  computed: {
+    appName() {
+      return cfg.APP_CONFIG.app.name
+    },
   },
   components: {
     TheHeaderDropdownAccnt

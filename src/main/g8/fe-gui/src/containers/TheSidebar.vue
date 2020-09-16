@@ -29,8 +29,12 @@ export default {
     minimize() {
       return this.$store.state.sidebarMinimize
     },
-    appName: cfg.APP_CONFIG.app.name,
-    appInitial: cfg.APP_CONFIG.app.initial,
+    appName() {
+      return cfg.APP_CONFIG.app.name
+    },
+    appInitial() {
+      return cfg.APP_CONFIG.app.initial
+    },
   },
 }
 </script>
