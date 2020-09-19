@@ -61,10 +61,10 @@ const Dashboard = () => import('@/views/Dashboard')
 // const Modals = () => import('@/views/notifications/Modals')
 
 // Views - Pages
-const Page404 = () => import('@/views/gva/pages/Page404')
-const Page500 = () => import('@/views/gva/pages/Page500')
 const Login = () => import('@/views/gva/pages/Login')
-const Register = () => import('@/views/gva/pages/Register')
+const Page404 = () => import('@/views/pages/Page404')
+const Page500 = () => import('@/views/pages/Page500')
+const Register = () => import('@/views/pages/Register')
 
 Vue.use(Router)
 

@@ -88,7 +88,7 @@ export default {
     },
     doSubmit(e) {
       e.preventDefault()
-      let data = {username: this.form.username, password: this.form.password}
+      let data = {username: this.form.username, password: this.form.password, mode: "form"}
       clientUtils.apiDoPost(
           clientUtils.apiLogin, data,
           (apiResp) => {

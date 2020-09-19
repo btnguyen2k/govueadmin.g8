@@ -46,8 +46,14 @@ const (
 	// (if we do not wish to use mask-id, simply set id as its value
 	UserField_MaskId = "mid"
 
+	// 'password' is used for authentication
+	UserAttr_Password = "pwd"
+
 	// 'display-name' is used for displaying purpose
 	UserAttr_DisplayName = "dname"
+
+	// 'is-admin' is to flag if user has administrative privilege
+	UserAttr_IsAdmin = "isadm"
 
 	userAttr_Ubo = "_ubo"
 )
@@ -59,7 +65,9 @@ const (
 type User struct {
 	henge.UniversalBo `json:"_ubo"`
 	maskId            string `json:"mid"`
-	displayName       string `json:""`
+	password          string `json:"pwd"`
+	displayName       string `json:"dname"`
+	isAdmin           bool   `json:"isadm"`
 }
 
 // MarshalJSON implements json.encode.Marshaler.MarshalJSON
@@ -67,9 +75,7 @@ type User struct {
 func (user *User) MarshalJSON() ([]byte, error) {
 	user.sync()
 	m := map[string]interface{}{
-		userAttr_Ubo:         user.UniversalBo.Clone(),
-		UserField_MaskId:     user.maskId,
-		UserAttr_DisplayName: user.displayName,
+		userAttr_Ubo: user.UniversalBo.Clone(),
 	}
 	return json.Marshal(m)
 }
@@ -81,18 +87,23 @@ func (user *User) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &m); err != nil {
 		return err
 	}
-	var err error
 	if m[userAttr_Ubo] != nil {
 		js, _ := json.Marshal(m[userAttr_Ubo])
 		if err := json.Unmarshal(js, &user.UniversalBo); err != nil {
 			return err
 		}
 	}
-	if user.displayName, err = reddo.ToString(m[UserAttr_DisplayName]); err != nil {
-		return err
+	if v, err := user.GetExtraAttrAs(UserField_MaskId, reddo.TypeString); err == nil {
+		user.SetMaskId(v.(string))
 	}
-	if user.maskId, err = reddo.ToString(m[UserField_MaskId]); err != nil {
-		return err
+	if v, err := user.GetDataAttrAs(UserAttr_Password, reddo.TypeString); err == nil {
+		user.SetPassword(v.(string))
+	}
+	if v, err := user.GetDataAttrAs(UserAttr_DisplayName, reddo.TypeString); err == nil {
+		user.SetDisplayName(v.(string))
+	}
+	if v, err := user.GetDataAttrAs(UserAttr_IsAdmin, reddo.TypeBool); err == nil {
+		user.SetAdmin(v.(bool))
 	}
 	user.sync()
 	return nil
@@ -109,6 +120,17 @@ func (user *User) SetMaskId(v string) *User {
 	return user
 }
 
+// GetPassword returns value of user's 'password' attribute
+func (user *User) GetPassword() string {
+	return user.password
+}
+
+// SetPassword sets value of user's 'password' attribute
+func (user *User) SetPassword(v string) *User {
+	user.password = strings.TrimSpace(v)
+	return user
+}
+
 // GetDisplayName returns value of user's 'display-name' attribute
 func (user *User) GetDisplayName() string {
 	return user.displayName
@@ -120,8 +142,22 @@ func (user *User) SetDisplayName(v string) *User {
 	return user
 }
 
+// IsAdmin returns value of user's 'is-admin' attribute
+func (user *User) IsAdmin() bool {
+	return user.isAdmin
+}
+
+// SetAdmin sets value of user's 'is-admin' attribute
+func (user *User) SetAdmin(v bool) *User {
+	user.isAdmin = v
+	return user
+}
+
+// sync is called to synchronize BO's attributes to its UniversalBo
 func (user *User) sync() *User {
+	user.SetDataAttr(UserAttr_Password, user.password)
 	user.SetDataAttr(UserAttr_DisplayName, user.displayName)
+	user.SetDataAttr(UserAttr_IsAdmin, user.isAdmin)
 	user.SetExtraAttr(UserField_MaskId, user.maskId)
 	user.UniversalBo.Sync()
 	return user

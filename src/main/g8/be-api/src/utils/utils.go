@@ -64,3 +64,17 @@ func RandomString(l int) string {
 	}
 	return string(b)
 }
+
+// VersionToNumber converts a version string to number representation
+func VersionToNumber(version string) uint64 {
+	var result uint64 = 0
+	for tokens := strings.Split(version, "."); len(tokens) > 0; {
+		if i, err := strconv.Atoi(tokens[0]); err == nil {
+			result = result<<8 + (uint64(i) & 255)
+		} else {
+			result = result << 8
+		}
+		tokens = tokens[1:]
+	}
+	return result
+}
