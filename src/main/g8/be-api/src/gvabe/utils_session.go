@@ -86,7 +86,7 @@ func genLoginClaims(id string, sess *Session) (*SessionClaims, error) {
 	if id == "" {
 		id = utils.UniqueId()
 	}
-	u, err := userDao.Get(sess.UserId)
+	u, err := userDaov2.Get(sess.UserId)
 	if err != nil {
 		return nil, err
 	}

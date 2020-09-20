@@ -158,22 +158,22 @@ func _doLoginForm(ctx *itineris.ApiContext, params *itineris.ApiParams) *itineri
 	if password == "" {
 		return resultLoginFailed
 	}
-	user, err := userDao.Get(username.(string))
+	user, err := userDaov2.Get(username.(string))
 	if err != nil {
 		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
 	}
 	if user == nil {
 		return resultLoginFailed
 	}
-	if encryptPassword(user.GetUsername(), password.(string)) != user.GetPassword() {
+	if encryptPassword(user.GetId(), password.(string)) != user.GetPassword() {
 		return resultLoginFailed
 	}
 	now := time.Now()
 	claims, err := genLoginClaims(ctx.GetId(), &Session{
 		ClientRef:   ctx.GetId(),
 		Channel:     loginChannelForm,
-		UserId:      user.GetUsername(),
-		DisplayName: user.GetName(),
+		UserId:      user.GetId(),
+		DisplayName: user.GetDisplayName(),
 		CreatedAt:   now,
 		ExpiredAt:   now.Add(3600 * time.Second),
 		Data:        nil,

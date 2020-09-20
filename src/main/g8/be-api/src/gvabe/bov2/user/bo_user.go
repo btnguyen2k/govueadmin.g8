@@ -2,8 +2,6 @@ package user
 
 import (
 	"encoding/json"
-	"fmt"
-	"log"
 	"strings"
 
 	"github.com/btnguyen2k/consu/reddo"
@@ -28,17 +26,28 @@ func NewUserFromUbo(ubo *henge.UniversalBo) *User {
 	if ubo == nil {
 		return nil
 	}
-	user := User{}
-	if err := json.Unmarshal([]byte(ubo.GetDataJson()), &user); err != nil {
-		log.Print(fmt.Sprintf("[WARN] NewUserFromUbo - error unmarshalling JSON data: %e", err))
-		log.Print(err)
+	user := User{UniversalBo: *ubo.Clone()}
+	if v, err := user.GetExtraAttrAs(UserField_MaskId, reddo.TypeString); err != nil {
 		return nil
+	} else {
+		user.maskId = v.(string)
 	}
-	user.UniversalBo = *ubo.Clone()
-	if maskId, err := user.GetExtraAttrAs(UserField_MaskId, reddo.TypeString); err == nil {
-		user.SetMaskId(maskId.(string))
+	if v, err := user.GetDataAttrAs(UserAttr_DisplayName, reddo.TypeString); err != nil {
+		return nil
+	} else {
+		user.displayName = v.(string)
 	}
-	return &user
+	if v, err := user.GetDataAttrAs(UserAttr_IsAdmin, reddo.TypeBool); err != nil {
+		return nil
+	} else {
+		user.isAdmin = v.(bool)
+	}
+	if v, err := user.GetDataAttrAs(UserAttr_Password, reddo.TypeString); err != nil {
+		return nil
+	} else {
+		user.password = v.(string)
+	}
+	return (&user).sync()
 }
 
 const (
@@ -76,6 +85,14 @@ func (user *User) MarshalJSON() ([]byte, error) {
 	user.sync()
 	m := map[string]interface{}{
 		userAttr_Ubo: user.UniversalBo.Clone(),
+		"_cols": map[string]interface{}{
+			UserField_MaskId: user.maskId,
+		},
+		"_attrs": map[string]interface{}{
+			UserAttr_DisplayName: user.displayName,
+			UserAttr_IsAdmin:     user.isAdmin,
+			UserAttr_Password:    user.password,
+		},
 	}
 	return json.Marshal(m)
 }
@@ -87,23 +104,28 @@ func (user *User) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &m); err != nil {
 		return err
 	}
+	var err error
 	if m[userAttr_Ubo] != nil {
 		js, _ := json.Marshal(m[userAttr_Ubo])
-		if err := json.Unmarshal(js, &user.UniversalBo); err != nil {
+		if err = json.Unmarshal(js, &user.UniversalBo); err != nil {
 			return err
 		}
 	}
-	if v, err := user.GetExtraAttrAs(UserField_MaskId, reddo.TypeString); err == nil {
-		user.SetMaskId(v.(string))
+	if _cols, ok := m["_cols"].(map[string]interface{}); ok {
+		if user.maskId, err = reddo.ToString(_cols[UserField_MaskId]); err != nil {
+			return err
+		}
 	}
-	if v, err := user.GetDataAttrAs(UserAttr_Password, reddo.TypeString); err == nil {
-		user.SetPassword(v.(string))
-	}
-	if v, err := user.GetDataAttrAs(UserAttr_DisplayName, reddo.TypeString); err == nil {
-		user.SetDisplayName(v.(string))
-	}
-	if v, err := user.GetDataAttrAs(UserAttr_IsAdmin, reddo.TypeBool); err == nil {
-		user.SetAdmin(v.(bool))
+	if _attrs, ok := m["_attrs"].(map[string]interface{}); ok {
+		if user.displayName, err = reddo.ToString(_attrs[UserAttr_DisplayName]); err != nil {
+			return err
+		}
+		if user.isAdmin, err = reddo.ToBool(_attrs[UserAttr_IsAdmin]); err != nil {
+			return err
+		}
+		if user.password, err = reddo.ToString(_attrs[UserAttr_Password]); err != nil {
+			return err
+		}
 	}
 	user.sync()
 	return nil
