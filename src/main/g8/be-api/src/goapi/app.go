@@ -24,6 +24,8 @@ const (
 )
 
 var (
+	AppVersion       string
+	AppVersionNumber uint64
 	AppConfig *hocon.Config
 	ApiRouter *itineris.ApiRouter
 )
@@ -38,6 +40,8 @@ func Start(bootstrappers ...IBootstrapper) {
 	AppConfig = initAppConfig()
 	httpHeaderAppId = AppConfig.GetString("api.http.header_app_id")
 	httpHeaderAccessToken = AppConfig.GetString("api.http.header_access_token")
+	AppVersion = AppConfig.GetString("app.version")
+	AppVersionNumber = utils.VersionToNumber(AppVersion)
 
 	// setup api-router
 	ApiRouter = itineris.NewApiRouter()

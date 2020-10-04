@@ -10,7 +10,7 @@
                 <CForm @submit.prevent="doSubmit" method="post">
                   <h1>Login</h1>
                   <p v-if="errorMsg!=''" class="alert alert-danger">{{ errorMsg }}</p>
-                  <p class="text-muted">Please sign in to continue</p>
+                  <p v-if="infoMsg!=''" class="text-muted">{{ infoMsg }}</p>
                   <CInput placeholder="Username" autocomplete="username email" name="username" id="username"
                           v-model="form.username">
                     <template #prepend-content>
@@ -24,12 +24,11 @@
                     </template>
                   </CInput>
                   <CRow>
-                    <CCol col="6" class="text-left">
+                    <CCol col="4" class="text-left">
                       <CButton color="primary" class="px-4" type="submit">Login</CButton>
                     </CCol>
-                    <CCol col="6" class="text-right">
-                      <CButton color="link" class="px-0" @click="funcNotImplemented">Forgot password?</CButton>
-                      <!--                      <CButton color="link" class="d-lg-none" @click="funcNotImplemented">Register now!</CButton>-->
+                    <CCol col="8" class="text-right">
+                      <CButton color="link" class="px-0" @click="doClickLoginSocial">Login with social account</CButton>
                     </CCol>
                   </CRow>
                 </CForm>
@@ -59,26 +58,49 @@
 </template>
 
 <script>
-import clientUtils from "@/utils/api_client"
+import apiClient from "@/utils/api_client"
 import utils from "@/utils/app_utils"
 // import appConfig from "@/utils/app_config"
 // import router from "@/router"
 
-// const defaultInfoMsg = "Please sign in to continue"
-// const waitInfoMsg = "Please wait..."
+const defaultInfoMsg = "Please sign in to continue"
+const waitInfoMsg = "Please wait..."
 // const waitLoginInfoMsg = "Logging in, please wait..."
 // const invalidReturnUrlErrMsg = "Error: invalid return url"
 
 export default {
   name: 'Login',
+  mounted() {
+    if (this.$route.query.exterToken != undefined && this.$route.query.exterToken != "") {
+      let data = {token: this.$route.query.exterToken, mode: "exter"}
+      this._doLogin(data)
+    }
+    this.infoMsg = waitInfoMsg
+    apiClient.apiDoGet(apiClient.apiInfo,
+        (apiRes) => {
+          if (apiRes.status != 200) {
+            this.errorMsg = apiRes.message
+          } else {
+            this.exterAppId = apiRes.data.exter.app_id
+            this.exterBaseUrl = apiRes.data.exter.base_url
+            this.infoMsg = defaultInfoMsg
+          }
+        },
+        (err) => {
+          this.errorMsg = err
+        })
+  },
   computed: {
     returnUrl() {
-      return this.$route.query.returnUrl ? this.$route.query.returnUrl : "#"
+      return this.$route.query.returnUrl ? this.$route.query.returnUrl : ''
     },
   },
   data() {
     return {
+      exterAppId: String,
+      exterBaseUrl: String,
       errorMsg: "",
+      infoMsg: "",
       form: {username: "", password: ""},
     }
   },
@@ -86,11 +108,20 @@ export default {
     funcNotImplemented() {
       alert("Not implemented")
     },
-    doSubmit(e) {
-      e.preventDefault()
-      let data = {username: this.form.username, password: this.form.password}
-      clientUtils.apiDoPost(
-          clientUtils.apiLogin, data,
+    doClickLoginSocial() {
+      let prUrl = this.$route.query.returnUrl ? this.$route.query.returnUrl : ''
+      let rUrl = window.location.origin + this.$router.resolve({name: 'Login'}).href
+          + '?returnUrl=' + prUrl.replaceAll('#', encodeURIComponent('#')).replaceAll('=', encodeURIComponent('#'))
+          + '&exterToken=${token}'
+      let cUrl = window.location.origin + this.$router.resolve({name: 'Login'}).href
+      let url = this.exterBaseUrl + '/app/xlogin?app=' + this.exterAppId
+          + '&returnUrl=' + encodeURIComponent(rUrl)
+          + '&cancelUrl=' + encodeURIComponent(cUrl)
+      window.location.href = url
+    },
+    _doLogin(data) {
+      apiClient.apiDoPost(
+          apiClient.apiLogin, data,
           (apiResp) => {
             if (apiResp.status != 200) {
               this.errorMsg = apiResp.status + ": " + apiResp.message
@@ -99,13 +130,13 @@ export default {
               if (!jwt) {
                 this.errorMsg = 'Error parsing login-token.'
               } else {
-                let rUrl = this.returnUrl
-                if (rUrl == "" || rUrl == null || rUrl == '#') {
-                  rUrl = this.$router.resolve({name: 'Dashboard'}).href
-                }
                 utils.saveLoginSession({uid: jwt.payloadObj.uid, name: jwt.payloadObj.name, token: apiResp.data})
-                // window.location.href = rUrl
-                this.$router.push(rUrl)
+                let rUrl = this.returnUrl
+                if (rUrl == null || rUrl == "") {
+                  this.$router.push(this.$router.resolve({name: 'Dashboard'}).location)
+                } else {
+                  window.location.href = rUrl
+                }
               }
             }
           },
@@ -114,6 +145,11 @@ export default {
             this.errorMsg = err
           }
       )
+    },
+    doSubmit(e) {
+      e.preventDefault()
+      let data = {username: this.form.username, password: this.form.password, mode: "form"}
+      this._doLogin(data)
     },
   }
 }

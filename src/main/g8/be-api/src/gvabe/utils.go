@@ -28,6 +28,9 @@ var DEBUG = false
 var (
 	rsaPrivKey *rsa.PrivateKey
 	rsaPubKey  *rsa.PublicKey
+
+	exterAppId   string
+	exterBaseUrl string
 )
 
 const (
@@ -55,9 +58,8 @@ const (
 	loginSessionNearExpiry = 3600 * 3
 )
 
-func encryptPassword(username, rawPassword string) string {
-	saltAndPwd := username + "." + rawPassword
-	out := sha1.Sum([]byte(saltAndPwd))
+func encryptPassword(salt, rawPassword string) string {
+	out := sha1.Sum([]byte(salt + "." + rawPassword))
 	return strings.ToLower(hex.EncodeToString(out[:]))
 }
 
