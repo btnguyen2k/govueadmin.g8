@@ -3,6 +3,8 @@ package gvabe
 import (
 	"crypto/x509"
 	"encoding/pem"
+	"fmt"
+	"log"
 	"reflect"
 	"regexp"
 	"strings"
@@ -74,13 +76,6 @@ func _extractParam(params *itineris.ApiParams, paramName string, typ reflect.Typ
 
 // API handler "info"
 func apiInfo(_ *itineris.ApiContext, auth *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
-	appInfo := map[string]interface{}{
-		"name":        goapi.AppConfig.GetString("app.name"),
-		"shortname":   goapi.AppConfig.GetString("app.shortname"),
-		"version":     goapi.AppConfig.GetString("app.version"),
-		"description": goapi.AppConfig.GetString("app.desc"),
-	}
-
 	var publicPEM []byte
 	if pubDER, err := x509.MarshalPKIXPublicKey(rsaPubKey); err == nil {
 		pubBlock := pem.Block{
@@ -95,7 +90,16 @@ func apiInfo(_ *itineris.ApiContext, auth *itineris.ApiAuth, params *itineris.Ap
 
 	// var m runtime.MemStats
 	result := map[string]interface{}{
-		"app":            appInfo,
+		"app": map[string]interface{}{
+			"name":        goapi.AppConfig.GetString("app.name"),
+			"shortname":   goapi.AppConfig.GetString("app.shortname"),
+			"version":     goapi.AppConfig.GetString("app.version"),
+			"description": goapi.AppConfig.GetString("app.desc"),
+		},
+		"exter": map[string]interface{}{
+			"app_id":   exterAppId,
+			"base_url": exterBaseUrl,
+		},
 		"rsa_public_key": string(publicPEM),
 		// "memory": map[string]interface{}{
 		// 	"alloc":     m.Alloc,
@@ -109,34 +113,66 @@ func apiInfo(_ *itineris.ApiContext, auth *itineris.ApiAuth, params *itineris.Ap
 }
 
 func _doLoginExter(ctx *itineris.ApiContext, params *itineris.ApiParams) *itineris.ApiResult {
-	username := _extractParam(params, "username", reddo.TypeString, "", nil)
-	if username == "" {
-		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("empty username")
+	token := _extractParam(params, "token", reddo.TypeString, "", nil)
+	if token == "" {
+		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("empty token")
 	}
-	resultLoginFailed := itineris.NewApiResult(itineris.StatusNoPermission).SetMessage("login failed")
-	password := _extractParam(params, "password", reddo.TypeString, "", nil)
-	if password == "" {
-		return resultLoginFailed
+	if DEBUG && exterRsaPubKey != nil {
+		exterToken, err := parseExterJwt(token.(string))
+		if err != nil {
+			log.Printf("[DEBUG] Error parsing submitted JWT: %e", err)
+		} else {
+			log.Printf("[DEBUG] Submitted JWT: {Id: %s / Type: %s / AppId: %s / UserId: %s / UserName: %s}",
+				exterToken.Id, exterToken.Type, exterToken.AppId, exterToken.UserId, exterToken.UserName)
+		}
 	}
-	user, err := userDao.Get(username.(string))
+	if exterClient == nil {
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage("Exter login is not enabled")
+	}
+	resp, err := exterClient.VerifyLoginToken(token.(string))
+	if err != nil {
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+	}
+	if resp.Status != 200 {
+		return itineris.NewApiResult(itineris.StatusNoPermission).
+			SetMessage(fmt.Sprintf("Exter login failed (%d): %s", resp.Status, resp.Message))
+	}
+	if exterRsaPubKey == nil {
+		return itineris.NewApiResult(itineris.StatusErrorServer).
+			SetMessage(fmt.Sprintf("Exter login failed, please retry"))
+	}
+	exterJwt := resp.GetString("data")
+	exterToken, err := parseExterJwt(exterJwt)
+	if DEBUG {
+		if err != nil {
+			log.Printf("[DEBUG] Error parsing returned JWT: %e", err)
+		} else {
+			log.Printf("[DEBUG] Submitted JWT: {Id: %s / Type: %s / AppId: %s / UserId: %s / UserName: %s}",
+				exterToken.Id, exterToken.Type, exterToken.AppId, exterToken.UserId, exterToken.UserName)
+		}
+	}
+	if err != nil {
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+	}
+	if exterToken.Type != "login" {
+		return itineris.NewApiResult(itineris.StatusNoPermission).
+			SetMessage(fmt.Sprintf("Exter login failed, please retry"))
+	}
+	user, err := createUserFromExterToken(exterToken)
 	if err != nil {
 		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
 	}
 	if user == nil {
-		return resultLoginFailed
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage("can not create user account, please try again")
 	}
-	if encryptPassword(user.GetUsername(), password.(string)) != user.GetPassword() {
-		return resultLoginFailed
-	}
-	now := time.Now()
 	claims, err := genLoginClaims(ctx.GetId(), &Session{
 		ClientRef:   ctx.GetId(),
-		Channel:     loginChannelForm,
-		UserId:      user.GetUsername(),
-		DisplayName: user.GetName(),
-		CreatedAt:   now,
-		ExpiredAt:   now.Add(3600 * time.Second),
-		Data:        nil,
+		Channel:     loginChannelExter,
+		UserId:      user.GetId(),
+		DisplayName: user.GetDisplayName(),
+		CreatedAt:   time.Now(),
+		ExpiredAt:   time.Unix(exterToken.ExpiresAt, 0),
+		Data:        []byte(exterJwt),
 	})
 	if err != nil {
 		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())

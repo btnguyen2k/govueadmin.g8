@@ -1,6 +1,7 @@
 package gvabe
 
 import (
+	"crypto/rsa"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -53,6 +54,25 @@ func (s *SessionClaims) isGoingExpired(numSec int64) bool {
 
 /*----------------------------------------------------------------------*/
 
+
+// available since template-v0.2.0
+func parseJwt(jwtStr string, pubKey *rsa.PublicKey) (map[string]interface{}, error) {
+	token, err := jwt.Parse(jwtStr, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
+			return nil, fmt.Errorf("enexpected signing method: %v", token.Header["alg"])
+		}
+		return pubKey, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		return claims, nil
+	} else {
+		return nil, errors.New("invalid claim")
+	}
+}
+
 // available since template-v0.2.0
 func genJws(claim *SessionClaims) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claim)
@@ -61,22 +81,13 @@ func genJws(claim *SessionClaims) (string, error) {
 
 // available since template-v0.2.0
 func parseLoginToken(jwtStr string) (*SessionClaims, error) {
-	token, err := jwt.Parse(jwtStr, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
-			return nil, fmt.Errorf("enexpected signing method: %v", token.Header["alg"])
-		}
-		return rsaPubKey, nil
-	})
+	claims, err := parseJwt(jwtStr, rsaPubKey)
 	if err != nil {
 		return nil, err
 	}
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		var result SessionClaims
-		js, _ := json.Marshal(claims)
-		return &result, json.Unmarshal(js, &result)
-	} else {
-		return nil, errors.New("invalid claim")
-	}
+	var result SessionClaims
+	js, _ := json.Marshal(claims)
+	return &result, json.Unmarshal(js, &result)
 }
 
 // genLoginClaims generates a login token as SessionClaims:

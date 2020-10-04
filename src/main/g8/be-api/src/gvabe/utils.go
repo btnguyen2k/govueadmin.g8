@@ -28,6 +28,9 @@ var DEBUG = false
 var (
 	rsaPrivKey *rsa.PrivateKey
 	rsaPubKey  *rsa.PublicKey
+
+	exterAppId   string
+	exterBaseUrl string
 )
 
 const (
