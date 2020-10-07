@@ -19,7 +19,7 @@ func NewUser(appVersion uint64, id, maskId string) *User {
 	return user.SetMaskId(maskId).sync()
 }
 
-// NewUserFromUbo is helper function to create User App bo from a universal bo
+// NewUserFromUbo is helper function to create User bo from a universal bo
 //
 // available since template-v0.2.0
 func NewUserFromUbo(ubo *henge.UniversalBo) *User {
