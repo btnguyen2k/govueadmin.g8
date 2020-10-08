@@ -1,4 +1,4 @@
-package user
+package blog
 
 import (
 	"github.com/btnguyen2k/consu/reddo"

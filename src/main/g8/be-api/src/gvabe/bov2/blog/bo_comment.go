@@ -1,4 +1,4 @@
-package user
+package blog
 
 import (
 	"encoding/json"

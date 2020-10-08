@@ -25,13 +25,17 @@ import (
 	"main/src/gvabe/bo"
 	"main/src/gvabe/bo/group"
 	"main/src/gvabe/bo/user"
+	blogv2 "main/src/gvabe/bov2/blog"
 	userv2 "main/src/gvabe/bov2/user"
 	"main/src/itineris"
 	"main/src/utils"
 )
 
 var (
-	userDaov2 userv2.UserDao
+	userDaov2        userv2.UserDao
+	blogPostDaov2    blogv2.BlogPostDao
+	blogCommentDaov2 blogv2.BlogCommentDao
+	blogVoteDaov2    blogv2.BlogVoteDao
 
 	groupDao group.GroupDao
 	userDao  user.UserDao
