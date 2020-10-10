@@ -19,6 +19,7 @@ const TheContainer = () => import('@/containers/TheContainer')
 
 // Views
 const Dashboard = () => import('@/views/Dashboard')
+const CreatePost = () => import('@/views/gva/blog/CreatePost')
 
 // const Colors = () => import('@/views/theme/Colors')
 // const Typography = () => import('@/views/theme/Typography')
@@ -128,6 +129,34 @@ function configRoutes() {
             children: [
                 {
                     path: 'dashboard', name: 'Dashboard', component: Dashboard
+                },
+                {
+                    path: 'posts', meta: {label: 'Posts'},
+                    component: {
+                        render(c) {
+                            return c('router-view')
+                        }
+                    },
+                    children: [
+                        {
+                            path: '', meta: {label: 'My Blog Posts'}, name: 'MyPosts', component: Groups, props: true,
+                        },
+                        {
+                            path: '_create',
+                            meta: {label: 'Create Blog Post'},
+                            name: 'CreatePost',
+                            component: CreatePost,
+                        },
+                        // {
+                        //     path: '_edit/:id', meta: {label: 'Edit Group'}, name: 'EditGroup', component: EditGroup,
+                        // },
+                        // {
+                        //     path: '_delete/:id',
+                        //     meta: {label: 'Delete Group'},
+                        //     name: 'DeleteGroup',
+                        //     component: DeleteGroup,
+                        // },
+                    ]
                 },
                 {
                     path: 'groups', meta: {label: 'Groups'},
