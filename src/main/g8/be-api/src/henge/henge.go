@@ -75,6 +75,44 @@ type UniversalBo struct {
 	_dirty      bool
 }
 
+// FuncPreUboToMap is used by UniversalBo.ToMap to export a UniversalBo to a map[string]interface{}
+type FuncPreUboToMap func(*UniversalBo) map[string]interface{}
+
+// FuncPostUboToMap is used by UniversalBo.ToMap to transform the result map
+type FuncPostUboToMap func(map[string]interface{}) map[string]interface{}
+
+// DefaultFuncPreUboToMap is default implementation of FuncPreUboToMap
+//
+// This function exports the input UniversalBo to a map with following fields:
+// { FieldId (string), FieldData (string), FieldAppVersion (uint64), FieldChecksum (string),
+// FieldTimeCreated (time.Time), FieldTimeUpdated (time.Time), FieldExtras (map[string]interface{}) }
+var DefaultFuncPreUboToMap FuncPreUboToMap = func(_ubo *UniversalBo) map[string]interface{} {
+	ubo := _ubo.Clone()
+	return map[string]interface{}{
+		FieldId:          ubo.id,
+		FieldData:        ubo.dataJson,
+		FieldAppVersion:  ubo.appVersion,
+		FieldChecksum:    ubo.checksum,
+		FieldTimeCreated: ubo.timeCreated,
+		FieldTimeUpdated: ubo.timeUpdated,
+		FieldExtras:      cloneMap(ubo._extraAttrs),
+	}
+}
+
+// ToMap exports the UniversalBo to a map[string]interface{}
+//  - preFunc is used to export UniversalBo to a map. If not supplied, DefaultFuncPreUboToMap is used.
+//  - postFunc is used to transform the result map (output from preFunc) to the final result. If not supplied, the result from preFunc is returned.
+func (ubo *UniversalBo) ToMap(preFunc FuncPreUboToMap, postFunc FuncPostUboToMap) map[string]interface{} {
+	if preFunc == nil {
+		preFunc = DefaultFuncPreUboToMap
+	}
+	result := preFunc(ubo.Clone())
+	if postFunc != nil {
+		result = postFunc(result)
+	}
+	return result
+}
+
 // MarshalJSON implements json.encode.Marshaler.MarshalJSON
 func (ubo *UniversalBo) MarshalJSON() ([]byte, error) {
 	ubo.Sync()
@@ -429,10 +467,10 @@ type UniversalDao interface {
 	Get(id string) (*UniversalBo, error)
 
 	// GetN retrieves N business objects from storage
-	GetN(fromOffset, maxNumRows int) ([]*UniversalBo, error)
+	GetN(fromOffset, maxNumRows int, filter interface{}, sorting interface{}) ([]*UniversalBo, error)
 
 	// GetAll retrieves all available business objects from storage
-	GetAll() ([]*UniversalBo, error)
+	GetAll(filter interface{}, sorting interface{}) ([]*UniversalBo, error)
 
 	// Update modifies an existing business object
 	Update(bo *UniversalBo) (bool, error)

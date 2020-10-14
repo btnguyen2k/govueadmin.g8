@@ -24,3 +24,7 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw*
+
+/.project
+/.vscode/
+/.settings/

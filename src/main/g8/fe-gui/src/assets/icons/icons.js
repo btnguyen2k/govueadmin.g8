@@ -33,6 +33,7 @@ import {
 } from '@coreui/icons'
 import {
     cilAddressBook, //GVA
+    cilArrowCircleLeft, //GVA
     cilArrowRight,
     cilBan,
     cilBasket,
@@ -69,6 +70,7 @@ import {
     cilPencil,
     cilPeople,
     cilPuzzle,
+    cilSave, //GVA
     cilSettings,
     cilShieldAlt,
     cilSpeech,
@@ -88,6 +90,7 @@ export const iconsSet = Object.assign(
     {logo},
     {
         cilAddressBook, //GVA
+        cilArrowCircleLeft, //GVA
         cilArrowRight,
         cilBan,
         cilBasket,
@@ -124,6 +127,7 @@ export const iconsSet = Object.assign(
         cilPencil,
         cilPeople,
         cilPuzzle,
+        cilSave, //GVA
         cilSettings,
         cilShieldAlt,
         cilSpeech,

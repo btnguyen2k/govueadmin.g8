@@ -13,6 +13,9 @@ import (
 	"github.com/btnguyen2k/consu/reddo"
 
 	"main/src/goapi"
+	"main/src/gvabe/bov2/blog"
+	userv2 "main/src/gvabe/bov2/user"
+	"main/src/henge"
 	"main/src/itineris"
 )
 
@@ -26,6 +29,9 @@ func initApiHandlers(router *itineris.ApiRouter) {
 	router.SetHandler("login", apiLogin)
 	router.SetHandler("verifyLoginToken", apiVerifyLoginToken)
 	router.SetHandler("systemInfo", apiSystemInfo)
+
+	router.SetHandler("myBlog", apiMyBlog)
+	router.SetHandler("createBlogPost", apiCreateBlogPost)
 
 	router.SetHandler("groupList", apiGroupList)
 	router.SetHandler("getGroup", apiGetGroup)
@@ -70,6 +76,16 @@ func _extractParam(params *itineris.ApiParams, paramName string, typ reflect.Typ
 		}
 	}
 	return v
+}
+
+// available since template-v0.2.0
+func _currentUserFromContext(ctx *itineris.ApiContext) (*SessionClaims, *userv2.User, error) {
+	sessClaims, ok := ctx.GetContextValue(ctxFieldSession).(*SessionClaims)
+	if !ok || sessClaims == nil {
+		return nil, nil, nil
+	}
+	user, err := userDaov2.Get(sessClaims.UserId)
+	return sessClaims, user, err
 }
 
 /*------------------------------ APIs ------------------------------*/
@@ -264,4 +280,74 @@ func apiVerifyLoginToken(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *it
 		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
 	}
 	return itineris.NewApiResult(itineris.StatusOk).SetData(jwt)
+}
+
+/*
+apiMyBlog handles API call "myBlog"
+
+@available since template-v0.2.0
+*/
+func apiMyBlog(ctx *itineris.ApiContext, _ *itineris.ApiAuth, _ *itineris.ApiParams) *itineris.ApiResult {
+	_, user, err := _currentUserFromContext(ctx)
+	if err != nil {
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+	}
+	if user == nil {
+		return itineris.NewApiResult(itineris.StatusNoPermission).SetMessage("user not found")
+	}
+	blogPostList, err := blogPostDaov2.GetUserPostsAll(user)
+	if err != nil {
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+	}
+	data := make([]map[string]interface{}, 0)
+	for _, p := range blogPostList {
+		data = append(data, p.ToMap(func(m map[string]interface{}) map[string]interface{} {
+			// transform input map
+			return map[string]interface{}{
+				"id":             m[henge.FieldId],
+				"t_created":      m[henge.FieldTimeCreated],
+				"is_public":      m[blog.PostField_IsPublic],
+				"owner_id":       m[blog.PostField_OwnerId],
+				"title":          m[blog.PostAttr_Title],
+				"content":        m[blog.PostAttr_Content],
+				"num_comments":   m[blog.PostAttr_NumComments],
+				"num_votes_up":   m[blog.PostAttr_NumVotesUp],
+				"num_votes_down": m[blog.PostAttr_NumVotesDown],
+			}
+		}))
+	}
+	return itineris.NewApiResult(itineris.StatusOk).SetData(data)
+}
+
+/*
+apiCreateBlogPost handles API call "createBlogPost"
+
+@available since template-v0.2.0
+*/
+func apiCreateBlogPost(ctx *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
+	_, user, err := _currentUserFromContext(ctx)
+	if err != nil {
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+	}
+	if user == nil {
+		return itineris.NewApiResult(itineris.StatusNoPermission).SetMessage("user not found")
+	}
+	isPublic := _extractParam(params, "is_public", reddo.TypeBool, false, nil)
+	title := _extractParam(params, "title", reddo.TypeString, "", nil)
+	if title == "" {
+		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("title is empty")
+	}
+	content := _extractParam(params, "title", reddo.TypeString, "", nil)
+	if content == "" {
+		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("content is empty")
+	}
+	blogPost := blog.NewBlogPost(goapi.AppVersionNumber, user, isPublic.(bool), title.(string), content.(string))
+	ok, err := blogPostDaov2.Create(blogPost)
+	if err != nil {
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+	}
+	if !ok {
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage("cannot create blog post")
+	}
+	return itineris.NewApiResult(itineris.StatusOk)
 }

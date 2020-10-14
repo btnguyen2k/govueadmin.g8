@@ -16,7 +16,7 @@ export default [
             {
                 _name: 'CSidebarNavItem',
                 name: 'My Blog',
-                to: {name: 'MyPosts'},
+                to: {name: 'MyBlog'},
                 icon: 'cil-address-book',
             },
             {

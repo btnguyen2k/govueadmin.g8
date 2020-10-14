@@ -63,7 +63,7 @@ func (dao *BlogCommentDaoSql) Get(id string) (*BlogComment, error) {
 
 // GetN implements BlogCommentDao.GetN
 func (dao *BlogCommentDaoSql) GetN(fromOffset, maxNumRows int) ([]*BlogComment, error) {
-	uboList, err := dao.UniversalDao.GetN(fromOffset, maxNumRows)
+	uboList, err := dao.UniversalDao.GetN(fromOffset, maxNumRows, nil, nil)
 	if err != nil {
 		return nil, err
 	}

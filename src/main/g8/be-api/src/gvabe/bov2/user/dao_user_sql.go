@@ -57,7 +57,7 @@ func (dao *UserDaoSql) Get(id string) (*User, error) {
 
 // GetN implements UserDao.GetN
 func (dao *UserDaoSql) GetN(fromOffset, maxNumRows int) ([]*User, error) {
-	uboList, err := dao.UniversalDao.GetN(fromOffset, maxNumRows)
+	uboList, err := dao.UniversalDao.GetN(fromOffset, maxNumRows, nil, nil)
 	if err != nil {
 		return nil, err
 	}

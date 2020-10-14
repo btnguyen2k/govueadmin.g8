@@ -41,10 +41,10 @@ func NewBlogPostFromUbo(ubo *henge.UniversalBo) *BlogPost {
 	} else {
 		post.ownerId = v.(string)
 	}
-	if v, err := post.GetExtraAttrAs(PostField_IsPublic, reddo.TypeBool); err != nil {
+	if v, err := post.GetExtraAttrAs(PostField_IsPublic, reddo.TypeInt); err != nil {
 		return nil
 	} else {
-		post.isPublic = v.(bool)
+		post.isPublic = v.(int64) != 0
 	}
 	if v, err := post.GetDataAttrAs(PostAttr_Title, reddo.TypeString); err != nil {
 		return nil
@@ -112,6 +112,24 @@ type BlogPost struct {
 	numComments       int    `json:"ncmts"`
 	numVotesUp        int    `json:"vup"`
 	numVotesDown      int    `json:"vdown"`
+}
+
+func (p *BlogPost) ToMap(postFunc henge.FuncPostUboToMap) map[string]interface{} {
+	result := map[string]interface{}{
+		henge.FieldId:          p.GetId(),
+		henge.FieldTimeCreated: p.GetTimeCreated(),
+		PostField_OwnerId:      p.ownerId,
+		PostField_IsPublic:     p.isPublic,
+		PostAttr_Title:         p.title,
+		PostAttr_Content:       p.content,
+		PostAttr_NumComments:   p.numComments,
+		PostAttr_NumVotesUp:    p.numVotesUp,
+		PostAttr_NumVotesDown:  p.numVotesDown,
+	}
+	if postFunc != nil {
+		result = postFunc(result)
+	}
+	return result
 }
 
 // MarshalJSON implements json.encode.Marshaler.MarshalJSON
@@ -281,13 +299,17 @@ func (p *BlogPost) IncNumVotesDown(delta int) *BlogPost {
 
 // sync is called to synchronize BO's attributes to its UniversalBo
 func (p *BlogPost) sync() *BlogPost {
+	vIsPublic := 1
+	if !p.isPublic {
+		vIsPublic = 0
+	}
 	p.SetDataAttr(PostAttr_Title, p.title)
 	p.SetDataAttr(PostAttr_Content, p.content)
 	p.SetDataAttr(PostAttr_NumComments, p.numComments)
 	p.SetDataAttr(PostAttr_NumVotesUp, p.numVotesUp)
 	p.SetDataAttr(PostAttr_NumVotesDown, p.numVotesDown)
 	p.SetExtraAttr(PostField_OwnerId, p.ownerId)
-	p.SetExtraAttr(PostField_IsPublic, p.isPublic)
+	p.SetExtraAttr(PostField_IsPublic, vIsPublic)
 	p.UniversalBo.Sync()
 	return p
 }
@@ -305,11 +327,11 @@ type BlogPostDao interface {
 	// Get retrieves a business object from storage
 	Get(id string) (*BlogPost, error)
 
-	// GetN retrieves N business objects from storage
-	GetN(fromOffset, maxNumRows int) ([]*BlogPost, error)
+	// GetUserPostsN retrieves first N user's blog posts of a user, latest posts first
+	GetUserPostsN(user *userv2.User, fromOffset, maxNumRows int) ([]*BlogPost, error)
 
-	// GetAll retrieves all available business objects from storage
-	GetAll() ([]*BlogPost, error)
+	// GetUserPostsAll retrieves all available user's blog posts, latest posts first
+	GetUserPostsAll(user *userv2.User) ([]*BlogPost, error)
 
 	// Update modifies an existing business object
 	Update(bo *BlogPost) (bool, error)

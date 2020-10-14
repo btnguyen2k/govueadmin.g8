@@ -3,8 +3,10 @@ package blog
 import (
 	"github.com/btnguyen2k/consu/reddo"
 	"github.com/btnguyen2k/godal"
+	"github.com/btnguyen2k/godal/sql"
 	"github.com/btnguyen2k/prom"
 
+	userv2 "main/src/gvabe/bov2/user"
 	"main/src/henge"
 )
 
@@ -59,9 +61,10 @@ func (dao *BlogPostDaoSql) Get(id string) (*BlogPost, error) {
 	return NewBlogPostFromUbo(ubo), nil
 }
 
-// GetN implements BlogPostDao.GetN
-func (dao *BlogPostDaoSql) GetN(fromOffset, maxNumRows int) ([]*BlogPost, error) {
-	uboList, err := dao.UniversalDao.GetN(fromOffset, maxNumRows)
+// GetUserPostsN implements BlogPostDao.GetUserPostsN
+func (dao *BlogPostDaoSql) GetUserPostsN(user *userv2.User, fromOffset, maxNumRows int) ([]*BlogPost, error) {
+	filter := &sql.FilterFieldValue{Field: PostCol_OwnerId, Operation: "=", Value: user.GetId()}
+	uboList, err := dao.UniversalDao.GetN(fromOffset, maxNumRows, filter, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -73,9 +76,9 @@ func (dao *BlogPostDaoSql) GetN(fromOffset, maxNumRows int) ([]*BlogPost, error)
 	return result, nil
 }
 
-// GetAll implements BlogPostDao.GetAll
-func (dao *BlogPostDaoSql) GetAll() ([]*BlogPost, error) {
-	return dao.GetN(0, 0)
+// GetUserPostsAll implements BlogPostDao.GetAll
+func (dao *BlogPostDaoSql) GetUserPostsAll(user *userv2.User) ([]*BlogPost, error) {
+	return dao.GetUserPostsN(user, 0, 0)
 }
 
 // Update implements BlogPostDao.Update

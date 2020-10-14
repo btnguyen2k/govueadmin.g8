@@ -22,6 +22,8 @@ let appId = appConfig.APP_ID
 let apiInfo = "/info"
 let apiLogin = "/api/login"
 let apiVerifyLoginToken = "/api/verifyLoginToken"
+let apiMyBlog = '/api/myblog'
+
 let apiSystemInfo = "/api/systemInfo"
 let apiGroupList = "/api/groups"
 let apiGroup = "/api/group"
@@ -95,6 +97,8 @@ export default {
     apiInfo,
     apiLogin,
     apiVerifyLoginToken,
+    apiMyBlog,
+
     apiSystemInfo,
     apiGroupList,
     apiGroup,

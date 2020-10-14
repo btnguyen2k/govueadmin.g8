@@ -19,3 +19,6 @@
 /vendor
 /data/
 /qnd/
+/.project
+/.vscode/
+/.settings/

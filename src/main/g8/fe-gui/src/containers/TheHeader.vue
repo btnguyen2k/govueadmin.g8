@@ -23,7 +23,7 @@
         </CHeaderNavLink>
       </CHeaderNavItem>
       <CHeaderNavItem class="px-3">
-        <CHeaderNavLink :to="{name:'MyPosts'}">
+        <CHeaderNavLink :to="{name:'MyBlog'}">
           My Blog
         </CHeaderNavLink>
       </CHeaderNavItem>
