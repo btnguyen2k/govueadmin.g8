@@ -21,16 +21,29 @@
                   required
                   was-validated
               />
-              <CTextarea
-                  rows="10"
-                  type="text"
-                  v-model="form.content"
-                  label="Content (Markdown supported)"
-                  placeholder="My blog post's awesome content"
-                  horizontal
-                  required
-                  was-validated
-              />
+              <CTabs>
+                <CTab active>
+                  <template slot="title">
+                    <CIcon name="cib-markdown"/> Editor
+                  </template>
+                  <CTextarea
+                      rows="10"
+                      type="text"
+                      v-model="form.content"
+                      label="Content (Markdown supported)"
+                      placeholder="My blog post's awesome content"
+                      horizontal
+                      required
+                      was-validated
+                  />
+                </CTab>
+                <CTab>
+                  <template slot="title">
+                    <CIcon name="cil-calculator"/> Preview
+                  </template>
+                  <div v-html="previewContent"></div>
+                </CTab>
+              </CTabs>
             </CCardBody>
             <CCardFooter>
               <CButton type="submit" color="primary" style="width: 96px">
@@ -51,10 +64,18 @@
 
 <script>
 import router from "@/router"
-import clientUtils from "@/utils/api_client";
+import clientUtils from "@/utils/api_client"
+import marked from "marked"
+import DOMPurify from 'dompurify'
 
 export default {
   name: 'CreatePost',
+  computed: {
+    previewContent() {
+      const html = marked(this.form.content)
+      return DOMPurify.sanitize(html)
+    }
+  },
   data() {
     return {
       form: {title: "", content: "", isPublic: false},

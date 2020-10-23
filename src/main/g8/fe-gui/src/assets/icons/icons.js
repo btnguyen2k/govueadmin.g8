@@ -10,6 +10,7 @@ import {
     cibYoutube,
     cibDribbble,
     cibInstagram,
+    cibMarkdown, //GVA
     cibPinterest,
     cibVk,
     cibYahoo,
@@ -162,6 +163,7 @@ export const iconsSet = Object.assign(
         cibYoutube,
         cibDribbble,
         cibInstagram,
+        cibMarkdown, //GVA
         cibPinterest,
         cibVk,
         cibYahoo,

@@ -64,7 +64,7 @@ func (dao *BlogPostDaoSql) Get(id string) (*BlogPost, error) {
 // GetUserPostsN implements BlogPostDao.GetUserPostsN
 func (dao *BlogPostDaoSql) GetUserPostsN(user *userv2.User, fromOffset, maxNumRows int) ([]*BlogPost, error) {
 	filter := &sql.FilterFieldValue{Field: PostCol_OwnerId, Operation: "=", Value: user.GetId()}
-	uboList, err := dao.UniversalDao.GetN(fromOffset, maxNumRows, filter, nil)
+	uboList, err := dao.UniversalDao.GetN(fromOffset, maxNumRows, filter, map[string]string{henge.ColTimeCreated: "DESC"})
 	if err != nil {
 		return nil, err
 	}

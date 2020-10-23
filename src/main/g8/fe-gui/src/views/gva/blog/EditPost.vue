@@ -22,16 +22,29 @@
                   required
                   was-validated
               />
-              <CTextarea v-if="found"
-                  rows="10"
-                  type="text"
-                  v-model="post.content"
-                  label="Content (Markdown supported)"
-                  placeholder="My blog post's awesome content"
-                  horizontal
-                  required
-                  was-validated
-              />
+              <CTabs v-if="found">
+                <CTab active>
+                  <template slot="title">
+                    <CIcon name="cib-markdown"/> Editor
+                  </template>
+                  <CTextarea
+                      rows="10"
+                      type="text"
+                      v-model="post.content"
+                      label="Content (Markdown supported)"
+                      placeholder="My blog post's awesome content"
+                      horizontal
+                      required
+                      was-validated
+                  />
+                </CTab>
+                <CTab>
+                  <template slot="title">
+                    <CIcon name="cil-calculator"/> Preview
+                  </template>
+                  <div v-html="previewContent"></div>
+                </CTab>
+              </CTabs>
             </CCardBody>
             <CCardFooter>
               <CButton v-if="found" type="submit" color="primary" style="width: 96px">
@@ -52,10 +65,18 @@
 
 <script>
 import router from "@/router"
-import clientUtils from "@/utils/api_client";
+import clientUtils from "@/utils/api_client"
+import marked from "marked"
+import DOMPurify from 'dompurify'
 
 export default {
   name: 'EditPost',
+  computed: {
+    previewContent() {
+      const html = marked(this.post.content)
+      return DOMPurify.sanitize(html)
+    }
+  },
   data() {
     clientUtils.apiDoGet(clientUtils.apiPost + "/" + this.$route.params.id,
         (apiRes) => {
