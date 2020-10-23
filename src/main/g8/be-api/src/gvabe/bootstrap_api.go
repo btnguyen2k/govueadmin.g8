@@ -30,6 +30,7 @@ func initApiHandlers(router *itineris.ApiRouter) {
 	router.SetHandler("verifyLoginToken", apiVerifyLoginToken)
 	router.SetHandler("systemInfo", apiSystemInfo)
 
+	router.SetHandler("myFeed", apiMyFeed)
 	router.SetHandler("myBlog", apiMyBlog)
 	router.SetHandler("createBlogPost", apiCreateBlogPost)
 	router.SetHandler("getBlogPost", apiGetBlogPost)
@@ -298,6 +299,30 @@ var funcPostToMapTransform = func(m map[string]interface{}) map[string]interface
 		"num_votes_up":   m[blog.PostAttr_NumVotesUp],
 		"num_votes_down": m[blog.PostAttr_NumVotesDown],
 	}
+}
+
+/*
+apiMyFeed handles API call "myFeed"
+
+@available since template-v0.2.0
+*/
+func apiMyFeed(ctx *itineris.ApiContext, _ *itineris.ApiAuth, _ *itineris.ApiParams) *itineris.ApiResult {
+	_, user, err := _currentUserFromContext(ctx)
+	if err != nil {
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+	}
+	if user == nil {
+		return itineris.NewApiResult(itineris.StatusNoPermission).SetMessage("user not found")
+	}
+	blogPostList, err := blogPostDaov2.GetUserFeedAll(user)
+	if err != nil {
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+	}
+	data := make([]map[string]interface{}, 0)
+	for _, p := range blogPostList {
+		data = append(data, p.ToMap(funcPostToMapTransform))
+	}
+	return itineris.NewApiResult(itineris.StatusOk).SetData(data)
 }
 
 /*

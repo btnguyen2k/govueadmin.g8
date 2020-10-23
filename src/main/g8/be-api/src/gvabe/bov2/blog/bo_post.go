@@ -333,6 +333,12 @@ type BlogPostDao interface {
 	// GetUserPostsAll retrieves all available user's blog posts, latest posts first
 	GetUserPostsAll(user *userv2.User) ([]*BlogPost, error)
 
+	// GetUserFeedN retrieves first N blog posts for user's feed, latest posts first
+	GetUserFeedN(user *userv2.User, fromOffset, maxNumRows int) ([]*BlogPost, error)
+
+	// GetUserFeedAll retrieves all available blog posts for user's feed, latest posts first
+	GetUserFeedAll(user *userv2.User) ([]*BlogPost, error)
+
 	// Update modifies an existing business object
 	Update(bo *BlogPost) (bool, error)
 }

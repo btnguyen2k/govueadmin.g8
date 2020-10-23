@@ -2,23 +2,23 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 
-// Groups - #GovueAdmin-Customized
-const Groups = () => import('@/views/gva/groups/Groups')
-const CreateGroup = () => import('@/views/gva/groups/CreateGroup')
-const EditGroup = () => import('@/views/gva/groups/EditGroup')
-const DeleteGroup = () => import('@/views/gva/groups/DeleteGroup')
-
-// Users - #GovueAdmin-Customized
-const Users = () => import('@/views/gva/users/Users')
-const CreateUser = () => import('@/views/gva/users/CreateUser')
-const EditUser = () => import('@/views/gva/users/EditUser')
-const DeleteUser = () => import('@/views/gva/users/DeleteUser')
+// // Groups - #GovueAdmin-Customized
+// const Groups = () => import('@/views/gva/groups/Groups')
+// const CreateGroup = () => import('@/views/gva/groups/CreateGroup')
+// const EditGroup = () => import('@/views/gva/groups/EditGroup')
+// const DeleteGroup = () => import('@/views/gva/groups/DeleteGroup')
+//
+// // Users - #GovueAdmin-Customized
+// const Users = () => import('@/views/gva/users/Users')
+// const CreateUser = () => import('@/views/gva/users/CreateUser')
+// const EditUser = () => import('@/views/gva/users/EditUser')
+// const DeleteUser = () => import('@/views/gva/users/DeleteUser')
 
 // Containers
 const TheContainer = () => import('@/containers/TheContainer')
 
 // Views
-const Dashboard = () => import('@/views/Dashboard')
+const Dashboard = () => import('@/views/gva/Dashboard')
 const MyBlog = () => import('@/views/gva/blog/MyBlog')
 const CreatePost = () => import('@/views/gva/blog/CreatePost')
 const EditPost = () => import('@/views/gva/blog/EditPost')
@@ -114,62 +114,6 @@ function configRoutes() {
                         },
                         {
                             path: '_delete/:id', meta: {label: 'Delete Blog Post'}, name: 'DeletePost', component: DeletePost,
-                        },
-                    ]
-                },
-                {
-                    path: 'groups', meta: {label: 'Groups'},
-                    component: {
-                        render(c) {
-                            return c('router-view')
-                        }
-                    },
-                    children: [
-                        {
-                            path: '', meta: {label: 'Group List'}, name: 'Groups', component: Groups, props: true,
-                        },
-                        {
-                            path: '_create',
-                            meta: {label: 'Create New Group'},
-                            name: 'CreateGroup',
-                            component: CreateGroup,
-                        },
-                        {
-                            path: '_edit/:id', meta: {label: 'Edit Group'}, name: 'EditGroup', component: EditGroup,
-                        },
-                        {
-                            path: '_delete/:id',
-                            meta: {label: 'Delete Group'},
-                            name: 'DeleteGroup',
-                            component: DeleteGroup,
-                        },
-                    ]
-                },
-                {
-                    path: 'users', meta: {label: 'Users'},
-                    component: {
-                        render(c) {
-                            return c('router-view')
-                        }
-                    },
-                    children: [
-                        {
-                            path: '', meta: {label: 'User List'}, name: 'Users', component: Users, props: true,
-                        },
-                        {
-                            path: '_create',
-                            meta: {label: 'Create New User'},
-                            name: 'CreateUser',
-                            component: CreateUser,
-                        },
-                        {
-                            path: '_edit/:username', meta: {label: 'Edit User'}, name: 'EditUser', component: EditUser,
-                        },
-                        {
-                            path: '_delete/:username',
-                            meta: {label: 'Delete User'},
-                            name: 'DeleteUser',
-                            component: DeleteUser,
                         },
                     ]
                 },

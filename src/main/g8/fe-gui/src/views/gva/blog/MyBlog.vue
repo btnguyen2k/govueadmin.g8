@@ -15,28 +15,41 @@
           <p v-if="flashMsg" class="alert alert-success">{{ flashMsg }}</p>
           <CDataTable :items="blogPostList.data" :fields="[
               {key:'public',label:''},
-              'Created',
-              'title',
+              {key:'created',label:'Created'},
+              {key:'title',label:'Title'},
               {key:'num_comments',label:'Comments'},
-              {key:'num_votes_up',label:'Votes ↑'},
-              {key:'num_votes_down',label:'Votes ↓'},
-              'actions']">
+              {key:'num_votes_up',label:'Votes ↑',_style:'white-space: nowrap'},
+              {key:'num_votes_down',label:'Votes ↓',_style:'white-space: nowrap'},
+              {key:'actions',label:'Actions',_style:'text-align: center'}
+            ]">
             <template #public="{item}">
               <td>
                 <CIcon :name="`${item.is_public?'cil-check':'cil-check-alt'}`"
                        :style="`color: ${item.is_public?'green':'grey'}`"/>
               </td>
             </template>
-            <template #Created="{item}">
-              <td>{{item.t_created.substring(0,19)}} (GMT{{item.t_created.substring(26)}})</td>
+            <template #created="{item}">
+              <td style="font-size: smaller; white-space: nowrap">{{item.t_created.substring(0,19)}} (GMT{{item.t_created.substring(26)}})</td>
+            </template>
+            <template #title="{item}">
+              <td style="font-size: smaller">{{item.title}}</td>
+            </template>
+            <template #num_comments="{item}">
+              <td style="font-size: smaller; text-align: center">{{item.num_comments}}</td>
+            </template>
+            <template #num_votes_up="{item}">
+              <td style="font-size: smaller; text-align: center">{{item.num_votes_up}}</td>
+            </template>
+            <template #num_votes_down="{item}">
+              <td style="font-size: smaller; text-align: center">{{item.num_votes_down}}</td>
             </template>
             <template #actions="{item}">
-              <td>
-                <CLink @click="clickEditBlogPost(item.id)" label="Edit" class="btn btn-primary">
+              <td style="font-size: smaller; white-space: nowrap; text-align: center">
+                <CLink @click="clickEditBlogPost(item.id)" label="Edit" class="btn btn-sm btn-primary">
                   <CIcon name="cil-pencil"/>
                 </CLink>
                 &nbsp;
-                <CLink @click="clickDeleteBlogPost(item.id)" label="Delete" class="btn btn-danger">
+                <CLink @click="clickDeleteBlogPost(item.id)" label="Delete" class="btn btn-sm btn-danger">
                   <CIcon name="cil-trash"/>
                 </CLink>
               </td>
@@ -59,9 +72,6 @@ export default {
         (apiRes) => {
           if (apiRes.status == 200) {
             blogPostList.data = apiRes.data
-            blogPostList.data.forEach((item) => {
-              console.log(item)
-            })
           } else {
             console.error("Getting blog post list was unsuccessful: " + apiRes)
           }

@@ -81,6 +81,31 @@ func (dao *BlogPostDaoSql) GetUserPostsAll(user *userv2.User) ([]*BlogPost, erro
 	return dao.GetUserPostsN(user, 0, 0)
 }
 
+// GetUserFeedN implements BlogPostDao.GetUserPostsN
+func (dao *BlogPostDaoSql) GetUserFeedN(user *userv2.User, fromOffset, maxNumRows int) ([]*BlogPost, error) {
+	filter := &sql.FilterOr{
+		Filters: []sql.IFilter{
+			&sql.FilterFieldValue{Field: PostCol_OwnerId, Operation: "=", Value: user.GetId()},
+			&sql.FilterFieldValue{Field: PostCol_IsPublic, Operation: "=", Value: 1},
+		},
+	}
+	uboList, err := dao.UniversalDao.GetN(fromOffset, maxNumRows, filter, map[string]string{henge.ColTimeCreated: "DESC"})
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*BlogPost, 0)
+	for _, ubo := range uboList {
+		app := NewBlogPostFromUbo(ubo)
+		result = append(result, app)
+	}
+	return result, nil
+}
+
+// GetUserFeedAll implements BlogPostDao.GetUserFeedAll
+func (dao *BlogPostDaoSql) GetUserFeedAll(user *userv2.User) ([]*BlogPost, error) {
+	return dao.GetUserFeedN(user, 0, 0)
+}
+
 // Update implements BlogPostDao.Update
 func (dao *BlogPostDaoSql) Update(post *BlogPost) (bool, error) {
 	return dao.UniversalDao.Update(post.sync().UniversalBo.Clone())
