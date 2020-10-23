@@ -6,23 +6,29 @@
           <strong>Blog Post ({{ blogPostList.data.length }})</strong>
           <div class="card-header-actions">
             <CButton class="btn-sm btn-primary" @click="clickCreateBlogPost">
-              <CIcon name="cil-image-plus"/> Create Blog Post
+              <CIcon name="cil-image-plus"/>
+              Create Blog Post
             </CButton>
           </div>
         </CCardHeader>
         <CCardBody>
           <p v-if="flashMsg" class="alert alert-success">{{ flashMsg }}</p>
           <CDataTable :items="blogPostList.data" :fields="[
-              'Public',
+              {key:'public',label:''},
+              'Created',
               'title',
               {key:'num_comments',label:'Comments'},
-              {key:'num_votes_up',label:'Votes Up'},
-              {key:'num_votes_down',label:'Votes Down'},
+              {key:'num_votes_up',label:'Votes ↑'},
+              {key:'num_votes_down',label:'Votes ↓'},
               'actions']">
-            <template #Public="{item}">
+            <template #public="{item}">
               <td>
-                <CIcon :name="`${item.is_public?'cil-check':'cil-check-alt'}`" :style="`color: ${item.is_public?'green':'grey'}`"/>
+                <CIcon :name="`${item.is_public?'cil-check':'cil-check-alt'}`"
+                       :style="`color: ${item.is_public?'green':'grey'}`"/>
               </td>
+            </template>
+            <template #Created="{item}">
+              <td>{{item.t_created.substring(0,19)}} (GMT{{item.t_created.substring(26)}})</td>
             </template>
             <template #actions="{item}">
               <td>
@@ -53,6 +59,9 @@ export default {
         (apiRes) => {
           if (apiRes.status == 200) {
             blogPostList.data = apiRes.data
+            blogPostList.data.forEach((item) => {
+              console.log(item)
+            })
           } else {
             console.error("Getting blog post list was unsuccessful: " + apiRes)
           }
@@ -60,7 +69,6 @@ export default {
         (err) => {
           console.error("Error getting blog post list: " + err)
         })
-
     return {
       blogPostList: blogPostList,
     }
