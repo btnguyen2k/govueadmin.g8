@@ -10,6 +10,7 @@
               <div class="form-group form-row">
                 <CCol :sm="{offset:3,size:9}" class="form-inline">
                   <CInputCheckbox inline label="Public" :checked.sync="form.isPublic"/>
+                  <small>(Other people can see, comment and vote your public posts)</small>
                 </CCol>
               </div>
               <CInput
@@ -66,7 +67,7 @@
 import router from "@/router"
 import clientUtils from "@/utils/api_client"
 import marked from "marked"
-import DOMPurify from 'dompurify'
+import DOMPurify from "dompurify"
 
 export default {
   name: 'CreatePost',

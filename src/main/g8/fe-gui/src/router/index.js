@@ -22,6 +22,7 @@ const Dashboard = () => import('@/views/Dashboard')
 const MyBlog = () => import('@/views/gva/blog/MyBlog')
 const CreatePost = () => import('@/views/gva/blog/CreatePost')
 const EditPost = () => import('@/views/gva/blog/EditPost')
+const DeletePost = () => import('@/views/gva/blog/DeletePost')
 
 // Views - Pages
 const Login = () => import('@/views/gva/pages/Login')
@@ -111,12 +112,9 @@ function configRoutes() {
                         {
                             path: '_edit/:id', meta: {label: 'Edit Blog Post'}, name: 'EditPost', component: EditPost,
                         },
-                        // {
-                        //     path: '_delete/:id',
-                        //     meta: {label: 'Delete Group'},
-                        //     name: 'DeleteGroup',
-                        //     component: DeleteGroup,
-                        // },
+                        {
+                            path: '_delete/:id', meta: {label: 'Delete Blog Post'}, name: 'DeletePost', component: DeletePost,
+                        },
                     ]
                 },
                 {

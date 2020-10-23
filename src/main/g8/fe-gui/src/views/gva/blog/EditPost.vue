@@ -11,21 +11,23 @@
               <div class="form-group form-row" v-if="found">
                 <CCol :sm="{offset:3,size:9}" class="form-inline">
                   <CInputCheckbox inline label="Public" :checked.sync="post.is_public"/>
+                  <small>(Other people can see, comment and vote your public posts)</small>
                 </CCol>
               </div>
               <CInput v-if="found"
-                  type="text"
-                  v-model="post.title"
-                  label="Title"
-                  placeholder="My blog post's awesome title"
-                  horizontal
-                  required
-                  was-validated
+                      type="text"
+                      v-model="post.title"
+                      label="Title"
+                      placeholder="My blog post's awesome title"
+                      horizontal
+                      required
+                      was-validated
               />
               <CTabs v-if="found">
                 <CTab active>
                   <template slot="title">
-                    <CIcon name="cib-markdown"/> Editor
+                    <CIcon name="cib-markdown"/>
+                    Editor
                   </template>
                   <CTextarea
                       rows="10"
@@ -40,7 +42,8 @@
                 </CTab>
                 <CTab>
                   <template slot="title">
-                    <CIcon name="cil-calculator"/> Preview
+                    <CIcon name="cil-calculator"/>
+                    Preview
                   </template>
                   <div v-html="previewContent"></div>
                 </CTab>
@@ -67,14 +70,13 @@
 import router from "@/router"
 import clientUtils from "@/utils/api_client"
 import marked from "marked"
-import DOMPurify from 'dompurify'
+import DOMPurify from "dompurify"
 
 export default {
   name: 'EditPost',
   computed: {
     previewContent() {
-      const html = marked(this.post.content)
-      return DOMPurify.sanitize(html)
+      return this.found ? DOMPurify.sanitize(marked(this.post.content)) : ''
     }
   },
   data() {
@@ -91,7 +93,7 @@ export default {
     return {
       post: {},
       errorMsg: "",
-      found: true,
+      found: false,
     }
   },
   methods: {
