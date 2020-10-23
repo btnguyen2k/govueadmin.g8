@@ -23,6 +23,7 @@ let apiInfo = "/info"
 let apiLogin = "/api/login"
 let apiVerifyLoginToken = "/api/verifyLoginToken"
 let apiMyBlog = '/api/myblog'
+let apiPost = '/api/post'
 
 let apiSystemInfo = "/api/systemInfo"
 let apiGroupList = "/api/groups"
@@ -98,6 +99,7 @@ export default {
     apiLogin,
     apiVerifyLoginToken,
     apiMyBlog,
+    apiPost,
 
     apiSystemInfo,
     apiGroupList,

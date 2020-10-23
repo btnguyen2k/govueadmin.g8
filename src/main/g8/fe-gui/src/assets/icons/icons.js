@@ -77,6 +77,7 @@ import {
     cilSpeedometer,
     cilStar,
     cilTask,
+    cilTrash, //GVA
     cilUser,
     cilUserFemale,
     cilUserFollow,
@@ -134,6 +135,7 @@ export const iconsSet = Object.assign(
         cilSpeedometer,
         cilStar,
         cilTask,
+        cilTrash, //GVA
         cilUser,
         cilUserFemale,
         cilUserFollow,

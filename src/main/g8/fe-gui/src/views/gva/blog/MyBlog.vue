@@ -26,11 +26,11 @@
             </template>
             <template #actions="{item}">
               <td>
-                <CLink @click="clickEditGroup(item.id)" label="Edit" class="btn btn-primary">
+                <CLink @click="clickEditBlogPost(item.id)" label="Edit" class="btn btn-primary">
                   <CIcon name="cil-pencil"/>
                 </CLink>
                 &nbsp;
-                <CLink @click="clickDeleteGroup(item.id)" label="Delete" class="btn btn-danger">
+                <CLink @click="clickDeleteBlogPost(item.id)" label="Delete" class="btn btn-danger">
                   <CIcon name="cil-trash"/>
                 </CLink>
               </td>
@@ -53,7 +53,6 @@ export default {
         (apiRes) => {
           if (apiRes.status == 200) {
             blogPostList.data = apiRes.data
-            console.log(blogPostList.data)
           } else {
             console.error("Getting blog post list was unsuccessful: " + apiRes)
           }
@@ -68,14 +67,14 @@ export default {
   },
   props: ["flashMsg"],
   methods: {
-    clickCreateBlogPost(e) {
+    clickCreateBlogPost() {
       this.$router.push({name: "CreatePost"})
     },
-    clickEditGroup(id) {
-      this.$router.push({name: "EditGroup", params: {id: id.toString()}})
+    clickEditBlogPost(id) {
+      this.$router.push({name: "EditPost", params: {id: id.toString()}})
     },
-    clickDeleteGroup(id) {
-      this.$router.push({name: "DeleteGroup", params: {id: id.toString()}})
+    clickDeleteBlogPost(id) {
+      this.$router.push({name: "DeletePost", params: {id: id.toString()}})
     },
   }
 }

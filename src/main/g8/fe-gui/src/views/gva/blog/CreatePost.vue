@@ -3,14 +3,13 @@
     <CRow>
       <CCol sm="12">
         <CCard>
-          <CCardHeader>Create Blog Post</CCardHeader>
+          <CCardHeader><h5>Create Blog Post</h5></CCardHeader>
           <CForm @submit.prevent="doSubmit" method="post">
             <CCardBody>
               <p v-if="errorMsg!=''" class="alert alert-danger">{{ errorMsg }}</p>
               <div class="form-group form-row">
                 <CCol :sm="{offset:3,size:9}" class="form-inline">
-                  <CInputCheckbox inline label="Public" :checked.sync="form.isPublic"
-                  />
+                  <CInputCheckbox inline label="Public" :checked.sync="form.isPublic"/>
                 </CCol>
               </div>
               <CInput

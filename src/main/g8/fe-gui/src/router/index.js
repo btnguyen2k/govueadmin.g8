@@ -21,6 +21,7 @@ const TheContainer = () => import('@/containers/TheContainer')
 const Dashboard = () => import('@/views/Dashboard')
 const MyBlog = () => import('@/views/gva/blog/MyBlog')
 const CreatePost = () => import('@/views/gva/blog/CreatePost')
+const EditPost = () => import('@/views/gva/blog/EditPost')
 
 // Views - Pages
 const Login = () => import('@/views/gva/pages/Login')
@@ -105,14 +106,11 @@ function configRoutes() {
                             path: '', meta: {label: 'My Blog'}, name: 'MyBlog', component: MyBlog, props: true, //[props=true] to pass flashMsg
                         },
                         {
-                            path: '_create',
-                            meta: {label: 'Create Blog Post'},
-                            name: 'CreatePost',
-                            component: CreatePost,
+                            path: '_create', meta: {label: 'Create Blog Post'}, name: 'CreatePost', component: CreatePost,
                         },
-                        // {
-                        //     path: '_edit/:id', meta: {label: 'Edit Group'}, name: 'EditGroup', component: EditGroup,
-                        // },
+                        {
+                            path: '_edit/:id', meta: {label: 'Edit Blog Post'}, name: 'EditPost', component: EditPost,
+                        },
                         // {
                         //     path: '_delete/:id',
                         //     meta: {label: 'Delete Group'},
