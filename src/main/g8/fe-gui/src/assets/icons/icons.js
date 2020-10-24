@@ -47,6 +47,7 @@ import {
     cilChevronBottom,
     cilChevronTop,
     cilCheckCircle,
+    cilClipboard, //GVA
     cilCommentSquare,
     cilCursor,
     cilDrop,
@@ -105,6 +106,7 @@ export const iconsSet = Object.assign(
         cilChevronBottom,
         cilChevronTop,
         cilCheckCircle,
+        cilClipboard, //GVA
         cilCommentSquare,
         cilCursor,
         cilDrop,

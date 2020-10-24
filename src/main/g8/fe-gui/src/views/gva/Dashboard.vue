@@ -3,9 +3,15 @@
     <CRow v-for="post in blogPostList.data">
       <CCol sm="12">
         <CCard accent-color="primary">
-          <CCardHeader><strong>Compete. Learn. Win. Sign up for the Azure SQL Championship Today</strong></CCardHeader>
+          <CCardHeader>
+            <div class="c-avatar" style="vertical-align: middle">
+              <img :src="avatar(post)" class="c-avatar-img" :title="displayName(post)"/>
+            </div>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span style="font-size: large; font-weight: bold">{{post.title}}</span>
+          </CCardHeader>
           <CCardBody>
-            The last six months have seen an unprecedented acceleration in digital transformation. There has never been a more important time for database administrators (DBAs) and developers to prepare for an increasingly cloud-centric future. However, we’d like to make this interesting and fun. That’s why we’ve partnered with PASS, a worldwide community of over 300,000 data professionals, to create an interactive learning experience that allows you to test your talent and build your skillset for the future—all while earning to chance to win prizes. Sign up now for the Azure SQL Championship, starting October 12, 2020.
+            <p style="font-style: italic">by <strong>{{displayName(post)}}</strong> on {{creationTime(post)}})</p>
+            <div v-html="renderMarkdown(post)"></div>
           </CCardBody>
         </CCard>
       </CCol>
@@ -15,6 +21,8 @@
 
 <script>
 import clientUtils from "@/utils/api_client"
+import marked from "marked"
+import DOMPurify from "dompurify"
 
 export default {
   name: 'Dashboard',
@@ -36,6 +44,19 @@ export default {
     }
   },
   methods: {
+    avatar(post) {
+      return "https://www.gravatar.com/avatar/" + post.owner.id.trim().toLowerCase().md5() + "?s=40"
+    },
+    displayName(post) {
+      return post.owner.display_name
+    },
+    creationTime(post) {
+      return post.t_created.substring(0, 19) + ' (GMT' + post.t_created.substring(26) + ')'
+    },
+    renderMarkdown(post) {
+      // return marked(post.content)
+      return DOMPurify.sanitize(marked(post.content), {ADD_ATTR:['target']})
+    }
   }
 }
 </script>

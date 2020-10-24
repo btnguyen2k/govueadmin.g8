@@ -79,19 +79,32 @@ type User struct {
 	isAdmin           bool   `json:"isadm"`
 }
 
+func (u *User) ToMap(postFunc henge.FuncPostUboToMap) map[string]interface{} {
+	result := map[string]interface{}{
+		henge.FieldId:        u.GetId(),
+		UserField_MaskId:     u.maskId,
+		UserAttr_IsAdmin:     u.isAdmin,
+		UserAttr_DisplayName: u.displayName,
+	}
+	if postFunc != nil {
+		result = postFunc(result)
+	}
+	return result
+}
+
 // MarshalJSON implements json.encode.Marshaler.MarshalJSON
 //	TODO: lock for read?
-func (user *User) MarshalJSON() ([]byte, error) {
-	user.sync()
+func (u *User) MarshalJSON() ([]byte, error) {
+	u.sync()
 	m := map[string]interface{}{
-		userAttr_Ubo: user.UniversalBo.Clone(),
+		userAttr_Ubo: u.UniversalBo.Clone(),
 		"_cols": map[string]interface{}{
-			UserField_MaskId: user.maskId,
+			UserField_MaskId: u.maskId,
 		},
 		"_attrs": map[string]interface{}{
-			UserAttr_DisplayName: user.displayName,
-			UserAttr_IsAdmin:     user.isAdmin,
-			UserAttr_Password:    user.password,
+			UserAttr_DisplayName: u.displayName,
+			UserAttr_IsAdmin:     u.isAdmin,
+			UserAttr_Password:    u.password,
 		},
 	}
 	return json.Marshal(m)
@@ -99,7 +112,7 @@ func (user *User) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements json.decode.Unmarshaler.UnmarshalJSON
 //	TODO: lock for write?
-func (user *User) UnmarshalJSON(data []byte) error {
+func (u *User) UnmarshalJSON(data []byte) error {
 	var m map[string]interface{}
 	if err := json.Unmarshal(data, &m); err != nil {
 		return err
@@ -107,82 +120,82 @@ func (user *User) UnmarshalJSON(data []byte) error {
 	var err error
 	if m[userAttr_Ubo] != nil {
 		js, _ := json.Marshal(m[userAttr_Ubo])
-		if err = json.Unmarshal(js, &user.UniversalBo); err != nil {
+		if err = json.Unmarshal(js, &u.UniversalBo); err != nil {
 			return err
 		}
 	}
 	if _cols, ok := m["_cols"].(map[string]interface{}); ok {
-		if user.maskId, err = reddo.ToString(_cols[UserField_MaskId]); err != nil {
+		if u.maskId, err = reddo.ToString(_cols[UserField_MaskId]); err != nil {
 			return err
 		}
 	}
 	if _attrs, ok := m["_attrs"].(map[string]interface{}); ok {
-		if user.displayName, err = reddo.ToString(_attrs[UserAttr_DisplayName]); err != nil {
+		if u.displayName, err = reddo.ToString(_attrs[UserAttr_DisplayName]); err != nil {
 			return err
 		}
-		if user.isAdmin, err = reddo.ToBool(_attrs[UserAttr_IsAdmin]); err != nil {
+		if u.isAdmin, err = reddo.ToBool(_attrs[UserAttr_IsAdmin]); err != nil {
 			return err
 		}
-		if user.password, err = reddo.ToString(_attrs[UserAttr_Password]); err != nil {
+		if u.password, err = reddo.ToString(_attrs[UserAttr_Password]); err != nil {
 			return err
 		}
 	}
-	user.sync()
+	u.sync()
 	return nil
 }
 
 // GetMaskUniqueId returns value of user's 'mask-id' attribute
-func (user *User) GetMaskId() string {
-	return user.maskId
+func (u *User) GetMaskId() string {
+	return u.maskId
 }
 
 // SetMaskId sets value of user's 'mask-uid' attribute
-func (user *User) SetMaskId(v string) *User {
-	user.maskId = strings.TrimSpace(strings.ToLower(v))
-	return user
+func (u *User) SetMaskId(v string) *User {
+	u.maskId = strings.TrimSpace(strings.ToLower(v))
+	return u
 }
 
 // GetPassword returns value of user's 'password' attribute
-func (user *User) GetPassword() string {
-	return user.password
+func (u *User) GetPassword() string {
+	return u.password
 }
 
 // SetPassword sets value of user's 'password' attribute
-func (user *User) SetPassword(v string) *User {
-	user.password = strings.TrimSpace(v)
-	return user
+func (u *User) SetPassword(v string) *User {
+	u.password = strings.TrimSpace(v)
+	return u
 }
 
 // GetDisplayName returns value of user's 'display-name' attribute
-func (user *User) GetDisplayName() string {
-	return user.displayName
+func (u *User) GetDisplayName() string {
+	return u.displayName
 }
 
 // SetDisplayName sets value of user's 'display-name' attribute
-func (user *User) SetDisplayName(v string) *User {
-	user.displayName = strings.TrimSpace(v)
-	return user
+func (u *User) SetDisplayName(v string) *User {
+	u.displayName = strings.TrimSpace(v)
+	return u
 }
 
 // IsAdmin returns value of user's 'is-admin' attribute
-func (user *User) IsAdmin() bool {
-	return user.isAdmin
+func (u *User) IsAdmin() bool {
+	return u.isAdmin
 }
 
 // SetAdmin sets value of user's 'is-admin' attribute
-func (user *User) SetAdmin(v bool) *User {
-	user.isAdmin = v
-	return user
+func (u *User) SetAdmin(v bool) *User {
+	u.isAdmin = v
+	return u
 }
 
 // sync is called to synchronize BO's attributes to its UniversalBo
-func (user *User) sync() *User {
-	user.SetDataAttr(UserAttr_Password, user.password)
-	user.SetDataAttr(UserAttr_DisplayName, user.displayName)
-	user.SetDataAttr(UserAttr_IsAdmin, user.isAdmin)
-	user.SetExtraAttr(UserField_MaskId, user.maskId)
-	user.UniversalBo.Sync()
-	return user
+func (u *User) sync() *User {
+	u.SetDataAttr(UserAttr_Password, u.password)
+	u.SetDataAttr(UserAttr_DisplayName, u.displayName)
+	u.SetDataAttr(UserAttr_IsAdmin, u.isAdmin)
+	u.SetExtraAttr(UserField_MaskId, u.maskId)
+	u.UniversalBo.Sync()
+	return u
 }
 
 // UserDao defines API to access User storage

@@ -97,52 +97,7 @@ func initDaos() {
 	blogVoteDaov2 = _createBlogVoteDao(sqlc)
 
 	_initUsers()
-	// switch dbtype {
-	// case "sqlite":
-	// 	group.InitSqliteTableGroup(sqlc, bo.TableGroup)
-	// 	user.InitSqliteTableUser(sqlc, bo.TableUser)
-	// case "pg", "pgsql", "postgres", "postgresql":
-	// 	group.InitPgsqlTableGroup(sqlc, bo.TableGroup)
-	// 	user.InitPgsqlTableUser(sqlc, bo.TableUser)
-	// }
-	//
-	// groupDao = createGroupDao(sqlc)
-	// systemGroup, err := groupDao.Get(systemGroupId)
-	// if err != nil {
-	// 	panic("error while getting group [" + systemGroupId + "]: " + err.Error())
-	// }
-	// if systemGroup == nil {
-	// 	log.Printf("System group [%s] not found, creating one...", systemGroupId)
-	// 	result, err := groupDao.Create(&group.Group{Id: systemGroupId, Name: "System User Group"})
-	// 	if err != nil {
-	// 		panic("error while creating group [" + systemGroupId + "]: " + err.Error())
-	// 	}
-	// 	if !result {
-	// 		log.Printf("Cannot create group [%s]", systemGroupId)
-	// 	}
-	// }
-	//
-	// userDao = createUserDao(sqlc)
-	// systemAdminUser, err := userDao.Get(systemAdminUsername)
-	// if err != nil {
-	// 	panic("error while getting user [" + systemAdminUsername + "]: " + err.Error())
-	// }
-	// if systemAdminUser == nil {
-	// 	pwd := "s3cr3t"
-	// 	log.Printf("System admin user [%s] not found, creating one with password [%s]...", systemAdminUsername, pwd)
-	// 	systemAdminUser = user.NewUserBo(systemAdminUsername, "").
-	// 		SetPassword(encryptPassword(systemAdminUsername, pwd)).
-	// 		SetName(systemAdminName).
-	// 		SetGroupId(systemGroupId).
-	// 		SetAesKey(utils.RandomString(16))
-	// 	result, err := userDao.Create(systemAdminUser)
-	// 	if err != nil {
-	// 		panic("error while creating user [" + systemAdminUsername + "]: " + err.Error())
-	// 	}
-	// 	if !result {
-	// 		log.Printf("Cannot create user [%s]", systemAdminUsername)
-	// 	}
-	// }
+	_initBlog()
 }
 
 func _initUsers() {
@@ -175,6 +130,47 @@ func _initUsers() {
 		}
 		if !result {
 			log.Printf("[ERROR] Cannot create user [%s]", adminUserId)
+		}
+	}
+}
+
+func _initBlog() {
+	adminUserId := goapi.AppConfig.GetString("gvabe.init.admin_user_id")
+	adminUser, err := userDaov2.Get(adminUserId)
+	if err != nil {
+		panic(fmt.Sprintf("error while getting user [%s]: %e", adminUserId, err))
+	}
+
+	postId := "1"
+	introBlogPost, err := blogPostDaov2.Get(postId)
+	if err != nil {
+		panic(fmt.Sprintf("error while getting blog post [%s]: %e", postId, err))
+	}
+	if introBlogPost == nil {
+		log.Printf("[INFO] Introduction blog post [%s] not found, creating one...", postId)
+		appName := goapi.AppConfig.GetString("app.name")
+		title := "Welcome to " + appName + " v" + goapi.AppVersion
+		content := `This is the introduction blog post. It will quickly introduce highlighted features.
+
+**Manage your blog**
+
+You can create, edit or delete your blog posts by accessing **_My Blog_** link on the menu.
+Furthermore, you can quickly create a new blog post from **_Create Blog Post_** link.
+
+Blog content supports <a href="https://en.wikipedia.org/wiki/Markdown" target="_blank">Markdown</a> syntax.
+
+**Share your blog posts and interact with others**
+
+_Public_ posts are visible to all users to _comment_ (coming soon) and vote.
+`
+		introBlogPost = blogv2.NewBlogPost(goapi.AppVersionNumber, adminUser, true, title, content)
+		introBlogPost.SetId(postId)
+		result, err := blogPostDaov2.Create(introBlogPost)
+		if err != nil {
+			panic(fmt.Sprintf("error while creating blog post [%s]: %e", postId, err))
+		}
+		if !result {
+			log.Printf("[ERROR] Cannot create blog post [%s]", postId)
 		}
 	}
 }

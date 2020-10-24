@@ -287,18 +287,30 @@ func apiVerifyLoginToken(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *it
 }
 
 var funcPostToMapTransform = func(m map[string]interface{}) map[string]interface{} {
+	user, _ := userDaov2.Get(m[blog.PostField_OwnerId].(string))
 	// transform input map
-	return map[string]interface{}{
-		"id":             m[henge.FieldId],
-		"t_created":      m[henge.FieldTimeCreated],
-		"is_public":      m[blog.PostField_IsPublic],
-		"owner_id":       m[blog.PostField_OwnerId],
+	result := map[string]interface{}{
+		"id":        m[henge.FieldId],
+		"t_created": m[henge.FieldTimeCreated],
+		"is_public": m[blog.PostField_IsPublic],
+		// "owner_id":       m[blog.PostField_OwnerId],
 		"title":          m[blog.PostAttr_Title],
 		"content":        m[blog.PostAttr_Content],
 		"num_comments":   m[blog.PostAttr_NumComments],
 		"num_votes_up":   m[blog.PostAttr_NumVotesUp],
 		"num_votes_down": m[blog.PostAttr_NumVotesDown],
 	}
+	if user != nil {
+		result["owner"] = user.ToMap(func(m map[string]interface{}) map[string]interface{} {
+			return map[string]interface{}{
+				"id":           m[henge.FieldId],
+				"mid":          m[userv2.UserField_MaskId],
+				"is_admin":     m[userv2.UserAttr_IsAdmin],
+				"display_name": m[userv2.UserAttr_DisplayName],
+			}
+		})
+	}
+	return result
 }
 
 /*
