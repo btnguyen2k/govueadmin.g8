@@ -34,20 +34,15 @@
                 </CForm>
               </CCardBody>
             </CCard>
-            <CCard color="primary" text-color="white" class="text-center py-5 d-md-down-none" body-wrapper>
+            <CCard color="primary" text-color="white" class="py-5 d-md-down-none" body-wrapper>
               <CCardBody>
                 <h2>Demo</h2>
-                <p>This is instance is for demo purpose only. Login with administrator account
-                  <strong>admin/s3cr3t</strong>.
-                  You can create/edit/delete other user group or user account. This special admin account,
-                  however, can not be modified or deleted.</p>
-                <!--                <CButton-->
-                <!--                    color="light"-->
-                <!--                    variant="outline"-->
-                <!--                    size="lg"-->
-                <!--                >-->
-                <!--                  Register Now!-->
-                <!--                </CButton>-->
+                <p>
+                  This is instance is for demo purpose only. Login with default account <strong>admin@local/s3cr3t</strong>.
+                  <br/>
+                  Or you can login with your <u>social account</u> via "Login with social account" link
+                  (your social account credential <u>will not</u> be stored on server).
+                </p>
               </CCardBody>
             </CCard>
           </CCardGroup>
