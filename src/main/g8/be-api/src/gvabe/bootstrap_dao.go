@@ -75,7 +75,7 @@ func _createSqlTables(sqlc *prom.SqlConnect, dbtype string) {
 	henge.CreateIndex(sqlc, blogv2.TableBlogComment, false, []string{blogv2.CommentCol_PostId, blogv2.CommentCol_ParentId})
 
 	// blog vote
-	henge.CreateIndex(sqlc, blogv2.TableBlogVote, false, []string{blogv2.VoteCol_OwnerId})
+	henge.CreateIndex(sqlc, blogv2.TableBlogVote, true, []string{blogv2.VoteCol_OwnerId, blogv2.VoteCol_TargetId})
 	henge.CreateIndex(sqlc, blogv2.TableBlogVote, false, []string{blogv2.VoteCol_TargetId, blogv2.VoteCol_Value})
 }
 
@@ -161,7 +161,7 @@ Blog content supports <a href="https://en.wikipedia.org/wiki/Markdown" target="_
 
 **Share your blog posts and interact with others**
 
-_Public_ posts are visible to all users to _comment_ (coming soon) and vote.
+_Public_ posts are visible to all users for _commenting_ (coming soon) and _voting_.
 `
 		introBlogPost = blogv2.NewBlogPost(goapi.AppVersionNumber, adminUser, true, title, content)
 		introBlogPost.SetId(postId)

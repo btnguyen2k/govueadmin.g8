@@ -3,8 +3,10 @@ package blog
 import (
 	"github.com/btnguyen2k/consu/reddo"
 	"github.com/btnguyen2k/godal"
+	"github.com/btnguyen2k/godal/sql"
 	"github.com/btnguyen2k/prom"
 
+	userv2 "main/src/gvabe/bov2/user"
 	"main/src/henge"
 )
 
@@ -42,6 +44,27 @@ func (dao *BlogVoteDaoSql) GdaoCreateFilter(_ string, gbo godal.IGenericBo) inte
 	return map[string]interface{}{henge.ColId: gbo.GboGetAttrUnsafe(henge.FieldId, reddo.TypeString)}
 }
 
+// GetUserVoteForTarget implements BlogVoteDao.GetUserVoteForTarget
+func (dao *BlogVoteDaoSql) GetUserVoteForTarget(user *userv2.User, targetId string) (*BlogVote, error) {
+	if user == nil || targetId == "" {
+		return nil, nil
+	}
+	filter := &sql.FilterAnd{
+		Filters: []sql.IFilter{
+			&sql.FilterFieldValue{Field: VoteCol_OwnerId, Operation: "=", Value: user.GetId()},
+			&sql.FilterFieldValue{Field: VoteCol_TargetId, Operation: "=", Value: targetId},
+		},
+	}
+	uboList, err := dao.UniversalDao.GetAll(filter, nil)
+	if err != nil {
+		return nil, err
+	}
+	if uboList == nil || len(uboList) == 0 {
+		return nil, nil
+	}
+	return NewBlogVoteFromUbo(uboList[0]), nil
+}
+
 // Delete implements BlogVoteDao.Delete
 func (dao *BlogVoteDaoSql) Delete(vote *BlogVote) (bool, error) {
 	return dao.UniversalDao.Delete(vote.UniversalBo.Clone())
@@ -63,7 +86,7 @@ func (dao *BlogVoteDaoSql) Get(id string) (*BlogVote, error) {
 
 // GetN implements BlogVoteDao.GetN
 func (dao *BlogVoteDaoSql) GetN(fromOffset, maxNumRows int) ([]*BlogVote, error) {
-	uboList, err := dao.UniversalDao.GetN(fromOffset, maxNumRows,nil, nil)
+	uboList, err := dao.UniversalDao.GetN(fromOffset, maxNumRows, nil, nil)
 	if err != nil {
 		return nil, err
 	}

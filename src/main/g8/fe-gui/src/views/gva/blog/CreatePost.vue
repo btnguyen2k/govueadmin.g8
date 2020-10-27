@@ -25,7 +25,8 @@
               <CTabs>
                 <CTab active>
                   <template slot="title">
-                    <CIcon name="cib-markdown"/> Editor
+                    <CIcon name="cib-markdown"/>
+                    Editor
                   </template>
                   <CTextarea
                       rows="10"
@@ -40,7 +41,8 @@
                 </CTab>
                 <CTab>
                   <template slot="title">
-                    <CIcon name="cil-calculator"/> Preview
+                    <CIcon name="cil-calculator"/>
+                    Preview
                   </template>
                   <div v-html="previewContent"></div>
                 </CTab>
@@ -74,7 +76,7 @@ export default {
   computed: {
     previewContent() {
       const html = marked(this.form.content)
-      return DOMPurify.sanitize(html)
+      return DOMPurify.sanitize(html, {ADD_ATTR: ['target']})
     }
   },
   data() {

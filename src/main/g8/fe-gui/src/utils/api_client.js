@@ -25,6 +25,7 @@ let apiVerifyLoginToken = "/api/verifyLoginToken"
 let apiMyBlog = '/api/myblog'
 let apiMyFeed = '/api/myfeed'
 let apiPost = '/api/post'
+let apiUserVoteForPost = '/api/vote'
 
 let apiSystemInfo = "/api/systemInfo"
 let apiGroupList = "/api/groups"
@@ -102,6 +103,7 @@ export default {
     apiMyBlog,
     apiMyFeed,
     apiPost,
+    apiUserVoteForPost,
 
     apiSystemInfo,
     apiGroupList,

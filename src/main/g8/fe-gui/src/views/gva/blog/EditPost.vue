@@ -76,7 +76,7 @@ export default {
   name: 'EditPost',
   computed: {
     previewContent() {
-      return this.found ? DOMPurify.sanitize(marked(this.post.content)) : ''
+      return this.found ? DOMPurify.sanitize(marked(this.post.content), {ADD_ATTR: ['target']}) : ''
     }
   },
   data() {

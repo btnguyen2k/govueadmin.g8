@@ -451,30 +451,34 @@ func (ubo *UniversalBo) Clone() *UniversalBo {
 
 // UniversalDao defines API to access UniversalBo storage
 type UniversalDao interface {
-	// ToUniversalBo transforms godal.IGenericBo to business object
+	// ToUniversalBo transforms godal.IGenericBo to business object.
 	ToUniversalBo(gbo godal.IGenericBo) *UniversalBo
 
-	// ToGenericBo transforms business object to godal.IGenericBo
+	// ToGenericBo transforms business object to godal.IGenericBo.
 	ToGenericBo(ubo *UniversalBo) godal.IGenericBo
 
-	// Delete removes the specified business object from storage
+	// Delete removes the specified business object from storage.
+	// This function returns true if number of deleted record is non-zero.
 	Delete(bo *UniversalBo) (bool, error)
 
-	// Create persists a new business object to storage
+	// Create persists a new business object to storage.
+	// This function returns true if number of inserted record is non-zero.
 	Create(bo *UniversalBo) (bool, error)
 
-	// Get retrieves a business object from storage
+	// Get retrieves a business object from storage.
 	Get(id string) (*UniversalBo, error)
 
-	// GetN retrieves N business objects from storage
+	// GetN retrieves N business objects from storage.
 	GetN(fromOffset, maxNumRows int, filter interface{}, sorting interface{}) ([]*UniversalBo, error)
 
-	// GetAll retrieves all available business objects from storage
+	// GetAll retrieves all available business objects from storage.
 	GetAll(filter interface{}, sorting interface{}) ([]*UniversalBo, error)
 
-	// Update modifies an existing business object
+	// Update modifies an existing business object.
+	// This function returns true if number of updated record is non-zero.
 	Update(bo *UniversalBo) (bool, error)
 
-	// Save creates new business object or updates an existing one
-	Save(bo *UniversalBo) (bool, error)
+	// Save creates new business object or updates an existing one.
+	// This function returns the existing record along with value true if number of inserted/updated record is non-zero.
+	Save(bo *UniversalBo) (bool, *UniversalBo, error)
 }

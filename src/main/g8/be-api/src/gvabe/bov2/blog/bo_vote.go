@@ -166,6 +166,9 @@ func (v *BlogVote) sync() *BlogVote {
 //
 // available since template-v0.2.0
 type BlogVoteDao interface {
+	// GetUserVoteForTarget retrieves a user's vote against a target
+	GetUserVoteForTarget(user *userv2.User, targetId string) (*BlogVote, error)
+
 	// Delete removes the specified business object from storage
 	Delete(bo *BlogVote) (bool, error)
 

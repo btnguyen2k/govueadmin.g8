@@ -36,6 +36,8 @@ import {
     cilAddressBook, //GVA
     cilArrowCircleLeft, //GVA
     cilArrowRight,
+    cilArrowThickBottom, //GVA
+    cilArrowThickTop, //GVA
     cilBan,
     cilBasket,
     cilBell,
@@ -95,6 +97,8 @@ export const iconsSet = Object.assign(
         cilAddressBook, //GVA
         cilArrowCircleLeft, //GVA
         cilArrowRight,
+        cilArrowThickBottom, //GVA
+        cilArrowThickTop, //GVA
         cilBan,
         cilBasket,
         cilBell,

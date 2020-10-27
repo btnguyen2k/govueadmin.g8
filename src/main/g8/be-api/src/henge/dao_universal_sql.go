@@ -165,7 +165,11 @@ func (dao *UniversalDaoSql) Update(bo *UniversalBo) (bool, error) {
 }
 
 // Save implements UniversalDao.Save
-func (dao *UniversalDaoSql) Save(bo *UniversalBo) (bool, error) {
+func (dao *UniversalDaoSql) Save(bo *UniversalBo) (bool, *UniversalBo, error) {
+	existing, err := dao.Get(bo.GetId())
+	if err != nil {
+		return false, nil, err
+	}
 	numRows, err := dao.GdaoSave(dao.tableName, dao.ToGenericBo(bo))
-	return numRows > 0, err
+	return numRows > 0, existing, err
 }

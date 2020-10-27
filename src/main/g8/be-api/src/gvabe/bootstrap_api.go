@@ -37,17 +37,8 @@ func initApiHandlers(router *itineris.ApiRouter) {
 	router.SetHandler("updateBlogPost", apiUpdateBlogPost)
 	router.SetHandler("deleteBlogPost", apiDeleteBlogPost)
 
-	router.SetHandler("groupList", apiGroupList)
-	router.SetHandler("getGroup", apiGetGroup)
-	router.SetHandler("createGroup", apiCreateGroup)
-	router.SetHandler("deleteGroup", apiDeleteGroup)
-	router.SetHandler("updateGroup", apiUpdateGroup)
-
-	router.SetHandler("userList", apiUserList)
-	router.SetHandler("getUser", apiGetUser)
-	router.SetHandler("createUser", apiCreateUser)
-	router.SetHandler("deleteUser", apiDeleteUser)
-	router.SetHandler("updateUser", apiUpdateUser)
+	router.SetHandler("getUserVoteForPost", apiGetUserVoteForPost)
+	router.SetHandler("voteForPost", apiVoteForPost)
 }
 
 /*------------------------------ shared variables and functions ------------------------------*/
@@ -95,7 +86,7 @@ func _currentUserFromContext(ctx *itineris.ApiContext) (*SessionClaims, *userv2.
 /*------------------------------ APIs ------------------------------*/
 
 // API handler "info"
-func apiInfo(_ *itineris.ApiContext, auth *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
+func apiInfo(_ *itineris.ApiContext, auth *itineris.ApiAuth, _ *itineris.ApiParams) *itineris.ApiResult {
 	var publicPEM []byte
 	if pubDER, err := x509.MarshalPKIXPublicKey(rsaPubKey); err == nil {
 		pubBlock := pem.Block{
@@ -130,6 +121,12 @@ func apiInfo(_ *itineris.ApiContext, auth *itineris.ApiAuth, params *itineris.Ap
 		// },
 	}
 	return itineris.NewApiResult(itineris.StatusOk).SetData(result)
+}
+
+// API handler "systemInfo"
+func apiSystemInfo(_ *itineris.ApiContext, _ *itineris.ApiAuth, _ *itineris.ApiParams) *itineris.ApiResult {
+	data := lastSystemInfo()
+	return itineris.NewApiResult(itineris.StatusOk).SetData(data)
 }
 
 func _doLoginExter(ctx *itineris.ApiContext, params *itineris.ApiParams) *itineris.ApiResult {
@@ -500,4 +497,115 @@ func apiDeleteBlogPost(ctx *itineris.ApiContext, _ *itineris.ApiAuth, params *it
 		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage("cannot delete blog post")
 	}
 	return itineris.NewApiResult(itineris.StatusOk)
+}
+
+/*
+apiGetUserVoteForPost handles API call "getUserVoteForPost"
+
+@available since template-v0.2.0
+*/
+func apiGetUserVoteForPost(ctx *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
+	_, user, err := _currentUserFromContext(ctx)
+	if err != nil {
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+	}
+	if user == nil {
+		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("current user not found")
+	}
+	postId := _extractParam(params, "postId", reddo.TypeString, "", nil).(string)
+	vote, err := blogVoteDaov2.GetUserVoteForTarget(user, postId)
+	if err != nil {
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+	}
+	value := 0
+	if vote != nil {
+		value = vote.GetValue()
+	}
+	return itineris.NewApiResult(itineris.StatusOk).SetData(value)
+}
+
+/*
+apiVoteForPost handles API call "voteForPost"
+
+@available since template-v0.2.0
+*/
+func apiVoteForPost(ctx *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
+	_, user, err := _currentUserFromContext(ctx)
+	if err != nil {
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+	}
+	if user == nil {
+		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("current user not found")
+	}
+	value := _extractParam(params, "vote", reddo.TypeInt, 0, nil).(int64)
+	if value == 0 {
+		return itineris.NewApiResult(itineris.StatusOk).SetData(map[string]interface{}{"vote": false})
+	}
+	postId := _extractParam(params, "postId", reddo.TypeString, "", nil).(string)
+	blogPost, err := blogPostDaov2.Get(postId)
+	if err != nil {
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+	}
+	if blogPost == nil {
+		return itineris.NewApiResult(itineris.StatusNotFound).SetMessage("post not found")
+	}
+	if !blogPost.IsPublic() && blogPost.GetOwnerId() != user.GetId() {
+		return itineris.NewApiResult(itineris.StatusNoPermission).SetMessage("current user has no permission to existingVote for this post")
+	}
+	if value > 1 {
+		value = 1
+	} else if value < -1 {
+		value = -1
+	}
+	existingVote, err := blogVoteDaov2.GetUserVoteForTarget(user, postId)
+	if err != nil {
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+	}
+	log.Printf("Existing vote: %#v\n", existingVote)
+	newVote := blog.NewBlogVote(goapi.AppVersionNumber, user, blogPost.GetId(), int(value))
+	if existingVote == nil {
+		// new vote
+		if value > 0 {
+			blogPost.IncNumVotesUp(1)
+		} else {
+			blogPost.IncNumVotesDown(1)
+		}
+		if _, err := blogVoteDaov2.Create(newVote); err != nil {
+			return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		}
+	} else {
+		newVote.SetId(existingVote.GetId())
+		if existingVote.GetValue() == newVote.GetValue() {
+			// cancel existing vote
+			newVote.SetValue(0)
+			if value > 0 {
+				blogPost.IncNumVotesUp(-1)
+			} else {
+				blogPost.IncNumVotesDown(-1)
+			}
+		} else {
+			// chance existing vote
+			if value > 0 {
+				blogPost.IncNumVotesUp(1)
+				if existingVote.GetValue() != 0 {
+					blogPost.IncNumVotesDown(-1)
+				}
+			} else {
+				if existingVote.GetValue() != 0 {
+					blogPost.IncNumVotesUp(-1)
+				}
+				blogPost.IncNumVotesDown(1)
+			}
+		}
+		log.Printf("New vote: %#v\n", newVote)
+		if _, err := blogVoteDaov2.Update(newVote); err != nil {
+			return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		}
+	}
+	if _, err := blogPostDaov2.Update(blogPost); err != nil {
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+	}
+	return itineris.NewApiResult(itineris.StatusOk).SetData(map[string]interface{}{
+		"vote": true, "value": newVote.GetValue(), "num_votes_up": blogPost.GetNumVotesUp(), "num_votes_down": blogPost.GetNumVotesDown(),
+	})
 }

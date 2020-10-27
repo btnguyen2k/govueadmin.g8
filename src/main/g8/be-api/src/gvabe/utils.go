@@ -5,10 +5,7 @@ import (
 	"compress/zlib"
 	"crypto/rsa"
 	"crypto/sha1"
-	"encoding/base64"
 	"encoding/hex"
-	"encoding/json"
-	"io"
 	"math"
 	"runtime"
 	"strings"
@@ -19,8 +16,6 @@ import (
 	"github.com/btnguyen2k/consu/semita"
 	"github.com/shirou/gopsutil/load"
 	"github.com/shirou/gopsutil/mem"
-
-	"main/src/gvabe/bo/user"
 )
 
 var DEBUG = false
@@ -34,25 +29,18 @@ var (
 )
 
 const (
-	systemGroupId = "administrator"
-
-	systemAdminUsername = "admin"
-	systemAdminName     = "Adam Local"
-)
-
-const (
-	sessionStatusError        = 0
-	sessionStatusUserNotFound = 404
-	sessionStatusInvalid      = 403
-	sessionStatusExpired      = 410
-	sessionStatusOk           = 200
+	// sessionStatusError        = 0
+	// sessionStatusUserNotFound = 404
+	// sessionStatusInvalid      = 403
+	// sessionStatusExpired      = 410
+	// sessionStatusOk           = 200
 
 	apiResultExtraAccessToken = "_access_token_"
 
-	loginAttrUsername  = "u"
-	loginAttrGroupId   = "gid"
-	loginAttrTimestamp = "t"
-	loginAttrExpiry    = "e"
+	// loginAttrUsername  = "u"
+	// loginAttrGroupId   = "gid"
+	// loginAttrTimestamp = "t"
+	// loginAttrExpiry    = "e"
 
 	loginSessionTtl        = 3600 * 8
 	loginSessionNearExpiry = 3600 * 3
@@ -72,17 +60,17 @@ func zlibCompress(data []byte) []byte {
 	return b.Bytes()
 }
 
-// zlibDecompress decompressed compressed-data using zlib.
-func zlibDecompress(compressedData []byte) ([]byte, error) {
-	r, err := zlib.NewReader(bytes.NewReader(compressedData))
-	if err != nil {
-		return nil, err
-	}
-	var b bytes.Buffer
-	_, err = io.Copy(&b, r)
-	r.Close()
-	return b.Bytes(), err
-}
+// // zlibDecompress decompressed compressed-data using zlib.
+// func zlibDecompress(compressedData []byte) ([]byte, error) {
+// 	r, err := zlib.NewReader(bytes.NewReader(compressedData))
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	var b bytes.Buffer
+// 	_, err = io.Copy(&b, r)
+// 	r.Close()
+// 	return b.Bytes(), err
+// }
 
 // available since template-v0.2.0
 func zipAndEncrypt(data []byte) ([]byte, error) {
@@ -90,71 +78,71 @@ func zipAndEncrypt(data []byte) ([]byte, error) {
 	return rsaEncrypt(RsaModeAuto, zip, rsaPubKey)
 }
 
-// available since template-v0.2.0
-func decryptAndUnzip(encdata []byte) ([]byte, error) {
-	if zip, err := rsaDecrypt(RsaModeAuto, encdata, rsaPrivKey); err != nil {
-		return nil, err
-	} else {
-		return zlibDecompress(zip)
-	}
-}
+// // available since template-v0.2.0
+// func decryptAndUnzip(encdata []byte) ([]byte, error) {
+// 	if zip, err := rsaDecrypt(RsaModeAuto, encdata, rsaPrivKey); err != nil {
+// 		return nil, err
+// 	} else {
+// 		return zlibDecompress(zip)
+// 	}
+// }
 
-func genLoginToken(u *user.User) (string, error) {
-	t := time.Now()
-	data := map[string]interface{}{
-		loginAttrUsername:  u.GetUsername(),
-		loginAttrGroupId:   u.GetGroupId(),
-		loginAttrTimestamp: t.Unix(),
-		loginAttrExpiry:    t.Unix() + loginSessionTtl,
-	}
-	if js, err := json.Marshal(data); err != nil {
-		return "", err
-	} else {
-		zip := zlibCompress(js)
-		if enc, err := aesEncrypt([]byte(u.GetAesKey()), zip); err != nil {
-			return "", err
-		} else {
-			return base64.StdEncoding.EncodeToString(enc), nil
-		}
-	}
-}
+// func genLoginToken(u *user.User) (string, error) {
+// 	t := time.Now()
+// 	data := map[string]interface{}{
+// 		loginAttrUsername:  u.GetUsername(),
+// 		loginAttrGroupId:   u.GetGroupId(),
+// 		loginAttrTimestamp: t.Unix(),
+// 		loginAttrExpiry:    t.Unix() + loginSessionTtl,
+// 	}
+// 	if js, err := json.Marshal(data); err != nil {
+// 		return "", err
+// 	} else {
+// 		zip := zlibCompress(js)
+// 		if enc, err := aesEncrypt([]byte(u.GetAesKey()), zip); err != nil {
+// 			return "", err
+// 		} else {
+// 			return base64.StdEncoding.EncodeToString(enc), nil
+// 		}
+// 	}
+// }
 
-func decodeLoginToken(username string, loginToken string) (map[string]interface{}, error) {
-	if user, err := userDao.Get(username); user == nil || err != nil {
-		return nil, err
-	} else if enc, err := base64.StdEncoding.DecodeString(loginToken); err != nil {
-		return nil, err
-	} else if zip, err := aesDecrypt([]byte(user.GetAesKey()), enc); err != nil {
-		return nil, err
-	} else if js, err := zlibDecompress(zip); err != nil {
-		return nil, err
-	} else {
-		var data map[string]interface{}
-		if err := json.Unmarshal(js, &data); err != nil {
-			return nil, nil
-		}
-		return data, nil
-	}
-}
+// func decodeLoginToken(username string, loginToken string) (map[string]interface{}, error) {
+// 	if user, err := userDao.Get(username); user == nil || err != nil {
+// 		return nil, err
+// 	} else if enc, err := base64.StdEncoding.DecodeString(loginToken); err != nil {
+// 		return nil, err
+// 	} else if zip, err := aesDecrypt([]byte(user.GetAesKey()), enc); err != nil {
+// 		return nil, err
+// 	} else if js, err := zlibDecompress(zip); err != nil {
+// 		return nil, err
+// 	} else {
+// 		var data map[string]interface{}
+// 		if err := json.Unmarshal(js, &data); err != nil {
+// 			return nil, nil
+// 		}
+// 		return data, nil
+// 	}
+// }
 
-func verifyLoginToken(username string, loginToken string) (int, error) {
-	if data, err := decodeLoginToken(username, loginToken); err != nil {
-		return sessionStatusError, err
-	} else if data == nil {
-		return sessionStatusUserNotFound, nil
-	} else {
-		if u, err := reddo.ToString(data[loginAttrUsername]); err != nil {
-			return sessionStatusError, err
-		} else if u != username {
-			return sessionStatusInvalid, nil
-		} else if expiry, err := reddo.ToInt(data[loginAttrExpiry]); err != nil {
-			return sessionStatusError, err
-		} else if expiry < time.Now().Unix() {
-			return sessionStatusExpired, nil
-		}
-	}
-	return sessionStatusOk, nil
-}
+// func verifyLoginToken(username string, loginToken string) (int, error) {
+// 	if data, err := decodeLoginToken(username, loginToken); err != nil {
+// 		return sessionStatusError, err
+// 	} else if data == nil {
+// 		return sessionStatusUserNotFound, nil
+// 	} else {
+// 		if u, err := reddo.ToString(data[loginAttrUsername]); err != nil {
+// 			return sessionStatusError, err
+// 		} else if u != username {
+// 			return sessionStatusInvalid, nil
+// 		} else if expiry, err := reddo.ToInt(data[loginAttrExpiry]); err != nil {
+// 			return sessionStatusError, err
+// 		} else if expiry < time.Now().Unix() {
+// 			return sessionStatusExpired, nil
+// 		}
+// 	}
+// 	return sessionStatusOk, nil
+// }
 
 /*----------------------------------------------------------------------*/
 
