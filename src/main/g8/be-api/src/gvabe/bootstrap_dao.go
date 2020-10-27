@@ -8,9 +8,7 @@ import (
 	"github.com/btnguyen2k/prom"
 
 	"main/src/goapi"
-	"main/src/gvabe/bo"
-	"main/src/gvabe/bo/group"
-	"main/src/gvabe/bo/user"
+	blogv2 "main/src/gvabe/bov2/blog"
 	userv2 "main/src/gvabe/bov2/user"
 	"main/src/henge"
 	"main/src/utils"
@@ -33,69 +31,73 @@ func _createUserDao(sqlc *prom.SqlConnect) userv2.UserDao {
 	return userv2.NewUserDaoSql(sqlc, userv2.TableUser)
 }
 
-func initDaos() {
-	dbtype := strings.ToLower(goapi.AppConfig.GetString("gvabe.db.type"))
-	sqlc := _createSqlConnect(dbtype)
-	if sqlc == nil {
-		panic(fmt.Sprintf("unknown databbase type: %s", dbtype))
-	}
+func _createBlogPostDao(sqlc *prom.SqlConnect) blogv2.BlogPostDao {
+	return blogv2.NewBlogPostDaoSql(sqlc, blogv2.TableBlogPost)
+}
+
+func _createBlogCommentDao(sqlc *prom.SqlConnect) blogv2.BlogCommentDao {
+	return blogv2.NewBlogCommentDaoSql(sqlc, blogv2.TableBlogComment)
+}
+
+func _createBlogVoteDao(sqlc *prom.SqlConnect) blogv2.BlogVoteDao {
+	return blogv2.NewBlogVoteDaoSql(sqlc, blogv2.TableBlogVote)
+}
+
+func _createSqlTables(sqlc *prom.SqlConnect, dbtype string) {
 	switch dbtype {
 	case "sqlite":
 		henge.InitSqliteTable(sqlc, userv2.TableUser, map[string]string{userv2.UserCol_MaskUid: "VARCHAR(32)"})
-		henge.CreateIndex(sqlc, userv2.TableUser, true, []string{userv2.UserCol_MaskUid})
+		henge.InitSqliteTable(sqlc, blogv2.TableBlogPost, map[string]string{
+			blogv2.PostCol_OwnerId: "VARCHAR(32)", blogv2.PostCol_IsPublic: "INT"})
+		henge.InitSqliteTable(sqlc, blogv2.TableBlogComment, map[string]string{
+			blogv2.CommentCol_OwnerId: "VARCHAR(32)", blogv2.CommentCol_PostId: "VARCHAR(32)", blogv2.CommentCol_ParentId: "VARCHAR(32)"})
+		henge.InitSqliteTable(sqlc, blogv2.TableBlogVote, map[string]string{
+			blogv2.VoteCol_OwnerId: "VARCHAR(32)", blogv2.VoteCol_TargetId: "VARCHAR(32)", blogv2.VoteCol_Value: "INT"})
 	case "pg", "pgsql", "postgres", "postgresql":
 		henge.InitPgsqlTable(sqlc, userv2.TableUser, map[string]string{userv2.UserCol_MaskUid: "VARCHAR(32)"})
-		henge.CreateIndex(sqlc, userv2.TableUser, true, []string{userv2.UserCol_MaskUid})
+		henge.InitPgsqlTable(sqlc, blogv2.TableBlogPost, map[string]string{
+			blogv2.PostCol_OwnerId: "VARCHAR(32)", blogv2.PostCol_IsPublic: "INT"})
+		henge.InitPgsqlTable(sqlc, blogv2.TableBlogComment, map[string]string{
+			blogv2.CommentCol_OwnerId: "VARCHAR(32)", blogv2.CommentCol_PostId: "VARCHAR(32)", blogv2.CommentCol_ParentId: "VARCHAR(32)"})
+		henge.InitPgsqlTable(sqlc, blogv2.TableBlogVote, map[string]string{
+			blogv2.VoteCol_OwnerId: "VARCHAR(32)", blogv2.VoteCol_TargetId: "VARCHAR(32)", blogv2.VoteCol_Value: "INT"})
 	}
+
+	// user
+	henge.CreateIndex(sqlc, userv2.TableUser, true, []string{userv2.UserCol_MaskUid})
+
+	// blog post
+	henge.CreateIndex(sqlc, blogv2.TableBlogPost, false, []string{blogv2.PostCol_OwnerId})
+	henge.CreateIndex(sqlc, blogv2.TableBlogPost, false, []string{blogv2.PostCol_IsPublic})
+
+	// blog comment
+	henge.CreateIndex(sqlc, blogv2.TableBlogComment, false, []string{blogv2.CommentCol_OwnerId})
+	henge.CreateIndex(sqlc, blogv2.TableBlogComment, false, []string{blogv2.CommentCol_PostId, blogv2.CommentCol_ParentId})
+
+	// blog vote
+	henge.CreateIndex(sqlc, blogv2.TableBlogVote, true, []string{blogv2.VoteCol_OwnerId, blogv2.VoteCol_TargetId})
+	henge.CreateIndex(sqlc, blogv2.TableBlogVote, false, []string{blogv2.VoteCol_TargetId, blogv2.VoteCol_Value})
+}
+
+func initDaos() {
+	// create SqlConnect instance
+	dbtype := strings.ToLower(goapi.AppConfig.GetString("gvabe.db.type"))
+	sqlc := _createSqlConnect(dbtype) // only SQL-based datastore is supported
+	if sqlc == nil {
+		panic(fmt.Sprintf("unknown databbase type: %s", dbtype))
+	}
+
+	// create database tables (assuming SQL-based datastore)
+	_createSqlTables(sqlc, dbtype)
+
+	// create DAO instances
 	userDaov2 = _createUserDao(sqlc)
+	blogPostDaov2 = _createBlogPostDao(sqlc)
+	blogCommentDaov2 = _createBlogCommentDao(sqlc)
+	blogVoteDaov2 = _createBlogVoteDao(sqlc)
+
 	_initUsers()
-
-	switch dbtype {
-	case "sqlite":
-		group.InitSqliteTableGroup(sqlc, bo.TableGroup)
-		user.InitSqliteTableUser(sqlc, bo.TableUser)
-	case "pg", "pgsql", "postgres", "postgresql":
-		group.InitPgsqlTableGroup(sqlc, bo.TableGroup)
-		user.InitPgsqlTableUser(sqlc, bo.TableUser)
-	}
-
-	groupDao = createGroupDao(sqlc)
-	systemGroup, err := groupDao.Get(systemGroupId)
-	if err != nil {
-		panic("error while getting group [" + systemGroupId + "]: " + err.Error())
-	}
-	if systemGroup == nil {
-		log.Printf("System group [%s] not found, creating one...", systemGroupId)
-		result, err := groupDao.Create(&group.Group{Id: systemGroupId, Name: "System User Group"})
-		if err != nil {
-			panic("error while creating group [" + systemGroupId + "]: " + err.Error())
-		}
-		if !result {
-			log.Printf("Cannot create group [%s]", systemGroupId)
-		}
-	}
-
-	userDao = createUserDao(sqlc)
-	systemAdminUser, err := userDao.Get(systemAdminUsername)
-	if err != nil {
-		panic("error while getting user [" + systemAdminUsername + "]: " + err.Error())
-	}
-	if systemAdminUser == nil {
-		pwd := "s3cr3t"
-		log.Printf("System admin user [%s] not found, creating one with password [%s]...", systemAdminUsername, pwd)
-		systemAdminUser = user.NewUserBo(systemAdminUsername, "").
-			SetPassword(encryptPassword(systemAdminUsername, pwd)).
-			SetName(systemAdminName).
-			SetGroupId(systemGroupId).
-			SetAesKey(utils.RandomString(16))
-		result, err := userDao.Create(systemAdminUser)
-		if err != nil {
-			panic("error while creating user [" + systemAdminUsername + "]: " + err.Error())
-		}
-		if !result {
-			log.Printf("Cannot create user [%s]", systemAdminUsername)
-		}
-	}
+	_initBlog()
 }
 
 func _initUsers() {
@@ -128,6 +130,47 @@ func _initUsers() {
 		}
 		if !result {
 			log.Printf("[ERROR] Cannot create user [%s]", adminUserId)
+		}
+	}
+}
+
+func _initBlog() {
+	adminUserId := goapi.AppConfig.GetString("gvabe.init.admin_user_id")
+	adminUser, err := userDaov2.Get(adminUserId)
+	if err != nil {
+		panic(fmt.Sprintf("error while getting user [%s]: %e", adminUserId, err))
+	}
+
+	postId := "1"
+	introBlogPost, err := blogPostDaov2.Get(postId)
+	if err != nil {
+		panic(fmt.Sprintf("error while getting blog post [%s]: %e", postId, err))
+	}
+	if introBlogPost == nil {
+		log.Printf("[INFO] Introduction blog post [%s] not found, creating one...", postId)
+		appName := goapi.AppConfig.GetString("app.name")
+		title := "Welcome to " + appName + " v" + goapi.AppVersion
+		content := `This is the introduction blog post. It will quickly introduce highlighted features.
+
+**Manage your blog**
+
+You can create, edit or delete your blog posts by accessing **_My Blog_** link on the menu.
+Furthermore, you can quickly create a new blog post from **_Create Blog Post_** link.
+
+Blog content supports <a href="https://en.wikipedia.org/wiki/Markdown" target="_blank">Markdown</a> syntax.
+
+**Share your blog posts and interact with others**
+
+_Public_ posts are visible to all users for _commenting_ (coming soon) and _voting_.
+`
+		introBlogPost = blogv2.NewBlogPost(goapi.AppVersionNumber, adminUser, true, title, content)
+		introBlogPost.SetId(postId)
+		result, err := blogPostDaov2.Create(introBlogPost)
+		if err != nil {
+			panic(fmt.Sprintf("error while creating blog post [%s]: %e", postId, err))
+		}
+		if !result {
+			log.Printf("[ERROR] Cannot create blog post [%s]", postId)
 		}
 	}
 }

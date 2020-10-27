@@ -136,10 +136,12 @@ func (dao *UniversalDaoSql) Get(id string) (*UniversalBo, error) {
 }
 
 // GetN implements UniversalDao.GetN
-func (dao *UniversalDaoSql) GetN(fromOffset, maxNumRows int) ([]*UniversalBo, error) {
-	// order ascending by "id" column
-	ordering := (&sql.GenericSorting{Flavor: dao.GetSqlFlavor()}).Add(ColId)
-	gboList, err := dao.GdaoFetchMany(dao.tableName, nil, ordering, fromOffset, maxNumRows)
+func (dao *UniversalDaoSql) GetN(fromOffset, maxNumRows int, filter interface{}, sorting interface{}) ([]*UniversalBo, error) {
+	if sorting == nil {
+		// default sorting: ascending by "id" column
+		sorting = (&sql.GenericSorting{Flavor: dao.GetSqlFlavor()}).Add(ColId)
+	}
+	gboList, err := dao.GdaoFetchMany(dao.tableName, filter, sorting, fromOffset, maxNumRows)
 	if err != nil {
 		return nil, err
 	}
@@ -152,8 +154,8 @@ func (dao *UniversalDaoSql) GetN(fromOffset, maxNumRows int) ([]*UniversalBo, er
 }
 
 // GetAll implements UniversalDao.GetAll
-func (dao *UniversalDaoSql) GetAll() ([]*UniversalBo, error) {
-	return dao.GetN(0, 0)
+func (dao *UniversalDaoSql) GetAll(filter interface{}, sorting interface{}) ([]*UniversalBo, error) {
+	return dao.GetN(0, 0, filter, sorting)
 }
 
 // Update implements UniversalDao.Update
@@ -163,7 +165,11 @@ func (dao *UniversalDaoSql) Update(bo *UniversalBo) (bool, error) {
 }
 
 // Save implements UniversalDao.Save
-func (dao *UniversalDaoSql) Save(bo *UniversalBo) (bool, error) {
+func (dao *UniversalDaoSql) Save(bo *UniversalBo) (bool, *UniversalBo, error) {
+	existing, err := dao.Get(bo.GetId())
+	if err != nil {
+		return false, nil, err
+	}
 	numRows, err := dao.GdaoSave(dao.tableName, dao.ToGenericBo(bo))
-	return numRows > 0, err
+	return numRows > 0, existing, err
 }

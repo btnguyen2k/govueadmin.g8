@@ -75,6 +75,44 @@ type UniversalBo struct {
 	_dirty      bool
 }
 
+// FuncPreUboToMap is used by UniversalBo.ToMap to export a UniversalBo to a map[string]interface{}
+type FuncPreUboToMap func(*UniversalBo) map[string]interface{}
+
+// FuncPostUboToMap is used by UniversalBo.ToMap to transform the result map
+type FuncPostUboToMap func(map[string]interface{}) map[string]interface{}
+
+// DefaultFuncPreUboToMap is default implementation of FuncPreUboToMap
+//
+// This function exports the input UniversalBo to a map with following fields:
+// { FieldId (string), FieldData (string), FieldAppVersion (uint64), FieldChecksum (string),
+// FieldTimeCreated (time.Time), FieldTimeUpdated (time.Time), FieldExtras (map[string]interface{}) }
+var DefaultFuncPreUboToMap FuncPreUboToMap = func(_ubo *UniversalBo) map[string]interface{} {
+	ubo := _ubo.Clone()
+	return map[string]interface{}{
+		FieldId:          ubo.id,
+		FieldData:        ubo.dataJson,
+		FieldAppVersion:  ubo.appVersion,
+		FieldChecksum:    ubo.checksum,
+		FieldTimeCreated: ubo.timeCreated,
+		FieldTimeUpdated: ubo.timeUpdated,
+		FieldExtras:      cloneMap(ubo._extraAttrs),
+	}
+}
+
+// ToMap exports the UniversalBo to a map[string]interface{}
+//  - preFunc is used to export UniversalBo to a map. If not supplied, DefaultFuncPreUboToMap is used.
+//  - postFunc is used to transform the result map (output from preFunc) to the final result. If not supplied, the result from preFunc is returned.
+func (ubo *UniversalBo) ToMap(preFunc FuncPreUboToMap, postFunc FuncPostUboToMap) map[string]interface{} {
+	if preFunc == nil {
+		preFunc = DefaultFuncPreUboToMap
+	}
+	result := preFunc(ubo.Clone())
+	if postFunc != nil {
+		result = postFunc(result)
+	}
+	return result
+}
+
 // MarshalJSON implements json.encode.Marshaler.MarshalJSON
 func (ubo *UniversalBo) MarshalJSON() ([]byte, error) {
 	ubo.Sync()
@@ -413,30 +451,34 @@ func (ubo *UniversalBo) Clone() *UniversalBo {
 
 // UniversalDao defines API to access UniversalBo storage
 type UniversalDao interface {
-	// ToUniversalBo transforms godal.IGenericBo to business object
+	// ToUniversalBo transforms godal.IGenericBo to business object.
 	ToUniversalBo(gbo godal.IGenericBo) *UniversalBo
 
-	// ToGenericBo transforms business object to godal.IGenericBo
+	// ToGenericBo transforms business object to godal.IGenericBo.
 	ToGenericBo(ubo *UniversalBo) godal.IGenericBo
 
-	// Delete removes the specified business object from storage
+	// Delete removes the specified business object from storage.
+	// This function returns true if number of deleted record is non-zero.
 	Delete(bo *UniversalBo) (bool, error)
 
-	// Create persists a new business object to storage
+	// Create persists a new business object to storage.
+	// This function returns true if number of inserted record is non-zero.
 	Create(bo *UniversalBo) (bool, error)
 
-	// Get retrieves a business object from storage
+	// Get retrieves a business object from storage.
 	Get(id string) (*UniversalBo, error)
 
-	// GetN retrieves N business objects from storage
-	GetN(fromOffset, maxNumRows int) ([]*UniversalBo, error)
+	// GetN retrieves N business objects from storage.
+	GetN(fromOffset, maxNumRows int, filter interface{}, sorting interface{}) ([]*UniversalBo, error)
 
-	// GetAll retrieves all available business objects from storage
-	GetAll() ([]*UniversalBo, error)
+	// GetAll retrieves all available business objects from storage.
+	GetAll(filter interface{}, sorting interface{}) ([]*UniversalBo, error)
 
-	// Update modifies an existing business object
+	// Update modifies an existing business object.
+	// This function returns true if number of updated record is non-zero.
 	Update(bo *UniversalBo) (bool, error)
 
-	// Save creates new business object or updates an existing one
-	Save(bo *UniversalBo) (bool, error)
+	// Save creates new business object or updates an existing one.
+	// This function returns the existing record along with value true if number of inserted/updated record is non-zero.
+	Save(bo *UniversalBo) (bool, *UniversalBo, error)
 }

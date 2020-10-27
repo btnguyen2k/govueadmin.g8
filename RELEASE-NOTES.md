@@ -1,11 +1,12 @@
 # govueadmin.g8 Release Notes
 
-## 2020-10-xx: template-v0.2.0
+## 2020-10-28: template-v0.2.0
 
 - Use [Gravatar](https://gravatar.com/) for user profile picture.
 - AB#21: Migrate to CoreUI-vue v3.1.1.
 - AB#22: Integrate with [Exter](https://github.com/btnguyen2k/exter).
 - AB#25: Use JWT as login-token.
+- EP#25: Rebuild sample app.
 - Others:
   - Vuejs: replace `data` with `computed` (https://techformist.com/data-vs-computed-vs-watcher-in-vue-components/) if possible.
   - Other fixes and enhancements.

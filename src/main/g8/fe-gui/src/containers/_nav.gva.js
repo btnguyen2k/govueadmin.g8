@@ -6,24 +6,24 @@ export default [
             {
                 _name: 'CSidebarNavItem',
                 name: 'Dashboard',
-                to: '/dashboard',
-                icon: 'cil-speedometer',
-                badge: {
-                    color: 'primary',
-                    text: 'NEW'
-                }
+                to: {name: 'Dashboard'},
+                icon: 'cil-wallpaper',
+                // badge: {
+                //     color: 'primary',
+                //     text: 'NEW'
+                // }
             },
             {
                 _name: 'CSidebarNavItem',
-                name: 'Groups',
-                to: '/groups',
+                name: 'My Blog',
+                to: {name: 'MyBlog'},
                 icon: 'cil-address-book',
             },
             {
                 _name: 'CSidebarNavItem',
-                name: 'Users',
-                to: '/users',
-                icon: 'cil-user',
+                name: 'Create Blog Post',
+                to: {name: 'CreatePost'},
+                icon: 'cil-image-plus',
             },
         ]
     }
