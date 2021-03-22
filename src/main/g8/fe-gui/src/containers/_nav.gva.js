@@ -1,5 +1,5 @@
 //#GovueAdmin-Customized
-import i18n from '../main'
+import i18n from '../i18n'
 
 export default [
     {

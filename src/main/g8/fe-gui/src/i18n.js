@@ -1,3 +1,7 @@
+//#GovueAdmin-Customized
+import Vue from 'vue'
+import VueI18n from 'vue-i18n'
+
 const messages = {
     en: {
         message: {
@@ -10,8 +14,10 @@ const messages = {
             wait: 'Please wait...',
             error_parse_login_token: 'Error parsing login-token',
             dashboard: 'Dashboard',
+            blog: 'Blog',
             my_blog: 'My blog',
             create_blog_post: 'Create blog post',
+            home: 'Home',
         }
     },
     vi: {
@@ -25,10 +31,19 @@ const messages = {
             wait: 'Vui lòng giờ giây lát...',
             error_parse_login_token: 'Có lỗi khi xử lý login-token',
             dashboard: 'Trang nhà',
+            blog: 'Bài viết',
             my_blog: 'Bài viết của tôi',
             create_blog_post: 'Viết bài mới',
+            home: 'Trang gốc',
         }
     }
 }
 
-export default messages
+Vue.use(VueI18n)
+
+const i18n = new VueI18n({
+    locale: 'vi',
+    messages: messages
+})
+
+export default i18n
