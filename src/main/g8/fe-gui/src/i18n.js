@@ -5,6 +5,7 @@ import VueI18n from 'vue-i18n'
 const messages = {
     en: {
         message: {
+            actions: 'Actions',
             action_create: 'Create',
             action_back: 'Back',
             login: 'Login',
@@ -22,17 +23,22 @@ const messages = {
             home: 'Home',
             blog_public: 'Public',
             blog_public_msg: 'Other people can see, comment and vote your public posts',
+            blog_tcreated: 'Created',
             blog_title: 'Title',
             blog_title_msg: "My blog post's awesome title",
+            blog_comments: 'Comments',
+            blog_votes: 'Votes',
             blog_editor: 'Editor',
             blog_preview: 'Preview',
             blog_content: 'Content',
             blog_content_msg: "My blog post's awesome content (Markdown supported)",
             blog_created_msg: 'Blog post "{title}" has been created successfully.',
+            blog_posts: 'Blog post ({count}) | Blog post ({count}) | Blog posts ({count})',
         }
     },
     vi: {
         message: {
+            actions: 'Hành động',
             action_create: 'Tạo',
             action_back: 'Quay lại',
             login: 'Đăng nhập',
@@ -49,14 +55,18 @@ const messages = {
             create_blog_post: 'Viết bài mới',
             home: 'Trang gốc',
             blog_public: 'Công cộng',
-            blog_public_msg: 'Các thành viên khác có thể thấy, nhận xét hoặc đánh giá bài viết của bạn',
+            blog_public_msg: 'Các thành viên khác có thể thấy, nhận xét hoặc bầu chọn bài viết của bạn',
+            blog_tcreated: 'Thời gian tạo',
             blog_title: 'Tựa đề',
             blog_title_msg: 'Tựa đề của bài viết',
+            blog_comments: 'Nhận xét',
+            blog_votes: 'Phiếu bầu',
             blog_editor: 'Soạn thảo',
             blog_preview: 'Xem trước',
             blog_content: 'Nội dung',
             blog_content_msg: 'Nội dung bài viết (hỗ trợ Markdown)',
             blog_created_msg: 'Bài viết "{title}" đã được tạo.',
+            blog_posts: 'Bài viết của tôi ({count})',
         }
     }
 }

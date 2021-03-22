@@ -3,11 +3,11 @@
     <CCol sm="12">
       <CCard accent-color="info">
         <CCardHeader>
-          <strong>Blog Post ({{ blogPostList.data.length }})</strong>
+          <strong>{{ $tc('message.blog_posts', blogPostList.data.length, {count: blogPostList.data.length}) }}</strong>
           <div class="card-header-actions">
             <CButton class="btn-sm btn-primary" @click="clickCreateBlogPost">
               <CIcon name="cil-image-plus"/>
-              Create Blog Post
+              {{ $t('message.create_blog_post') }}
             </CButton>
           </div>
         </CCardHeader>
@@ -15,12 +15,12 @@
           <p v-if="flashMsg" class="alert alert-success">{{ flashMsg }}</p>
           <CDataTable :items="blogPostList.data" :fields="[
               {key:'public',label:''},
-              {key:'created',label:'Created'},
-              {key:'title',label:'Title'},
-              {key:'num_comments',label:'Comments'},
-              {key:'num_votes_up',label:'Votes ↑',_style:'white-space: nowrap'},
-              {key:'num_votes_down',label:'Votes ↓',_style:'white-space: nowrap'},
-              {key:'actions',label:'Actions',_style:'text-align: center'}
+              {key:'created',label:$t('message.blog_tcreated')},
+              {key:'title',label:$t('message.blog_title')},
+              {key:'num_comments',label:$t('message.blog_comments')},
+              {key:'num_votes_up',label:$t('message.blog_votes')+' ↑',_style:'white-space: nowrap'},
+              {key:'num_votes_down',label:$t('message.blog_votes')+' ↓',_style:'white-space: nowrap'},
+              {key:'actions',label:$t('message.actions'),_style:'text-align: center'}
             ]">
             <template #public="{item}">
               <td>
