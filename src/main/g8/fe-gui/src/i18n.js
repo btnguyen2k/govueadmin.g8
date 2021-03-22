@@ -26,6 +26,7 @@ const messages = {
             create_blog_post: 'Create blog post',
             edit_blog_post: 'Edit blog post',
             delete_blog_post: 'Delete blog post',
+            blog_posts: 'Blog post ({count}) | Blog post ({count}) | Blog posts ({count})',
             home: 'Home',
             blog_public: 'Public',
             blog_public_msg: 'Other people can see, comment and vote your public posts',
@@ -40,7 +41,7 @@ const messages = {
             blog_content_msg: "My blog post's awesome content (Markdown supported)",
             blog_created_msg: 'Blog post "{title}" has been created successfully.',
             blog_updated_msg: 'Blog post "{title}" has been updated successfully.',
-            blog_posts: 'Blog post ({count}) | Blog post ({count}) | Blog posts ({count})',
+            blog_deleted_msg: 'Blog post "{title}" has been deleted successfully.',
         }
     },
     vi: {
@@ -65,7 +66,8 @@ const messages = {
             my_blog: 'Bài viết của tôi',
             create_blog_post: 'Viết bài mới',
             edit_blog_post: 'Chỉnh sửa bài viết',
-            delete_blog_post: 'Xoá bài viét',
+            delete_blog_post: 'Xoá bài viết',
+            blog_posts: 'Bài viết của tôi ({count})',
             home: 'Trang gốc',
             blog_public: 'Công cộng',
             blog_public_msg: 'Các thành viên khác có thể thấy, nhận xét hoặc bầu chọn bài viết của bạn',
@@ -80,7 +82,7 @@ const messages = {
             blog_content_msg: 'Nội dung bài viết (hỗ trợ Markdown)',
             blog_created_msg: 'Bài viết "{title}" đã được tạo.',
             blog_updated_msg: 'Bài viết "{title}" đã được cập nhật.',
-            blog_posts: 'Bài viết của tôi ({count})',
+            blog_deleted_msg: 'Bài viết "{title}" đã được xoá.',
         }
     }
 }
