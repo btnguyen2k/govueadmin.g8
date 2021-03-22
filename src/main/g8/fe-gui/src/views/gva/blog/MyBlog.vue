@@ -45,11 +45,11 @@
             </template>
             <template #actions="{item}">
               <td style="font-size: smaller; white-space: nowrap; text-align: center">
-                <CLink @click="clickEditBlogPost(item.id)" label="Edit" class="btn btn-sm btn-primary">
+                <CLink @click="clickEditBlogPost(item.id)" :label="$t('message.action_edit')" class="btn btn-sm btn-primary">
                   <CIcon name="cil-pencil"/>
                 </CLink>
                 &nbsp;
-                <CLink @click="clickDeleteBlogPost(item.id)" label="Delete" class="btn btn-sm btn-danger">
+                <CLink @click="clickDeleteBlogPost(item.id)" :label="$t('message.action_delete')" class="btn btn-sm btn-danger">
                   <CIcon name="cil-trash"/>
                 </CLink>
               </td>
