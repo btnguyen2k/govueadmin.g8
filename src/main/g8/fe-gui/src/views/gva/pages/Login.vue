@@ -36,6 +36,14 @@
                       </CButton>
                     </CCol>
                   </CRow>
+                  <CSelect
+                      horizontal
+                      class="py-2"
+                      label="Language"
+                      :value.sync="$i18n.locale"
+                      :options="[{value:'en',label:'English'},{value:'vi',label:'Tiếng Việt'}]"
+                      @change="doChangeLanguage"
+                  />
                 </CForm>
               </CCardBody>
             </CCard>
@@ -63,7 +71,7 @@ export default {
       let data = {token: this.$route.query.exterToken, mode: "exter"}
       this._doLogin(data)
     }
-    this.infoMsg = this.waitInfoMsg
+    this.infoMsgSwitch = 1
     apiClient.apiDoGet(apiClient.apiInfo,
         (apiRes) => {
           if (apiRes.status != 200) {
@@ -71,7 +79,7 @@ export default {
           } else {
             this.exterAppId = apiRes.data.exter.app_id
             this.exterBaseUrl = apiRes.data.exter.base_url
-            this.infoMsg = this.defaultInfoMsg
+            this.infoMsgSwitch = 2
           }
         },
         (err) => {
@@ -79,11 +87,14 @@ export default {
         })
   },
   computed: {
-    defaultInfoMsg() {
+    infoMsg() {
+      if (this.infoMsgSwitch == 0) {
+        return ''
+      }
+      if (this.infoMsgSwitch == 1) {
+        return this.$i18n.t('message.wait')
+      }
       return this.$i18n.t('message.login_info')
-    },
-    waitInfoMsg() {
-      return this.$i18n.t('message.wait')
     },
     parseLoginTokenErrMsg() {
       return this.$i18n.t('message.error_parse_login_token')
@@ -97,7 +108,7 @@ export default {
       exterAppId: String,
       exterBaseUrl: String,
       errorMsg: "",
-      infoMsg: "",
+      infoMsgSwitch: 0,
       form: {username: "", password: ""},
     }
   },
