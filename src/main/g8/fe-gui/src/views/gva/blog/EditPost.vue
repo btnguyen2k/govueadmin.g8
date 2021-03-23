@@ -3,22 +3,22 @@
     <CRow>
       <CCol sm="12">
         <CCard>
-          <CCardHeader><h5>Edit Blog Post</h5></CCardHeader>
+          <CCardHeader><h5>{{ $t('message.edit_blog_post') }}</h5></CCardHeader>
           <CForm @submit.prevent="doSubmit" method="post">
             <CCardBody>
               <p v-if="!found" class="alert alert-danger">Blog Post [{{ this.$route.params.id }}] not found</p>
               <p v-if="errorMsg!=''" class="alert alert-danger">{{ errorMsg }}</p>
               <div class="form-group form-row" v-if="found">
                 <CCol :sm="{offset:3,size:9}" class="form-inline">
-                  <CInputCheckbox inline label="Public" :checked.sync="post.is_public"/>
-                  <small>(Other people can see, comment and vote your public posts)</small>
+                  <CInputCheckbox inline :label="$t('message.blog_public')" :checked.sync="post.is_public"/>
+                  <small>({{ $t('message.blog_public_msg') }})</small>
                 </CCol>
               </div>
               <CInput v-if="found"
                       type="text"
                       v-model="post.title"
-                      label="Title"
-                      placeholder="My blog post's awesome title"
+                      :label="$t('message.blog_title')"
+                      :placeholder="$t('message.blog_title_msg')"
                       horizontal
                       required
                       was-validated
@@ -27,14 +27,14 @@
                 <CTab active>
                   <template slot="title">
                     <CIcon name="cib-markdown"/>
-                    Editor
+                    {{ $t('message.blog_editor') }}
                   </template>
                   <CTextarea
                       rows="10"
                       type="text"
                       v-model="post.content"
-                      label="Content (Markdown supported)"
-                      placeholder="My blog post's awesome content"
+                      :label="$t('message.blog_content')"
+                      :placeholder="$t('message.blog_content_msg')"
                       horizontal
                       required
                       was-validated
@@ -43,7 +43,7 @@
                 <CTab>
                   <template slot="title">
                     <CIcon name="cil-calculator"/>
-                    Preview
+                    {{ $t('message.blog_preview') }}
                   </template>
                   <div v-html="previewContent"></div>
                 </CTab>
@@ -52,11 +52,11 @@
             <CCardFooter>
               <CButton v-if="found" type="submit" color="primary" style="width: 96px">
                 <CIcon name="cil-save"/>
-                Save
+                {{ $t('message.action_save') }}
               </CButton>
               <CButton type="button" color="info" class="ml-2" style="width: 96px" @click="doCancel">
                 <CIcon name="cil-arrow-circle-left"/>
-                Back
+                {{ $t('message.action_back') }}
               </CButton>
             </CCardFooter>
           </CForm>
@@ -111,7 +111,7 @@ export default {
             } else {
               this.$router.push({
                 name: "MyBlog",
-                params: {flashMsg: "Blog post [" + this.post.title + "] has been updated successfully."},
+                params: {flashMsg: this.$i18n.t('message.blog_updated_msg', {title: this.post.title})},
               })
             }
           },

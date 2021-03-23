@@ -19,17 +19,17 @@
     <CHeaderNav class="d-md-down-none mr-auto">
       <CHeaderNavItem class="px-3">
         <CHeaderNavLink :to="{name:'Dashboard'}">
-          Dashboard
+          {{ $t('message.dashboard') }}
         </CHeaderNavLink>
       </CHeaderNavItem>
       <CHeaderNavItem class="px-3">
         <CHeaderNavLink :to="{name:'MyBlog'}">
-          My Blog
+          {{ $t('message.my_blog') }}
         </CHeaderNavLink>
       </CHeaderNavItem>
       <CHeaderNavItem class="px-3">
         <CHeaderNavLink :to="{name:'CreatePost'}">
-          Create Blog Post
+          {{ $t('message.create_blog_post') }}
         </CHeaderNavLink>
       </CHeaderNavItem>
     </CHeaderNav>

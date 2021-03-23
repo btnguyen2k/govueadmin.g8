@@ -44,7 +44,6 @@ import appConfig from "@/utils/app_config"
 import utils from "@/utils/app_utils"
 import clientUtils from "@/utils/api_client"
 
-
 router.beforeEach((to, from, next) => {
     if (!to.matched.some(record => record.meta.allowGuest)) {
         let session = utils.loadLoginSession()
@@ -84,19 +83,21 @@ router.beforeEach((to, from, next) => {
 
 export default router
 
+import i18n from '../i18n'
+
 function configRoutes() {
     return [
         {
             path: '/',
             redirect: {name: "Dashboard"},
-            name: 'Home',
+            name: 'Home', meta: {label: i18n.t('message.home')},
             component: TheContainer,
             children: [
                 {
-                    path: 'dashboard', name: 'Dashboard', component: Dashboard
+                    path: 'dashboard', name: 'Dashboard', meta: {label: i18n.t('message.dashboard')}, component: Dashboard
                 },
                 {
-                    path: 'posts', meta: {label: 'Blog'},
+                    path: 'posts', meta: {label: i18n.t('message.blog')},
                     component: {
                         render(c) {
                             return c('router-view')
@@ -104,16 +105,16 @@ function configRoutes() {
                     },
                     children: [
                         {
-                            path: '', meta: {label: 'My Blog'}, name: 'MyBlog', component: MyBlog, props: true, //[props=true] to pass flashMsg
+                            path: '', meta: {label: i18n.t('message.my_blog')}, name: 'MyBlog', component: MyBlog, props: true, //[props=true] to pass flashMsg
                         },
                         {
-                            path: '_create', meta: {label: 'Create Blog Post'}, name: 'CreatePost', component: CreatePost,
+                            path: '_create', meta: {label: i18n.t('message.create_blog_post')}, name: 'CreatePost', component: CreatePost,
                         },
                         {
-                            path: '_edit/:id', meta: {label: 'Edit Blog Post'}, name: 'EditPost', component: EditPost,
+                            path: '_edit/:id', meta: {label: i18n.t('message.edit_blog_post')}, name: 'EditPost', component: EditPost,
                         },
                         {
-                            path: '_delete/:id', meta: {label: 'Delete Blog Post'}, name: 'DeletePost', component: DeletePost,
+                            path: '_delete/:id', meta: {label: i18n.t('message.delete_blog_post')}, name: 'DeletePost', component: DeletePost,
                         },
                     ]
                 },

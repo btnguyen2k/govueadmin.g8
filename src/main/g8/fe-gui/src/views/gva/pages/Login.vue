@@ -8,16 +8,18 @@
             <CCard class="p-4">
               <CCardBody>
                 <CForm @submit.prevent="doSubmit" method="post">
-                  <h1>Login</h1>
+                  <h1>{{ $t('message.login') }}</h1>
                   <p v-if="errorMsg!=''" class="alert alert-danger">{{ errorMsg }}</p>
                   <p v-if="infoMsg!=''" class="text-muted">{{ infoMsg }}</p>
-                  <CInput placeholder="Username" autocomplete="username email" name="username" id="username"
+                  <CInput :placeholder="$t('message.username')" autocomplete="username email" name="username"
+                          id="username"
                           v-model="form.username">
                     <template #prepend-content>
                       <CIcon name="cil-user"/>
                     </template>
                   </CInput>
-                  <CInput placeholder="Password" type="password" autocomplete="current-password" name="password"
+                  <CInput :placeholder="$t('message.password')" type="password" autocomplete="current-password"
+                          name="password"
                           id="password" v-model="form.password">
                     <template #prepend-content>
                       <CIcon name="cil-lock-locked"/>
@@ -25,24 +27,30 @@
                   </CInput>
                   <CRow>
                     <CCol col="4" class="text-left">
-                      <CButton color="primary" class="px-4" type="submit">Login</CButton>
+                      <CButton color="primary" class="px-4" type="submit">{{ $t('message.login') }}</CButton>
                     </CCol>
                     <CCol col="8" class="text-right">
-                      <CButton color="link" class="px-0" @click="doClickLoginSocial">Login with social account</CButton>
+                      <CButton color="link" class="px-2" @click="doClickLoginSocial">{{
+                          $t('message.login_social')
+                        }}
+                      </CButton>
                     </CCol>
                   </CRow>
+                  <CSelect
+                      horizontal
+                      class="py-2"
+                      label="Language"
+                      :value.sync="$i18n.locale"
+                      :options="[{value:'en',label:'English'},{value:'vi',label:'Tiếng Việt'}]"
+                      @change="doChangeLanguage"
+                  />
                 </CForm>
               </CCardBody>
             </CCard>
             <CCard color="primary" text-color="white" class="py-5 d-md-down-none" body-wrapper>
               <CCardBody>
                 <h2>Demo</h2>
-                <p>
-                  This is instance is for demo purpose only. Login with default account <strong>admin@local/s3cr3t</strong>.
-                  <br/>
-                  Or you can login with your <u>social account</u> via "Login with social account" link
-                  (your social account credential <u>will not</u> be stored on server).
-                </p>
+                <p v-html="$t('message.demo_msg')"></p>
               </CCardBody>
             </CCard>
           </CCardGroup>
@@ -55,13 +63,6 @@
 <script>
 import apiClient from "@/utils/api_client"
 import utils from "@/utils/app_utils"
-// import appConfig from "@/utils/app_config"
-// import router from "@/router"
-
-const defaultInfoMsg = "Please sign in to continue"
-const waitInfoMsg = "Please wait..."
-// const waitLoginInfoMsg = "Logging in, please wait..."
-// const invalidReturnUrlErrMsg = "Error: invalid return url"
 
 export default {
   name: 'Login',
@@ -70,7 +71,7 @@ export default {
       let data = {token: this.$route.query.exterToken, mode: "exter"}
       this._doLogin(data)
     }
-    this.infoMsg = waitInfoMsg
+    this.infoMsgSwitch = 1
     apiClient.apiDoGet(apiClient.apiInfo,
         (apiRes) => {
           if (apiRes.status != 200) {
@@ -78,7 +79,7 @@ export default {
           } else {
             this.exterAppId = apiRes.data.exter.app_id
             this.exterBaseUrl = apiRes.data.exter.base_url
-            this.infoMsg = defaultInfoMsg
+            this.infoMsgSwitch = 2
           }
         },
         (err) => {
@@ -86,6 +87,18 @@ export default {
         })
   },
   computed: {
+    infoMsg() {
+      if (this.infoMsgSwitch == 0) {
+        return ''
+      }
+      if (this.infoMsgSwitch == 1) {
+        return this.$i18n.t('message.wait')
+      }
+      return this.$i18n.t('message.login_info')
+    },
+    parseLoginTokenErrMsg() {
+      return this.$i18n.t('message.error_parse_login_token')
+    },
     returnUrl() {
       return this.$route.query.returnUrl ? this.$route.query.returnUrl : ''
     },
@@ -95,7 +108,7 @@ export default {
       exterAppId: String,
       exterBaseUrl: String,
       errorMsg: "",
-      infoMsg: "",
+      infoMsgSwitch: 0,
       form: {username: "", password: ""},
     }
   },
@@ -123,7 +136,7 @@ export default {
             } else {
               const jwt = utils.parseJwt(apiResp.data)
               if (!jwt) {
-                this.errorMsg = 'Error parsing login-token.'
+                this.errorMsg = this.parseLoginTokenErrMsg
               } else {
                 utils.saveLoginSession({uid: jwt.payloadObj.uid, name: jwt.payloadObj.name, token: apiResp.data})
                 let rUrl = this.returnUrl
