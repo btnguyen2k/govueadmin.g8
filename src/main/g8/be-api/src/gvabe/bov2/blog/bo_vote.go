@@ -5,16 +5,16 @@ import (
 	"strings"
 
 	"github.com/btnguyen2k/consu/reddo"
+	"github.com/btnguyen2k/henge"
 
-	userv2 "main/src/gvabe/bov2/user"
-	"main/src/henge"
+	"main/src/gvabe/bov2/user"
 	"main/src/utils"
 )
 
 // NewBlogVote is helper function to create new BlogVote bo
 //
 // available since template-v0.2.0
-func NewBlogVote(appVersion uint64, owner *userv2.User, targetId string, value int) *BlogVote {
+func NewBlogVote(appVersion uint64, owner *user.User, targetId string, value int) *BlogVote {
 	vote := &BlogVote{
 		UniversalBo: *henge.NewUniversalBo(utils.UniqueId(), appVersion),
 		ownerId:     strings.TrimSpace(strings.ToLower(owner.GetId())),
@@ -167,7 +167,7 @@ func (v *BlogVote) sync() *BlogVote {
 // available since template-v0.2.0
 type BlogVoteDao interface {
 	// GetUserVoteForTarget retrieves a user's vote against a target
-	GetUserVoteForTarget(user *userv2.User, targetId string) (*BlogVote, error)
+	GetUserVoteForTarget(user *user.User, targetId string) (*BlogVote, error)
 
 	// Delete removes the specified business object from storage
 	Delete(bo *BlogVote) (bool, error)

@@ -4,10 +4,10 @@ import (
 	"github.com/btnguyen2k/consu/reddo"
 	"github.com/btnguyen2k/godal"
 	"github.com/btnguyen2k/godal/sql"
+	"github.com/btnguyen2k/henge"
 	"github.com/btnguyen2k/prom"
 
-	userv2 "main/src/gvabe/bov2/user"
-	"main/src/henge"
+	"main/src/gvabe/bov2/user"
 )
 
 const TableBlogVote = "gva_blog_vote"
@@ -23,7 +23,7 @@ const (
 func NewBlogVoteDaoSql(sqlc *prom.SqlConnect, tableName string) BlogVoteDao {
 	dao := &BlogVoteDaoSql{}
 	dao.UniversalDao = henge.NewUniversalDaoSql(
-		sqlc, tableName,
+		sqlc, tableName, true,
 		map[string]string{
 			VoteCol_OwnerId:  VoteField_OwnerId,
 			VoteCol_TargetId: VoteField_TargetId,
@@ -41,19 +41,19 @@ type BlogVoteDaoSql struct {
 
 // GdaoCreateFilter implements IGenericDao.GdaoCreateFilter
 func (dao *BlogVoteDaoSql) GdaoCreateFilter(_ string, gbo godal.IGenericBo) interface{} {
-	return map[string]interface{}{henge.ColId: gbo.GboGetAttrUnsafe(henge.FieldId, reddo.TypeString)}
+	return map[string]interface{}{henge.SqlColId: gbo.GboGetAttrUnsafe(henge.FieldId, reddo.TypeString)}
 }
 
 // GetUserVoteForTarget implements BlogVoteDao.GetUserVoteForTarget
-func (dao *BlogVoteDaoSql) GetUserVoteForTarget(user *userv2.User, targetId string) (*BlogVote, error) {
+func (dao *BlogVoteDaoSql) GetUserVoteForTarget(user *user.User, targetId string) (*BlogVote, error) {
 	if user == nil || targetId == "" {
 		return nil, nil
 	}
-	filter := &sql.FilterAnd{
+	filter := &sql.FilterAnd{FilterAndOr: sql.FilterAndOr{
 		Filters: []sql.IFilter{
-			&sql.FilterFieldValue{Field: VoteCol_OwnerId, Operation: "=", Value: user.GetId()},
-			&sql.FilterFieldValue{Field: VoteCol_TargetId, Operation: "=", Value: targetId},
-		},
+			&sql.FilterFieldValue{Field: VoteCol_OwnerId, Operator: "=", Value: user.GetId()},
+			&sql.FilterFieldValue{Field: VoteCol_TargetId, Operator: "=", Value: targetId},
+		}},
 	}
 	uboList, err := dao.UniversalDao.GetAll(filter, nil)
 	if err != nil {

@@ -3,9 +3,8 @@ package blog
 import (
 	"github.com/btnguyen2k/consu/reddo"
 	"github.com/btnguyen2k/godal"
+	"github.com/btnguyen2k/henge"
 	"github.com/btnguyen2k/prom"
-
-	"main/src/henge"
 )
 
 const TableBlogComment = "gva_blog_comment"
@@ -21,7 +20,7 @@ const (
 func NewBlogCommentDaoSql(sqlc *prom.SqlConnect, tableName string) BlogCommentDao {
 	dao := &BlogCommentDaoSql{}
 	dao.UniversalDao = henge.NewUniversalDaoSql(
-		sqlc, tableName,
+		sqlc, tableName, true,
 		map[string]string{
 			CommentCol_OwnerId:  CommentField_OwnerId,
 			CommentCol_PostId:   CommentField_PostId,
@@ -39,7 +38,7 @@ type BlogCommentDaoSql struct {
 
 // GdaoCreateFilter implements IGenericDao.GdaoCreateFilter
 func (dao *BlogCommentDaoSql) GdaoCreateFilter(_ string, gbo godal.IGenericBo) interface{} {
-	return map[string]interface{}{henge.ColId: gbo.GboGetAttrUnsafe(henge.FieldId, reddo.TypeString)}
+	return map[string]interface{}{henge.SqlColId: gbo.GboGetAttrUnsafe(henge.FieldId, reddo.TypeString)}
 }
 
 // Delete implements BlogCommentDao.Delete

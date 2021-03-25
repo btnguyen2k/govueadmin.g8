@@ -4,10 +4,10 @@ import (
 	"github.com/btnguyen2k/consu/reddo"
 	"github.com/btnguyen2k/godal"
 	"github.com/btnguyen2k/godal/sql"
+	"github.com/btnguyen2k/henge"
 	"github.com/btnguyen2k/prom"
 
-	userv2 "main/src/gvabe/bov2/user"
-	"main/src/henge"
+	"main/src/gvabe/bov2/user"
 )
 
 const TableBlogPost = "gva_blog_post"
@@ -22,7 +22,7 @@ const (
 func NewBlogPostDaoSql(sqlc *prom.SqlConnect, tableName string) BlogPostDao {
 	dao := &BlogPostDaoSql{}
 	dao.UniversalDao = henge.NewUniversalDaoSql(
-		sqlc, tableName,
+		sqlc, tableName, true,
 		map[string]string{
 			PostCol_OwnerId:  PostField_OwnerId,
 			PostCol_IsPublic: PostField_IsPublic,
@@ -39,7 +39,7 @@ type BlogPostDaoSql struct {
 
 // GdaoCreateFilter implements IGenericDao.GdaoCreateFilter
 func (dao *BlogPostDaoSql) GdaoCreateFilter(_ string, gbo godal.IGenericBo) interface{} {
-	return map[string]interface{}{henge.ColId: gbo.GboGetAttrUnsafe(henge.FieldId, reddo.TypeString)}
+	return map[string]interface{}{henge.SqlColId: gbo.GboGetAttrUnsafe(henge.FieldId, reddo.TypeString)}
 }
 
 // Delete implements BlogPostDao.Delete
@@ -62,9 +62,9 @@ func (dao *BlogPostDaoSql) Get(id string) (*BlogPost, error) {
 }
 
 // GetUserPostsN implements BlogPostDao.GetUserPostsN
-func (dao *BlogPostDaoSql) GetUserPostsN(user *userv2.User, fromOffset, maxNumRows int) ([]*BlogPost, error) {
-	filter := &sql.FilterFieldValue{Field: PostCol_OwnerId, Operation: "=", Value: user.GetId()}
-	uboList, err := dao.UniversalDao.GetN(fromOffset, maxNumRows, filter, map[string]string{henge.ColTimeCreated: "DESC"})
+func (dao *BlogPostDaoSql) GetUserPostsN(user *user.User, fromOffset, maxNumRows int) ([]*BlogPost, error) {
+	filter := &sql.FilterFieldValue{Field: PostCol_OwnerId, Operator: "=", Value: user.GetId()}
+	uboList, err := dao.UniversalDao.GetN(fromOffset, maxNumRows, filter, map[string]string{henge.SqlColTimeCreated: "DESC"})
 	if err != nil {
 		return nil, err
 	}
@@ -77,19 +77,19 @@ func (dao *BlogPostDaoSql) GetUserPostsN(user *userv2.User, fromOffset, maxNumRo
 }
 
 // GetUserPostsAll implements BlogPostDao.GetAll
-func (dao *BlogPostDaoSql) GetUserPostsAll(user *userv2.User) ([]*BlogPost, error) {
+func (dao *BlogPostDaoSql) GetUserPostsAll(user *user.User) ([]*BlogPost, error) {
 	return dao.GetUserPostsN(user, 0, 0)
 }
 
 // GetUserFeedN implements BlogPostDao.GetUserPostsN
-func (dao *BlogPostDaoSql) GetUserFeedN(user *userv2.User, fromOffset, maxNumRows int) ([]*BlogPost, error) {
-	filter := &sql.FilterOr{
+func (dao *BlogPostDaoSql) GetUserFeedN(user *user.User, fromOffset, maxNumRows int) ([]*BlogPost, error) {
+	filter := &sql.FilterOr{FilterAndOr: sql.FilterAndOr{
 		Filters: []sql.IFilter{
-			&sql.FilterFieldValue{Field: PostCol_OwnerId, Operation: "=", Value: user.GetId()},
-			&sql.FilterFieldValue{Field: PostCol_IsPublic, Operation: "=", Value: 1},
-		},
+			&sql.FilterFieldValue{Field: PostCol_OwnerId, Operator: "=", Value: user.GetId()},
+			&sql.FilterFieldValue{Field: PostCol_IsPublic, Operator: "=", Value: 1},
+		}},
 	}
-	uboList, err := dao.UniversalDao.GetN(fromOffset, maxNumRows, filter, map[string]string{henge.ColTimeCreated: "DESC"})
+	uboList, err := dao.UniversalDao.GetN(fromOffset, maxNumRows, filter, map[string]string{henge.SqlColTimeCreated: "DESC"})
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +102,7 @@ func (dao *BlogPostDaoSql) GetUserFeedN(user *userv2.User, fromOffset, maxNumRow
 }
 
 // GetUserFeedAll implements BlogPostDao.GetUserFeedAll
-func (dao *BlogPostDaoSql) GetUserFeedAll(user *userv2.User) ([]*BlogPost, error) {
+func (dao *BlogPostDaoSql) GetUserFeedAll(user *user.User) ([]*BlogPost, error) {
 	return dao.GetUserFeedN(user, 0, 0)
 }
 

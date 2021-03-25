@@ -3,9 +3,8 @@ package user
 import (
 	"github.com/btnguyen2k/consu/reddo"
 	"github.com/btnguyen2k/godal"
+	"github.com/btnguyen2k/henge"
 	"github.com/btnguyen2k/prom"
-
-	"main/src/henge"
 )
 
 const TableUser = "gva_user"
@@ -19,7 +18,7 @@ const (
 func NewUserDaoSql(sqlc *prom.SqlConnect, tableName string) UserDao {
 	dao := &UserDaoSql{}
 	dao.UniversalDao = henge.NewUniversalDaoSql(
-		sqlc, tableName,
+		sqlc, tableName, true,
 		map[string]string{UserCol_MaskUid: UserField_MaskId})
 	return dao
 }
@@ -33,7 +32,7 @@ type UserDaoSql struct {
 
 // GdaoCreateFilter implements IGenericDao.GdaoCreateFilter
 func (dao *UserDaoSql) GdaoCreateFilter(_ string, gbo godal.IGenericBo) interface{} {
-	return map[string]interface{}{henge.ColId: gbo.GboGetAttrUnsafe(henge.FieldId, reddo.TypeString)}
+	return map[string]interface{}{henge.SqlColId: gbo.GboGetAttrUnsafe(henge.FieldId, reddo.TypeString)}
 }
 
 // Delete implements UserDao.Delete

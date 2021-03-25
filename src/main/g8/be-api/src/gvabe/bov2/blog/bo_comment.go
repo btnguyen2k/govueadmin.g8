@@ -5,16 +5,16 @@ import (
 	"strings"
 
 	"github.com/btnguyen2k/consu/reddo"
+	"github.com/btnguyen2k/henge"
 
-	userv2 "main/src/gvabe/bov2/user"
-	"main/src/henge"
+	"main/src/gvabe/bov2/user"
 	"main/src/utils"
 )
 
 // NewBlogComment is helper function to create new BlogComment bo
 //
 // available since template-v0.2.0
-func NewBlogComment(appVersion uint64, owner *userv2.User, post *BlogPost, parent *BlogComment, content string) *BlogComment {
+func NewBlogComment(appVersion uint64, owner *user.User, post *BlogPost, parent *BlogComment, content string) *BlogComment {
 	comment := &BlogComment{
 		UniversalBo: *henge.NewUniversalBo(utils.UniqueId(), appVersion),
 		ownerId:     strings.TrimSpace(strings.ToLower(owner.GetId())),

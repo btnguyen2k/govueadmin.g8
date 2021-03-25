@@ -1,5 +1,14 @@
 # govueadmin.g8 Release Notes
 
+## 2021-03-xx: template-v0.3.0
+
+- AB#42: I18n support in FE using [Vue-i18n](https://kazupon.github.io/vue-i18n/).
+- AB#41: MongoDB implementation of BO & DAO.
+- Others:
+  - BE: bump to Go v1.13.
+  - BE: migrate to built-in `henge` package to `github.com/btnguyen2k/henge`.
+  - Restructure & Update dependency libs.
+
 ## 2020-10-28: template-v0.2.0
 
 - Use [Gravatar](https://gravatar.com/) for user profile picture.

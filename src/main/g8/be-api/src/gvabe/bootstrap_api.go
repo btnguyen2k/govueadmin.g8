@@ -12,10 +12,11 @@ import (
 
 	"github.com/btnguyen2k/consu/reddo"
 
+	"github.com/btnguyen2k/henge"
+
 	"main/src/goapi"
 	"main/src/gvabe/bov2/blog"
-	userv2 "main/src/gvabe/bov2/user"
-	"main/src/henge"
+	"main/src/gvabe/bov2/user"
 	"main/src/itineris"
 )
 
@@ -74,7 +75,7 @@ func _extractParam(params *itineris.ApiParams, paramName string, typ reflect.Typ
 }
 
 // available since template-v0.2.0
-func _currentUserFromContext(ctx *itineris.ApiContext) (*SessionClaims, *userv2.User, error) {
+func _currentUserFromContext(ctx *itineris.ApiContext) (*SessionClaims, *user.User, error) {
 	sessClaims, ok := ctx.GetContextValue(ctxFieldSession).(*SessionClaims)
 	if !ok || sessClaims == nil {
 		return nil, nil, nil
@@ -284,7 +285,7 @@ func apiVerifyLoginToken(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *it
 }
 
 var funcPostToMapTransform = func(m map[string]interface{}) map[string]interface{} {
-	user, _ := userDaov2.Get(m[blog.PostField_OwnerId].(string))
+	u, _ := userDaov2.Get(m[blog.PostField_OwnerId].(string))
 	// transform input map
 	result := map[string]interface{}{
 		"id":        m[henge.FieldId],
@@ -297,13 +298,13 @@ var funcPostToMapTransform = func(m map[string]interface{}) map[string]interface
 		"num_votes_up":   m[blog.PostAttr_NumVotesUp],
 		"num_votes_down": m[blog.PostAttr_NumVotesDown],
 	}
-	if user != nil {
-		result["owner"] = user.ToMap(func(m map[string]interface{}) map[string]interface{} {
+	if u != nil {
+		result["owner"] = u.ToMap(func(m map[string]interface{}) map[string]interface{} {
 			return map[string]interface{}{
 				"id":           m[henge.FieldId],
-				"mid":          m[userv2.UserField_MaskId],
-				"is_admin":     m[userv2.UserAttr_IsAdmin],
-				"display_name": m[userv2.UserAttr_DisplayName],
+				"mid":          m[user.UserField_MaskId],
+				"is_admin":     m[user.UserAttr_IsAdmin],
+				"display_name": m[user.UserAttr_DisplayName],
 			}
 		})
 	}

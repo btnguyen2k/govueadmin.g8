@@ -5,16 +5,16 @@ import (
 	"strings"
 
 	"github.com/btnguyen2k/consu/reddo"
+	"github.com/btnguyen2k/henge"
 
-	userv2 "main/src/gvabe/bov2/user"
-	"main/src/henge"
+	"main/src/gvabe/bov2/user"
 	"main/src/utils"
 )
 
 // NewBlogPost is helper function to create new BlogPost bo
 //
 // available since template-v0.2.0
-func NewBlogPost(appVersion uint64, owner *userv2.User, isPublic bool, title, content string) *BlogPost {
+func NewBlogPost(appVersion uint64, owner *user.User, isPublic bool, title, content string) *BlogPost {
 	post := &BlogPost{
 		UniversalBo:  *henge.NewUniversalBo(utils.UniqueId(), appVersion),
 		ownerId:      strings.TrimSpace(strings.ToLower(owner.GetId())),
@@ -328,16 +328,16 @@ type BlogPostDao interface {
 	Get(id string) (*BlogPost, error)
 
 	// GetUserPostsN retrieves first N user's blog posts of a user, latest posts first
-	GetUserPostsN(user *userv2.User, fromOffset, maxNumRows int) ([]*BlogPost, error)
+	GetUserPostsN(user *user.User, fromOffset, maxNumRows int) ([]*BlogPost, error)
 
 	// GetUserPostsAll retrieves all available user's blog posts, latest posts first
-	GetUserPostsAll(user *userv2.User) ([]*BlogPost, error)
+	GetUserPostsAll(user *user.User) ([]*BlogPost, error)
 
 	// GetUserFeedN retrieves first N blog posts for user's feed, latest posts first
-	GetUserFeedN(user *userv2.User, fromOffset, maxNumRows int) ([]*BlogPost, error)
+	GetUserFeedN(user *user.User, fromOffset, maxNumRows int) ([]*BlogPost, error)
 
 	// GetUserFeedAll retrieves all available blog posts for user's feed, latest posts first
-	GetUserFeedAll(user *userv2.User) ([]*BlogPost, error)
+	GetUserFeedAll(user *user.User) ([]*BlogPost, error)
 
 	// Update modifies an existing business object
 	Update(bo *BlogPost) (bool, error)

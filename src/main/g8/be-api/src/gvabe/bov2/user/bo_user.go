@@ -5,8 +5,7 @@ import (
 	"strings"
 
 	"github.com/btnguyen2k/consu/reddo"
-
-	"main/src/henge"
+	"github.com/btnguyen2k/henge"
 )
 
 // NewUser is helper function to create new User bo
