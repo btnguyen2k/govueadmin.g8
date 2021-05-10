@@ -7,10 +7,11 @@ Application Server bootstrapper.
 package main
 
 import (
-	"main/src/goapi"
-	"main/src/gvabe"
 	"math/rand"
 	"time"
+
+	"main/src/goapi"
+	"main/src/gvabe"
 )
 
 func main() {
