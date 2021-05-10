@@ -39,7 +39,7 @@
     "@coreui/vue-chartjs": "^1.0.5",
     "crypto-js": "^4.0.0",
     "dompurify": "^2.2.0",
-    "jsrsasign": "^9.1.9",
+    "jsrsasign": "^10.2.0",
     "marked": "^2.0.0",
     "vue": "~2.6.12",
     "vue-i18n": "^8.24.1",
