@@ -17,7 +17,7 @@ import (
 func NewBlogPost(appVersion uint64, owner *user.User, isPublic bool, title, content string) *BlogPost {
 	post := &BlogPost{
 		UniversalBo:  henge.NewUniversalBo(utils.UniqueId(), appVersion),
-		ownerId:      strings.TrimSpace(strings.ToLower(owner.GetId())),
+		ownerId:      owner.GetId(),
 		isPublic:     isPublic,
 		title:        strings.TrimSpace(title),
 		content:      strings.TrimSpace(content),

@@ -59,6 +59,20 @@ func sqlInitTablePost(sqlc *prom.SqlConnect, table string) error {
 	return err
 }
 
+func sqlInitTableVote(sqlc *prom.SqlConnect, table string) error {
+	rand.Seed(time.Now().UnixNano())
+	if sqlc.GetDbFlavor() == prom.FlavorCosmosDb {
+		sqlc.GetDB().Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", cosmosdbDbName))
+	}
+	sqlc.GetDB().Exec(fmt.Sprintf("DROP TABLE %s", table))
+	var err error
+	switch sqlc.GetDbFlavor() {
+	case prom.FlavorPgSql:
+		err = henge.InitPgsqlTable(sqlc, table, map[string]string{VoteColOwnerId: "VARCHAR(32)", VoteColTargetId: "VARCHAR(32)", VoteColValue: "INT"})
+	}
+	return err
+}
+
 func newSqlConnect(t *testing.T, testName string, driver, url, timezone string, flavor prom.DbFlavor) (*prom.SqlConnect, error) {
 	driver = strings.Trim(driver, "\"")
 	url = strings.Trim(url, "\"")
@@ -84,6 +98,10 @@ func initBlogCommentDaoSql(sqlc *prom.SqlConnect) BlogCommentDao {
 
 func initBlogPostDaoSql(sqlc *prom.SqlConnect) BlogPostDao {
 	return NewBlogPostDaoSql(sqlc, testSqlTablePost, true)
+}
+
+func initBlogVoteDaoSql(sqlc *prom.SqlConnect) BlogVoteDao {
+	return NewBlogVoteDaoSql(sqlc, testSqlTableVote, true)
 }
 
 const (
@@ -483,3 +501,166 @@ func TestPostDaoSql_GetUserFeedN(t *testing.T) {
 }
 
 /*----------------------------------------------------------------------*/
+
+func TestNewVoteDaoSql(t *testing.T) {
+	name := "TestNewVoteDaoSql"
+	urlMap := sqlGetUrlFromEnv()
+	if len(urlMap) == 0 {
+		t.Skipf("%s skipped", name)
+	}
+	for dbtype, info := range urlMap {
+		sqlc, err := initSqlConnect(t, name, dbtype, info)
+		if err != nil {
+			t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
+		} else if sqlc == nil {
+			t.Fatalf("%s failed: nil", name+"/"+dbtype)
+		}
+		err = sqlInitTableVote(sqlc, testSqlTableVote)
+		if err != nil {
+			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTableVote/"+dbtype, err)
+		}
+		dao := initBlogVoteDaoSql(sqlc)
+		if dao == nil {
+			t.Fatalf("%s failed: nil", name+"/initBlogVoteDaoSql")
+		}
+		sqlc.Close()
+	}
+}
+
+func TestVoteDaoSql_CreateGet(t *testing.T) {
+	name := "TestVoteDaoSql_CreateGet"
+	urlMap := sqlGetUrlFromEnv()
+	if len(urlMap) == 0 {
+		t.Skipf("%s skipped", name)
+	}
+	for dbtype, info := range urlMap {
+		sqlc, err := initSqlConnect(t, name, dbtype, info)
+		if err != nil {
+			t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
+		} else if sqlc == nil {
+			t.Fatalf("%s failed: nil", name+"/"+dbtype)
+		}
+		err = sqlInitTableVote(sqlc, testSqlTableVote)
+		if err != nil {
+			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTableVote/"+dbtype, err)
+		}
+		dao := initBlogVoteDaoSql(sqlc)
+		doTestVoteDaoCreateGet(t, name, dao)
+		sqlc.Close()
+	}
+}
+
+func TestVoteDaoSql_CreateUpdateGet(t *testing.T) {
+	name := "TestVoteDaoSql_CreateUpdateGet"
+	urlMap := sqlGetUrlFromEnv()
+	if len(urlMap) == 0 {
+		t.Skipf("%s skipped", name)
+	}
+	for dbtype, info := range urlMap {
+		sqlc, err := initSqlConnect(t, name, dbtype, info)
+		if err != nil {
+			t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
+		} else if sqlc == nil {
+			t.Fatalf("%s failed: nil", name+"/"+dbtype)
+		}
+		err = sqlInitTableVote(sqlc, testSqlTableVote)
+		if err != nil {
+			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTableVote/"+dbtype, err)
+		}
+		dao := initBlogVoteDaoSql(sqlc)
+		doTestVoteDaoCreateUpdateGet(t, name, dao)
+		sqlc.Close()
+	}
+}
+
+func TestVoteDaoSql_CreateDelete(t *testing.T) {
+	name := "TestVoteDaoSql_CreateDelete"
+	urlMap := sqlGetUrlFromEnv()
+	if len(urlMap) == 0 {
+		t.Skipf("%s skipped", name)
+	}
+	for dbtype, info := range urlMap {
+		sqlc, err := initSqlConnect(t, name, dbtype, info)
+		if err != nil {
+			t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
+		} else if sqlc == nil {
+			t.Fatalf("%s failed: nil", name+"/"+dbtype)
+		}
+		err = sqlInitTableVote(sqlc, testSqlTableVote)
+		if err != nil {
+			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTableVote/"+dbtype, err)
+		}
+		dao := initBlogVoteDaoSql(sqlc)
+		doTestVoteDaoCreateDelete(t, name, dao)
+		sqlc.Close()
+	}
+}
+
+func TestVoteDaoSql_GetAll(t *testing.T) {
+	name := "TestVoteDaoSql_GetAll"
+	urlMap := sqlGetUrlFromEnv()
+	if len(urlMap) == 0 {
+		t.Skipf("%s skipped", name)
+	}
+	for dbtype, info := range urlMap {
+		sqlc, err := initSqlConnect(t, name, dbtype, info)
+		if err != nil {
+			t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
+		} else if sqlc == nil {
+			t.Fatalf("%s failed: nil", name+"/"+dbtype)
+		}
+		err = sqlInitTableVote(sqlc, testSqlTableVote)
+		if err != nil {
+			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTableVote/"+dbtype, err)
+		}
+		dao := initBlogVoteDaoSql(sqlc)
+		doTestVoteDaoGetAll(t, name, dao)
+		sqlc.Close()
+	}
+}
+
+func TestVoteDaoSql_GetN(t *testing.T) {
+	name := "TestVoteDaoSql_GetN"
+	urlMap := sqlGetUrlFromEnv()
+	if len(urlMap) == 0 {
+		t.Skipf("%s skipped", name)
+	}
+	for dbtype, info := range urlMap {
+		sqlc, err := initSqlConnect(t, name, dbtype, info)
+		if err != nil {
+			t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
+		} else if sqlc == nil {
+			t.Fatalf("%s failed: nil", name+"/"+dbtype)
+		}
+		err = sqlInitTableVote(sqlc, testSqlTableVote)
+		if err != nil {
+			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTableVote/"+dbtype, err)
+		}
+		dao := initBlogVoteDaoSql(sqlc)
+		doTestVoteDaoGetN(t, name, dao)
+		sqlc.Close()
+	}
+}
+
+func TestVoteDaoSql_GetUserVoteForTarget(t *testing.T) {
+	name := "TestVoteDaoSql_GetUserVoteForTarget"
+	urlMap := sqlGetUrlFromEnv()
+	if len(urlMap) == 0 {
+		t.Skipf("%s skipped", name)
+	}
+	for dbtype, info := range urlMap {
+		sqlc, err := initSqlConnect(t, name, dbtype, info)
+		if err != nil {
+			t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
+		} else if sqlc == nil {
+			t.Fatalf("%s failed: nil", name+"/"+dbtype)
+		}
+		err = sqlInitTableVote(sqlc, testSqlTableVote)
+		if err != nil {
+			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTableVote/"+dbtype, err)
+		}
+		dao := initBlogVoteDaoSql(sqlc)
+		doTestVoteDaoGetUserVoteForTarget(t, name, dao)
+		sqlc.Close()
+	}
+}

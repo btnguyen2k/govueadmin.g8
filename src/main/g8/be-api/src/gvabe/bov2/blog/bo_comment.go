@@ -17,12 +17,12 @@ import (
 func NewBlogComment(appVersion uint64, owner *user.User, post *BlogPost, parent *BlogComment, content string) *BlogComment {
 	comment := &BlogComment{
 		UniversalBo: henge.NewUniversalBo(utils.UniqueId(), appVersion),
-		ownerId:     strings.TrimSpace(strings.ToLower(owner.GetId())),
-		postId:      strings.TrimSpace(strings.ToLower(post.GetId())),
+		ownerId:     owner.GetId(),
+		postId:      post.GetId(),
 		content:     strings.TrimSpace(content),
 	}
 	if parent != nil {
-		comment.parentId = strings.TrimSpace(strings.ToLower(parent.GetId()))
+		comment.parentId = parent.GetId()
 	}
 	return comment.sync()
 }

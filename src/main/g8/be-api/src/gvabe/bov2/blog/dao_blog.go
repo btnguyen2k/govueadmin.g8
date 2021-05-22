@@ -2,7 +2,6 @@ package blog
 
 import (
 	"github.com/btnguyen2k/godal"
-	"github.com/btnguyen2k/godal/sql"
 	"github.com/btnguyen2k/henge"
 	"main/src/gvabe/bov2/user"
 )
@@ -143,12 +142,12 @@ type BaseBlogPostDaoImpl struct {
 
 // Delete implements BlogPostDao.Delete
 func (dao *BaseBlogPostDaoImpl) Delete(post *BlogPost) (bool, error) {
-	return dao.UniversalDao.Delete(post.UniversalBo.Clone())
+	return dao.UniversalDao.Delete(post.sync().UniversalBo)
 }
 
 // Create implements BlogPostDao.Create
 func (dao *BaseBlogPostDaoImpl) Create(post *BlogPost) (bool, error) {
-	return dao.UniversalDao.Create(post.sync().UniversalBo.Clone())
+	return dao.UniversalDao.Create(post.sync().UniversalBo)
 }
 
 // Get implements BlogPostDao.Get
@@ -206,7 +205,7 @@ func (dao *BaseBlogPostDaoImpl) GetUserFeedAll(user *user.User) ([]*BlogPost, er
 
 // Update implements BlogPostDao.Update
 func (dao *BaseBlogPostDaoImpl) Update(post *BlogPost) (bool, error) {
-	return dao.UniversalDao.Update(post.sync().UniversalBo.Clone())
+	return dao.UniversalDao.Update(post.sync().UniversalBo)
 }
 
 /*----------------------------------------------------------------------*/
@@ -261,12 +260,9 @@ func (dao *BaseBlogVoteDaoImpl) GetUserVoteForTarget(user *user.User, targetId s
 	if user == nil || targetId == "" {
 		return nil, nil
 	}
-	filter := &sql.FilterAnd{FilterAndOr: sql.FilterAndOr{
-		Filters: []sql.IFilter{
-			&sql.FilterFieldValue{Field: VoteColOwnerId, Operator: "=", Value: user.GetId()},
-			&sql.FilterFieldValue{Field: VoteColTargetId, Operator: "=", Value: targetId},
-		}},
-	}
+	filter := (&godal.FilterOptAnd{}).
+		Add(&godal.FilterOptFieldOpValue{FieldName: VoteFieldOwnerId, Operator: godal.FilterOpEqual, Value: user.GetId()}).
+		Add(&godal.FilterOptFieldOpValue{FieldName: VoteFieldTargetId, Operator: godal.FilterOpEqual, Value: targetId})
 	uboList, err := dao.UniversalDao.GetAll(filter, nil)
 	if err != nil {
 		return nil, err
@@ -279,12 +275,12 @@ func (dao *BaseBlogVoteDaoImpl) GetUserVoteForTarget(user *user.User, targetId s
 
 // Delete implements BlogVoteDao.Delete
 func (dao *BaseBlogVoteDaoImpl) Delete(vote *BlogVote) (bool, error) {
-	return dao.UniversalDao.Delete(vote.UniversalBo.Clone())
+	return dao.UniversalDao.Delete(vote.sync().UniversalBo)
 }
 
 // Create implements BlogVoteDao.Create
 func (dao *BaseBlogVoteDaoImpl) Create(vote *BlogVote) (bool, error) {
-	return dao.UniversalDao.Create(vote.sync().UniversalBo.Clone())
+	return dao.UniversalDao.Create(vote.sync().UniversalBo)
 }
 
 // Get implements BlogVoteDao.Get
@@ -317,5 +313,5 @@ func (dao *BaseBlogVoteDaoImpl) GetAll(filter godal.FilterOpt, sorting *godal.So
 
 // Update implements BlogVoteDao.Update
 func (dao *BaseBlogVoteDaoImpl) Update(vote *BlogVote) (bool, error) {
-	return dao.UniversalDao.Update(vote.sync().UniversalBo.Clone())
+	return dao.UniversalDao.Update(vote.sync().UniversalBo)
 }

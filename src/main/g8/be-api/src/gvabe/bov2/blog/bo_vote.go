@@ -17,7 +17,7 @@ import (
 func NewBlogVote(appVersion uint64, owner *user.User, targetId string, value int) *BlogVote {
 	vote := &BlogVote{
 		UniversalBo: henge.NewUniversalBo(utils.UniqueId(), appVersion),
-		ownerId:     strings.TrimSpace(strings.ToLower(owner.GetId())),
+		ownerId:     owner.GetId(),
 		targetId:    strings.TrimSpace(strings.ToLower(targetId)),
 		value:       value,
 	}

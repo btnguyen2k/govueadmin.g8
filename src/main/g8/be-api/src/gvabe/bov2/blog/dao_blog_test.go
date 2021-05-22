@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -488,5 +489,224 @@ func doTestPostDaoGetUserFeedN(t *testing.T, name string, dao BlogPostDao) {
 	}
 	if err != nil || len(postList) != numExpected {
 		t.Fatalf("%s failed: expected %#v but received %#v (error %s)", name+"/GetUserFeedN", numExpected, len(postList), err)
+	}
+}
+
+/*----------------------------------------------------------------------*/
+
+var targetList []string
+var userVotes map[string]int
+
+func initSampleRowsVote(t *testing.T, testName string, dao BlogVoteDao) {
+	rand.Seed(time.Now().UnixNano())
+	userList = make([]*user.User, 0)
+	targetList = make([]string, 0)
+	userVotes = make(map[string]int)
+	for i := 0; i < 4; i++ {
+		targetList = append(targetList, utils.UniqueId())
+	}
+	for i := 0; i < numSampleRows; i++ {
+		istr := fmt.Sprintf("%03d", i)
+		_tagVersion := uint64(1337)
+		_id := istr
+		_userId := _id + "@local"
+		_userMaskId := "admin" + _id
+		_user := user.NewUser(_tagVersion, _userId, _userMaskId)
+		userList = append(userList, _user)
+
+		_targetId := targetList[rand.Intn(len(targetList))]
+		_value := rand.Intn(1024)
+		vote0 := NewBlogVote(_tagVersion, _user, _targetId, _value)
+		vote0.SetId(_id)
+		_numLikes := float64(123)
+		vote0.SetDataAttr("props.tag", "1357")
+		vote0.SetDataAttr("props.active", true)
+		vote0.SetDataAttr("num_likes", _numLikes)
+
+		_userTarget := _user.GetId() + "-" + _targetId
+		userVotes[_userTarget] = _value
+
+		if ok, err := dao.Create(vote0); err != nil || !ok {
+			t.Fatalf("%s failed: %#v / %s", testName+"/Create", ok, err)
+		}
+	}
+}
+
+func doTestVoteDaoCreateGet(t *testing.T, name string, dao BlogVoteDao) {
+	_tagVersion := uint64(1337)
+	_id := utils.UniqueId()
+	_userId := "admin@local"
+	_userMaskId := "admin"
+	_user := user.NewUser(_tagVersion, _userId, _userMaskId)
+
+	_targetId := utils.UniqueId()
+	_value := rand.Intn(1024)
+	vote0 := NewBlogVote(_tagVersion, _user, _targetId, _value)
+	vote0.SetId(_id)
+	_numLikes := float64(123)
+	vote0.SetDataAttr("props.tag", "1357")
+	vote0.SetDataAttr("props.active", true)
+	vote0.SetDataAttr("num_likes", _numLikes)
+
+	if ok, err := dao.Create(vote0); err != nil || !ok {
+		t.Fatalf("%s failed: %#v / %s", name+"/Create", ok, err)
+	}
+
+	if vote1, err := dao.Get(_id); err != nil || vote1 == nil {
+		t.Fatalf("%s failed: nil or error %s", name+"/Get("+_id+")", err)
+	} else {
+		if v1, v0 := vote1.GetDataAttrAsUnsafe("props.tag", reddo.TypeString), "1357"; v1 != v0 {
+			t.Fatalf("%s failed: expected %#v but received %#v", name, v0, v1)
+		}
+		if v1, v0 := vote1.GetDataAttrAsUnsafe("props.active", reddo.TypeBool), true; v1 != v0 {
+			t.Fatalf("%s failed: expected %#v but received %#v", name, v0, v1)
+		}
+		if v1, v0 := vote1.GetDataAttrAsUnsafe("num_likes", reddo.TypeInt), int64(_numLikes); v1 != v0 {
+			t.Fatalf("%s failed: expected %#v but received %#v", name, v0, v1)
+		}
+		if v1, v0 := vote1.GetTagVersion(), _tagVersion; v1 != v0 {
+			t.Fatalf("%s failed: expected %#v but received %#v", name, v0, v1)
+		}
+		if v1, v0 := vote1.GetId(), _id; v1 != v0 {
+			t.Fatalf("%s failed: expected %#v but received %#v", name, v0, v1)
+		}
+		if v1, v0 := vote1.GetTargetId(), _targetId; v1 != v0 {
+			t.Fatalf("%s failed: expected %#v but received %#v", name, v0, v1)
+		}
+		if v1, v0 := vote1.GetOwnerId(), _userId; v1 != v0 {
+			t.Fatalf("%s failed: expected %#v but received %#v", name, v0, v1)
+		}
+		if v1, v0 := vote1.GetValue(), _value; v1 != v0 {
+			t.Fatalf("%s failed: expected %#v but received %#v", name, v0, v1)
+		}
+		if vote1.GetChecksum() != vote0.GetChecksum() {
+			t.Fatalf("%s failed: expected %#v but received %#v", name, vote0.GetChecksum(), vote1.GetChecksum())
+		}
+	}
+}
+
+func doTestVoteDaoCreateUpdateGet(t *testing.T, name string, dao BlogVoteDao) {
+	_tagVersion := uint64(1337)
+	_id := utils.UniqueId()
+	_userId := "admin@local"
+	_userMaskId := "admin"
+	_user := user.NewUser(_tagVersion, _userId, _userMaskId)
+
+	_targetId := utils.UniqueId()
+	_value := rand.Intn(1024)
+	vote0 := NewBlogVote(_tagVersion, _user, _targetId, _value)
+	vote0.SetId(_id)
+	_numLikes := float64(123)
+	vote0.SetDataAttr("props.tag", "1357")
+	vote0.SetDataAttr("props.active", true)
+	vote0.SetDataAttr("num_likes", _numLikes)
+
+	if ok, err := dao.Create(vote0); err != nil || !ok {
+		t.Fatalf("%s failed: %#v / %s", name+"/Create", ok, err)
+	}
+
+	vote0.SetOwnerId(_userId + "-new").SetTargetId(_targetId + "-new").SetValue(_value + 2).SetTagVersion(_tagVersion + 3)
+	vote0.SetDataAttr("props.tag", "2468")
+	vote0.SetDataAttr("props.active", false)
+	vote0.SetDataAttr("num_likes", _numLikes+2)
+	if ok, err := dao.Update(vote0); err != nil {
+		t.Fatalf("%s failed: %s", name+"/Update", err)
+	} else if !ok {
+		t.Fatalf("%s failed: cannot update record", name)
+	}
+	if vote1, err := dao.Get(_id); err != nil || vote1 == nil {
+		t.Fatalf("%s failed: nil or error %s", name+"/Get("+_id+")", err)
+	} else {
+		if v1, v0 := vote1.GetDataAttrAsUnsafe("props.tag", reddo.TypeString), "2468"; v1 != v0 {
+			t.Fatalf("%s failed: expected %#v but received %#v", name, v0, v1)
+		}
+		if v1, v0 := vote1.GetDataAttrAsUnsafe("props.active", reddo.TypeBool), false; v1 != v0 {
+			t.Fatalf("%s failed: expected %#v but received %#v", name, v0, v1)
+		}
+		if v1, v0 := vote1.GetDataAttrAsUnsafe("num_likes", reddo.TypeInt), int64(_numLikes+2); v1 != v0 {
+			t.Fatalf("%s failed: expected %#v but received %#v", name, v0, v1)
+		}
+		if v1, v0 := vote1.GetTagVersion(), _tagVersion+3; v1 != v0 {
+			t.Fatalf("%s failed: expected %#v but received %#v", name, v0, v1)
+		}
+		if v1, v0 := vote1.GetId(), _id; v1 != v0 {
+			t.Fatalf("%s failed: expected %#v but received %#v", name, v0, v1)
+		}
+		if v1, v0 := vote1.GetOwnerId(), _userId+"-new"; v1 != v0 {
+			t.Fatalf("%s failed: expected %#v but received %#v", name, v0, v1)
+		}
+		if v1, v0 := vote1.GetTargetId(), _targetId+"-new"; v1 != v0 {
+			t.Fatalf("%s failed: expected %#v but received %#v", name, v0, v1)
+		}
+		if v1, v0 := vote1.GetValue(), _value+2; v1 != v0 {
+			t.Fatalf("%s failed: expected %#v but received %#v", name, v0, v1)
+		}
+		if vote1.GetChecksum() != vote0.GetChecksum() {
+			t.Fatalf("%s failed: expected %#v but received %#v", name, vote0.GetChecksum(), vote1.GetChecksum())
+		}
+	}
+}
+
+func doTestVoteDaoCreateDelete(t *testing.T, name string, dao BlogVoteDao) {
+	_tagVersion := uint64(1337)
+	_id := utils.UniqueId()
+	_userId := "admin@local"
+	_userMaskId := "admin"
+	_user := user.NewUser(_tagVersion, _userId, _userMaskId)
+
+	_targetId := utils.UniqueId()
+	_value := rand.Intn(1024)
+	vote0 := NewBlogVote(_tagVersion, _user, _targetId, _value)
+	vote0.SetId(_id)
+	_numLikes := float64(123)
+	vote0.SetDataAttr("props.tag", "1357")
+	vote0.SetDataAttr("props.active", true)
+	vote0.SetDataAttr("num_likes", _numLikes)
+
+	if ok, err := dao.Create(vote0); err != nil || !ok {
+		t.Fatalf("%s failed: %#v / %s", name+"/Create", ok, err)
+	}
+
+	if vote1, err := dao.Get(_id); err != nil || vote1 == nil {
+		t.Fatalf("%s failed: nil or error %s", name+"/Get("+_id+")", err)
+	} else if ok, err := dao.Delete(vote1); !ok || err != nil {
+		t.Fatalf("%s failed: not-ok or error %s", name+"/Delete("+_id+")", err)
+	}
+
+	if vote1, err := dao.Get(_id); err != nil || vote1 != nil {
+		t.Fatalf("%s failed: not-nil or error %s", name+"/Get("+_id+")", err)
+	}
+}
+
+func doTestVoteDaoGetAll(t *testing.T, name string, dao BlogVoteDao) {
+	initSampleRowsVote(t, name, dao)
+	voteList, err := dao.GetAll(nil, nil)
+	if err != nil || len(voteList) != numSampleRows {
+		t.Fatalf("%s failed: expected %#v but received %#v (error %s)", name+"/GetAll", numSampleRows, len(voteList), err)
+	}
+}
+
+func doTestVoteDaoGetN(t *testing.T, name string, dao BlogVoteDao) {
+	initSampleRowsVote(t, name, dao)
+	voteList, err := dao.GetN(3, 5, nil, nil)
+	if err != nil || len(voteList) != 5 {
+		t.Fatalf("%s failed: expected %#v but received %#v (error %s)", name+"/GetN", 5, len(voteList), err)
+	}
+}
+
+func doTestVoteDaoGetUserVoteForTarget(t *testing.T, name string, dao BlogVoteDao) {
+	initSampleRowsVote(t, name, dao)
+	_user := userList[rand.Intn(len(userList))]
+	var _userTarget string
+	var _targetId string
+	for _userTarget, _ = range userVotes {
+		if strings.HasPrefix(_userTarget, _user.GetId()+"-") {
+			_targetId = _userTarget[len(_user.GetId()+"-"):]
+			break
+		}
+	}
+	vote, err := dao.GetUserVoteForTarget(_user, _targetId)
+	if err != nil || vote == nil || vote.GetValue() != userVotes[_userTarget] {
+		t.Fatalf("%s failed: expected %#v but received %#v (error %s)", name+"/GetUserVoteForTarget", userVotes[_userTarget], vote, err)
 	}
 }
