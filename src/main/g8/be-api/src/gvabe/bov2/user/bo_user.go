@@ -5,65 +5,66 @@ import (
 	"strings"
 
 	"github.com/btnguyen2k/consu/reddo"
-
-	"main/src/henge"
+	"github.com/btnguyen2k/henge"
 )
 
 // NewUser is helper function to create new User bo
 //
-// available since template-v0.2.0
+// Available since template-v0.2.0
 func NewUser(appVersion uint64, id, maskId string) *User {
 	user := &User{
-		UniversalBo: *henge.NewUniversalBo(id, appVersion),
+		UniversalBo: henge.NewUniversalBo(id, appVersion),
 	}
 	return user.SetMaskId(maskId).sync()
 }
 
 // NewUserFromUbo is helper function to create User bo from a universal bo
 //
-// available since template-v0.2.0
+// Available since template-v0.2.0
 func NewUserFromUbo(ubo *henge.UniversalBo) *User {
 	if ubo == nil {
 		return nil
 	}
-	user := User{UniversalBo: *ubo.Clone()}
-	if v, err := user.GetExtraAttrAs(UserField_MaskId, reddo.TypeString); err != nil {
+	ubo = ubo.Clone()
+	user := &User{UniversalBo: ubo}
+	if v, err := ubo.GetExtraAttrAs(UserFieldMaskId, reddo.TypeString); err != nil {
 		return nil
 	} else {
-		user.maskId = v.(string)
+		user.maskId, _ = v.(string)
 	}
-	if v, err := user.GetDataAttrAs(UserAttr_DisplayName, reddo.TypeString); err != nil {
+	if v, err := ubo.GetDataAttrAs(UserAttrDisplayName, reddo.TypeString); err != nil {
 		return nil
 	} else {
-		user.displayName = v.(string)
+		user.displayName, _ = v.(string)
 	}
-	if v, err := user.GetDataAttrAs(UserAttr_IsAdmin, reddo.TypeBool); err != nil {
+	if v, err := ubo.GetDataAttrAs(UserAttrIsAdmin, reddo.TypeBool); err != nil {
 		return nil
 	} else {
-		user.isAdmin = v.(bool)
+		user.isAdmin, _ = v.(bool)
 	}
-	if v, err := user.GetDataAttrAs(UserAttr_Password, reddo.TypeString); err != nil {
+	if v, err := ubo.GetDataAttrAs(UserAttrPassword, reddo.TypeString); err != nil {
 		return nil
 	} else {
-		user.password = v.(string)
+		user.password, _ = v.(string)
 	}
-	return (&user).sync()
+	return user.sync()
 }
 
 const (
-	// mask-id is also a unique id, used when we do not wish to expose user's id
-	// (if we do not wish to use mask-id, simply set id as its value
-	UserField_MaskId = "mid"
+	// UserFieldMaskId is a also unique id for BO user, used when we do not wish to expose user's id
+	// (if we do not wish to use mask-id, simply set id as its value.
+	UserFieldMaskId = "mid"
 
-	// 'password' is used for authentication
-	UserAttr_Password = "pwd"
+	// UserAttrPassword is user's password, used for authentication.
+	UserAttrPassword = "pwd"
 
-	// 'display-name' is used for displaying purpose
-	UserAttr_DisplayName = "dname"
+	// UserAttrDisplayName is used for displaying purpose.
+	UserAttrDisplayName = "dname"
 
-	// 'is-admin' is to flag if user has administrative privilege
-	UserAttr_IsAdmin = "isadm"
+	// UserAttrIsAdmin is a flag to mark if user has administrative privilege.
+	UserAttrIsAdmin = "isadm"
 
+	// userAttr_Ubo is for internal use only!
 	userAttr_Ubo = "_ubo"
 )
 
@@ -72,19 +73,20 @@ const (
 //
 // available since template-v0.2.0
 type User struct {
-	henge.UniversalBo `json:"_ubo"`
-	maskId            string `json:"mid"`
-	password          string `json:"pwd"`
-	displayName       string `json:"dname"`
-	isAdmin           bool   `json:"isadm"`
+	*henge.UniversalBo `json:"_ubo"`
+	maskId             string `json:"mid"`
+	password           string `json:"pwd"`
+	displayName        string `json:"dname"`
+	isAdmin            bool   `json:"isadm"`
 }
 
+// ToMap transforms user's attributes to a map.
 func (u *User) ToMap(postFunc henge.FuncPostUboToMap) map[string]interface{} {
 	result := map[string]interface{}{
-		henge.FieldId:        u.GetId(),
-		UserField_MaskId:     u.maskId,
-		UserAttr_IsAdmin:     u.isAdmin,
-		UserAttr_DisplayName: u.displayName,
+		henge.FieldId:       u.GetId(),
+		UserFieldMaskId:     u.maskId,
+		UserAttrIsAdmin:     u.isAdmin,
+		UserAttrDisplayName: u.displayName,
 	}
 	if postFunc != nil {
 		result = postFunc(result)
@@ -99,12 +101,12 @@ func (u *User) MarshalJSON() ([]byte, error) {
 	m := map[string]interface{}{
 		userAttr_Ubo: u.UniversalBo.Clone(),
 		"_cols": map[string]interface{}{
-			UserField_MaskId: u.maskId,
+			UserFieldMaskId: u.maskId,
 		},
 		"_attrs": map[string]interface{}{
-			UserAttr_DisplayName: u.displayName,
-			UserAttr_IsAdmin:     u.isAdmin,
-			UserAttr_Password:    u.password,
+			UserAttrDisplayName: u.displayName,
+			UserAttrIsAdmin:     u.isAdmin,
+			UserAttrPassword:    u.password,
 		},
 	}
 	return json.Marshal(m)
@@ -125,18 +127,18 @@ func (u *User) UnmarshalJSON(data []byte) error {
 		}
 	}
 	if _cols, ok := m["_cols"].(map[string]interface{}); ok {
-		if u.maskId, err = reddo.ToString(_cols[UserField_MaskId]); err != nil {
+		if u.maskId, err = reddo.ToString(_cols[UserFieldMaskId]); err != nil {
 			return err
 		}
 	}
 	if _attrs, ok := m["_attrs"].(map[string]interface{}); ok {
-		if u.displayName, err = reddo.ToString(_attrs[UserAttr_DisplayName]); err != nil {
+		if u.displayName, err = reddo.ToString(_attrs[UserAttrDisplayName]); err != nil {
 			return err
 		}
-		if u.isAdmin, err = reddo.ToBool(_attrs[UserAttr_IsAdmin]); err != nil {
+		if u.isAdmin, err = reddo.ToBool(_attrs[UserAttrIsAdmin]); err != nil {
 			return err
 		}
-		if u.password, err = reddo.ToString(_attrs[UserAttr_Password]); err != nil {
+		if u.password, err = reddo.ToString(_attrs[UserAttrPassword]); err != nil {
 			return err
 		}
 	}
@@ -190,33 +192,10 @@ func (u *User) SetAdmin(v bool) *User {
 
 // sync is called to synchronize BO's attributes to its UniversalBo
 func (u *User) sync() *User {
-	u.SetDataAttr(UserAttr_Password, u.password)
-	u.SetDataAttr(UserAttr_DisplayName, u.displayName)
-	u.SetDataAttr(UserAttr_IsAdmin, u.isAdmin)
-	u.SetExtraAttr(UserField_MaskId, u.maskId)
+	u.SetDataAttr(UserAttrPassword, u.password)
+	u.SetDataAttr(UserAttrDisplayName, u.displayName)
+	u.SetDataAttr(UserAttrIsAdmin, u.isAdmin)
+	u.SetExtraAttr(UserFieldMaskId, u.maskId)
 	u.UniversalBo.Sync()
 	return u
-}
-
-// UserDao defines API to access User storage
-//
-// available since template-v0.2.0
-type UserDao interface {
-	// Delete removes the specified business object from storage
-	Delete(bo *User) (bool, error)
-
-	// Create persists a new business object to storage
-	Create(bo *User) (bool, error)
-
-	// Get retrieves a business object from storage
-	Get(username string) (*User, error)
-
-	// GetN retrieves N business objects from storage
-	GetN(fromOffset, maxNumRows int) ([]*User, error)
-
-	// GetAll retrieves all available business objects from storage
-	GetAll() ([]*User, error)
-
-	// Update modifies an existing business object
-	Update(bo *User) (bool, error)
 }

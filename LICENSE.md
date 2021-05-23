@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2020 Thanh Ba Nguyen
+Copyright (c) 2020-2021 Thanh Ba Nguyen
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

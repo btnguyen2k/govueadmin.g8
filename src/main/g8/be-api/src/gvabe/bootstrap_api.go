@@ -12,10 +12,11 @@ import (
 
 	"github.com/btnguyen2k/consu/reddo"
 
+	"github.com/btnguyen2k/henge"
+
 	"main/src/goapi"
 	"main/src/gvabe/bov2/blog"
-	userv2 "main/src/gvabe/bov2/user"
-	"main/src/henge"
+	"main/src/gvabe/bov2/user"
 	"main/src/itineris"
 )
 
@@ -74,7 +75,7 @@ func _extractParam(params *itineris.ApiParams, paramName string, typ reflect.Typ
 }
 
 // available since template-v0.2.0
-func _currentUserFromContext(ctx *itineris.ApiContext) (*SessionClaims, *userv2.User, error) {
+func _currentUserFromContext(ctx *itineris.ApiContext) (*SessionClaims, *user.User, error) {
 	sessClaims, ok := ctx.GetContextValue(ctxFieldSession).(*SessionClaims)
 	if !ok || sessClaims == nil {
 		return nil, nil, nil
@@ -284,26 +285,29 @@ func apiVerifyLoginToken(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *it
 }
 
 var funcPostToMapTransform = func(m map[string]interface{}) map[string]interface{} {
-	user, _ := userDaov2.Get(m[blog.PostField_OwnerId].(string))
+	u, _ := userDaov2.Get(m[blog.PostFieldOwnerId].(string))
 	// transform input map
 	result := map[string]interface{}{
-		"id":        m[henge.FieldId],
-		"t_created": m[henge.FieldTimeCreated],
-		"is_public": m[blog.PostField_IsPublic],
-		// "owner_id":       m[blog.PostField_OwnerId],
-		"title":          m[blog.PostAttr_Title],
-		"content":        m[blog.PostAttr_Content],
-		"num_comments":   m[blog.PostAttr_NumComments],
-		"num_votes_up":   m[blog.PostAttr_NumVotesUp],
-		"num_votes_down": m[blog.PostAttr_NumVotesDown],
+		"id":             m[henge.FieldId],
+		"t_created":      m[henge.FieldTimeCreated],
+		"is_public":      m[blog.PostFieldIsPublic],
+		"owner_id":       m[blog.PostFieldOwnerId],
+		"title":          m[blog.PostAttrTitle],
+		"content":        m[blog.PostAttrContent],
+		"num_comments":   m[blog.PostAttrNumComments],
+		"num_votes_up":   m[blog.PostAttrNumVotesUp],
+		"num_votes_down": m[blog.PostAttrNumVotesDown],
 	}
-	if user != nil {
-		result["owner"] = user.ToMap(func(m map[string]interface{}) map[string]interface{} {
+	if t, ok := result["t_created"].(time.Time); ok {
+		result["t_created"] = t.In(time.UTC)
+	}
+	if u != nil {
+		result["owner"] = u.ToMap(func(m map[string]interface{}) map[string]interface{} {
 			return map[string]interface{}{
 				"id":           m[henge.FieldId],
-				"mid":          m[userv2.UserField_MaskId],
-				"is_admin":     m[userv2.UserAttr_IsAdmin],
-				"display_name": m[userv2.UserAttr_DisplayName],
+				"mid":          m[user.UserFieldMaskId],
+				"is_admin":     m[user.UserAttrIsAdmin],
+				"display_name": m[user.UserAttrDisplayName],
 			}
 		})
 	}

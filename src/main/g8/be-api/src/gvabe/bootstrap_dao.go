@@ -5,96 +5,296 @@ import (
 	"log"
 	"strings"
 
+	"github.com/btnguyen2k/henge"
 	"github.com/btnguyen2k/prom"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"main/src/goapi"
-	blogv2 "main/src/gvabe/bov2/blog"
-	userv2 "main/src/gvabe/bov2/user"
-	"main/src/henge"
+	"main/src/gvabe/bov2/blog"
+	"main/src/gvabe/bov2/user"
 	"main/src/utils"
+
+	_ "github.com/jackc/pgx/v4/stdlib"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func _createSqlConnect(dbtype string) *prom.SqlConnect {
+	timezone := goapi.AppConfig.GetString("timezone")
+	var sqlc *prom.SqlConnect = nil
+	var err error
 	switch dbtype {
 	case "sqlite":
 		dir := goapi.AppConfig.GetString("gvabe.db.sqlite.directory")
 		dbname := goapi.AppConfig.GetString("gvabe.db.sqlite.dbname")
-		return henge.NewSqliteConnection(dir, dbname)
+		sqlc, err = henge.NewSqliteConnection(dir, dbname, timezone, "sqlite3", 10000, nil)
 	case "pg", "pgsql", "postgres", "postgresql":
 		url := goapi.AppConfig.GetString("gvabe.db.pgsql.url")
-		return henge.NewPgsqlConnection(url, goapi.AppConfig.GetString("timezone"))
+		sqlc, err = henge.NewPgsqlConnection(url, timezone, "pgx", 10000, nil)
 	}
-	return nil
+	if err != nil {
+		panic(err)
+	}
+	return sqlc
 }
 
-func _createUserDao(sqlc *prom.SqlConnect) userv2.UserDao {
-	return userv2.NewUserDaoSql(sqlc, userv2.TableUser)
+func _createMongoConnect(dbtype string) *prom.MongoConnect {
+	var mc *prom.MongoConnect = nil
+	var err error
+	switch dbtype {
+	case "mongo", "mongodb":
+		db := goapi.AppConfig.GetString("gvabe.db.mongodb.db")
+		url := goapi.AppConfig.GetString("gvabe.db.mongodb.url")
+		mc, err = prom.NewMongoConnect(url, db, 10000)
+	}
+	if err != nil {
+		panic(err)
+	}
+	return mc
 }
 
-func _createBlogPostDao(sqlc *prom.SqlConnect) blogv2.BlogPostDao {
-	return blogv2.NewBlogPostDaoSql(sqlc, blogv2.TableBlogPost)
+func _createUserDaoSql(sqlc *prom.SqlConnect) user.UserDao {
+	return user.NewUserDaoSql(sqlc, user.TableUser, true)
+}
+func _createUserDaoMongo(mc *prom.MongoConnect) user.UserDao {
+	url := mc.GetUrl()
+	return user.NewUserDaoMongo(mc, user.TableUser, strings.Index(url, "replicaSet=") >= 0)
 }
 
-func _createBlogCommentDao(sqlc *prom.SqlConnect) blogv2.BlogCommentDao {
-	return blogv2.NewBlogCommentDaoSql(sqlc, blogv2.TableBlogComment)
+func _createBlogPostDaoSql(sqlc *prom.SqlConnect) blog.BlogPostDao {
+	return blog.NewBlogPostDaoSql(sqlc, blog.TableBlogPost, true)
+}
+func _createBlogPostDaoMongo(mc *prom.MongoConnect) blog.BlogPostDao {
+	url := mc.GetUrl()
+	return blog.NewBlogPostDaoMongo(mc, blog.TableBlogPost, strings.Index(url, "replicaSet=") >= 0)
 }
 
-func _createBlogVoteDao(sqlc *prom.SqlConnect) blogv2.BlogVoteDao {
-	return blogv2.NewBlogVoteDaoSql(sqlc, blogv2.TableBlogVote)
+func _createBlogCommentDaoSql(sqlc *prom.SqlConnect) blog.BlogCommentDao {
+	return blog.NewBlogCommentDaoSql(sqlc, blog.TableBlogComment, true)
+}
+func _createBlogCommentDaoMongo(mc *prom.MongoConnect) blog.BlogCommentDao {
+	url := mc.GetUrl()
+	return blog.NewBlogCommentDaoMongo(mc, blog.TableBlogComment, strings.Index(url, "replicaSet=") >= 0)
+}
+
+func _createBlogVoteDaoSql(sqlc *prom.SqlConnect) blog.BlogVoteDao {
+	return blog.NewBlogVoteDaoSql(sqlc, blog.TableBlogVote, true)
+}
+func _createBlogVoteDaoMongo(mc *prom.MongoConnect) blog.BlogVoteDao {
+	url := mc.GetUrl()
+	return blog.NewBlogVoteDaoMongo(mc, blog.TableBlogVote, strings.Index(url, "replicaSet=") >= 0)
 }
 
 func _createSqlTables(sqlc *prom.SqlConnect, dbtype string) {
 	switch dbtype {
 	case "sqlite":
-		henge.InitSqliteTable(sqlc, userv2.TableUser, map[string]string{userv2.UserCol_MaskUid: "VARCHAR(32)"})
-		henge.InitSqliteTable(sqlc, blogv2.TableBlogPost, map[string]string{
-			blogv2.PostCol_OwnerId: "VARCHAR(32)", blogv2.PostCol_IsPublic: "INT"})
-		henge.InitSqliteTable(sqlc, blogv2.TableBlogComment, map[string]string{
-			blogv2.CommentCol_OwnerId: "VARCHAR(32)", blogv2.CommentCol_PostId: "VARCHAR(32)", blogv2.CommentCol_ParentId: "VARCHAR(32)"})
-		henge.InitSqliteTable(sqlc, blogv2.TableBlogVote, map[string]string{
-			blogv2.VoteCol_OwnerId: "VARCHAR(32)", blogv2.VoteCol_TargetId: "VARCHAR(32)", blogv2.VoteCol_Value: "INT"})
+		if err := henge.InitSqliteTable(sqlc, user.TableUser, map[string]string{user.UserColMaskUid: "VARCHAR(32)"}); err != nil {
+			log.Printf("[WARN] creating table %s (%s): %s\n", user.TableUser, dbtype, err)
+		}
+		if err := henge.InitSqliteTable(sqlc, blog.TableBlogPost, map[string]string{
+			blog.PostColOwnerId: "VARCHAR(32)", blog.PostColIsPublic: "INT"}); err != nil {
+			log.Printf("[WARN] creating table %s (%s): %s\n", blog.TableBlogPost, dbtype, err)
+		}
+		if err := henge.InitSqliteTable(sqlc, blog.TableBlogComment, map[string]string{
+			blog.CommentColOwnerId: "VARCHAR(32)", blog.CommentColPostId: "VARCHAR(32)", blog.CommentColParentId: "VARCHAR(32)"}); err != nil {
+			log.Printf("[WARN] creating table %s (%s): %s\n", blog.TableBlogComment, dbtype, err)
+		}
+		if err := henge.InitSqliteTable(sqlc, blog.TableBlogVote, map[string]string{
+			blog.VoteColOwnerId: "VARCHAR(32)", blog.VoteColTargetId: "VARCHAR(32)", blog.VoteColValue: "INT"}); err != nil {
+			log.Printf("[WARN] creating table %s (%s): %s\n", blog.TableBlogVote, dbtype, err)
+		}
 	case "pg", "pgsql", "postgres", "postgresql":
-		henge.InitPgsqlTable(sqlc, userv2.TableUser, map[string]string{userv2.UserCol_MaskUid: "VARCHAR(32)"})
-		henge.InitPgsqlTable(sqlc, blogv2.TableBlogPost, map[string]string{
-			blogv2.PostCol_OwnerId: "VARCHAR(32)", blogv2.PostCol_IsPublic: "INT"})
-		henge.InitPgsqlTable(sqlc, blogv2.TableBlogComment, map[string]string{
-			blogv2.CommentCol_OwnerId: "VARCHAR(32)", blogv2.CommentCol_PostId: "VARCHAR(32)", blogv2.CommentCol_ParentId: "VARCHAR(32)"})
-		henge.InitPgsqlTable(sqlc, blogv2.TableBlogVote, map[string]string{
-			blogv2.VoteCol_OwnerId: "VARCHAR(32)", blogv2.VoteCol_TargetId: "VARCHAR(32)", blogv2.VoteCol_Value: "INT"})
+		if err := henge.InitPgsqlTable(sqlc, user.TableUser, map[string]string{user.UserColMaskUid: "VARCHAR(32)"}); err != nil {
+			log.Printf("[WARN] creating table %s (%s): %s\n", user.TableUser, dbtype, err)
+		}
+		if err := henge.InitPgsqlTable(sqlc, blog.TableBlogPost, map[string]string{
+			blog.PostColOwnerId: "VARCHAR(32)", blog.PostColIsPublic: "INT"}); err != nil {
+			log.Printf("[WARN] creating table %s (%s): %s\n", blog.TableBlogPost, dbtype, err)
+		}
+		if err := henge.InitPgsqlTable(sqlc, blog.TableBlogComment, map[string]string{
+			blog.CommentColOwnerId: "VARCHAR(32)", blog.CommentColPostId: "VARCHAR(32)", blog.CommentColParentId: "VARCHAR(32)"}); err != nil {
+			log.Printf("[WARN] creating table %s (%s): %s\n", blog.TableBlogComment, dbtype, err)
+		}
+		if err := henge.InitPgsqlTable(sqlc, blog.TableBlogVote, map[string]string{
+			blog.VoteColOwnerId: "VARCHAR(32)", blog.VoteColTargetId: "VARCHAR(32)", blog.VoteColValue: "INT"}); err != nil {
+			log.Printf("[WARN] creating table %s (%s): %s\n", blog.TableBlogVote, dbtype, err)
+		}
 	}
 
 	// user
-	henge.CreateIndex(sqlc, userv2.TableUser, true, []string{userv2.UserCol_MaskUid})
+	if err := henge.CreateIndexSql(sqlc, user.TableUser, true, []string{user.UserColMaskUid}); err != nil {
+		log.Printf("[WARN] creating table index %s/%s (%s): %s\n", user.TableUser, user.UserColMaskUid, dbtype, err)
+	}
 
 	// blog post
-	henge.CreateIndex(sqlc, blogv2.TableBlogPost, false, []string{blogv2.PostCol_OwnerId})
-	henge.CreateIndex(sqlc, blogv2.TableBlogPost, false, []string{blogv2.PostCol_IsPublic})
+	if err := henge.CreateIndexSql(sqlc, blog.TableBlogPost, false, []string{blog.PostColOwnerId}); err != nil {
+		log.Printf("[WARN] creating table index %s/%s (%s): %s\n", blog.TableBlogPost, blog.PostColOwnerId, dbtype, err)
+	}
+	if err := henge.CreateIndexSql(sqlc, blog.TableBlogPost, false, []string{blog.PostColIsPublic}); err != nil {
+		log.Printf("[WARN] creating table index %s/%s (%s): %s\n", blog.TableBlogPost, blog.PostColIsPublic, dbtype, err)
+	}
 
 	// blog comment
-	henge.CreateIndex(sqlc, blogv2.TableBlogComment, false, []string{blogv2.CommentCol_OwnerId})
-	henge.CreateIndex(sqlc, blogv2.TableBlogComment, false, []string{blogv2.CommentCol_PostId, blogv2.CommentCol_ParentId})
+	if err := henge.CreateIndexSql(sqlc, blog.TableBlogComment, false, []string{blog.CommentColOwnerId}); err != nil {
+		log.Printf("[WARN] creating table index %s/%s (%s): %s\n", blog.TableBlogComment, blog.CommentColOwnerId, dbtype, err)
+	}
+	if err := henge.CreateIndexSql(sqlc, blog.TableBlogComment, false, []string{blog.CommentColPostId, blog.CommentColParentId}); err != nil {
+		log.Printf("[WARN] creating table index %s/%s (%s): %s\n", blog.TableBlogComment, blog.CommentColPostId+":"+blog.CommentColParentId, dbtype, err)
+	}
 
 	// blog vote
-	henge.CreateIndex(sqlc, blogv2.TableBlogVote, true, []string{blogv2.VoteCol_OwnerId, blogv2.VoteCol_TargetId})
-	henge.CreateIndex(sqlc, blogv2.TableBlogVote, false, []string{blogv2.VoteCol_TargetId, blogv2.VoteCol_Value})
+	if err := henge.CreateIndexSql(sqlc, blog.TableBlogVote, true, []string{blog.VoteColOwnerId, blog.VoteColTargetId}); err != nil {
+		log.Printf("[WARN] creating table index %s/%s (%s): %s\n", blog.TableBlogVote, blog.VoteColOwnerId+":"+blog.VoteColTargetId, dbtype, err)
+	}
+	if err := henge.CreateIndexSql(sqlc, blog.TableBlogVote, false, []string{blog.VoteColTargetId, blog.VoteColValue}); err != nil {
+		log.Printf("[WARN] creating table index %s/%s (%s): %s\n", blog.TableBlogVote, blog.VoteColTargetId+":"+blog.VoteColValue, dbtype, err)
+	}
+}
+
+func _createMongoCollections(mc *prom.MongoConnect) {
+	if err := henge.InitMongoCollection(mc, user.TableUser); err != nil {
+		log.Printf("[WARN] creating collection %s (%s): %s\n", user.TableUser, "MongoDB", err)
+	}
+	if err := henge.InitMongoCollection(mc, blog.TableBlogPost); err != nil {
+		log.Printf("[WARN] creating collection %s (%s): %s\n", blog.TableBlogPost, "MongoDB", err)
+	}
+	if err := henge.InitMongoCollection(mc, blog.TableBlogComment); err != nil {
+		log.Printf("[WARN] creating collection %s (%s): %s\n", blog.TableBlogComment, "MongoDB", err)
+	}
+	if err := henge.InitMongoCollection(mc, blog.TableBlogVote); err != nil {
+		log.Printf("[WARN] creating collection %s (%s): %s\n", blog.TableBlogVote, "MongoDB", err)
+	}
+
+	unique := true
+	nonUnique := false
+	var idxName string
+	// user
+	idxName = "idx_" + user.UserColMaskUid
+	if _, err := mc.CreateCollectionIndexes(user.TableUser, []interface{}{mongo.IndexModel{
+		Keys: bson.D{
+			{user.UserColMaskUid, 1},
+		},
+		Options: &options.IndexOptions{
+			Name:   &idxName,
+			Unique: &unique,
+		},
+	}}); err != nil {
+		log.Printf("[WARN] creating collection index %s/%s (%s): %s\n", user.TableUser, user.UserColMaskUid, "MongoDB", err)
+	}
+
+	// blog post
+	idxName = "idx_" + blog.PostColOwnerId
+	if _, err := mc.CreateCollectionIndexes(blog.TableBlogPost, []interface{}{mongo.IndexModel{
+		Keys: bson.D{
+			{blog.PostColOwnerId, 1},
+		},
+		Options: &options.IndexOptions{
+			Name:   &idxName,
+			Unique: &nonUnique,
+		},
+	}}); err != nil {
+		log.Printf("[WARN] creating collection index %s/%s (%s): %s\n", blog.TableBlogPost, blog.PostColOwnerId, "MongoDB", err)
+	}
+	idxName = "idx_" + blog.PostColIsPublic
+	if _, err := mc.CreateCollectionIndexes(blog.TableBlogPost, []interface{}{mongo.IndexModel{
+		Keys: bson.D{
+			{blog.PostColIsPublic, 1},
+		},
+		Options: &options.IndexOptions{
+			Name:   &idxName,
+			Unique: &nonUnique,
+		},
+	}}); err != nil {
+		log.Printf("[WARN] creating collection index %s/%s (%s): %s\n", blog.TableBlogPost, blog.PostColIsPublic, "MongoDB", err)
+	}
+
+	// blog comment
+	idxName = "idx_" + blog.CommentColOwnerId
+	if _, err := mc.CreateCollectionIndexes(blog.TableBlogComment, []interface{}{mongo.IndexModel{
+		Keys: bson.D{
+			{blog.CommentColOwnerId, 1},
+		},
+		Options: &options.IndexOptions{
+			Name:   &idxName,
+			Unique: &nonUnique,
+		},
+	}}); err != nil {
+		log.Printf("[WARN] creating collection index %s/%s (%s): %s\n", blog.TableBlogComment, blog.CommentColOwnerId, "MongoDB", err)
+	}
+	idxName = "idx_" + blog.CommentColPostId + "_" + blog.CommentColParentId
+	if _, err := mc.CreateCollectionIndexes(blog.TableBlogComment, []interface{}{mongo.IndexModel{
+		Keys: bson.D{
+			{blog.CommentColPostId, 1},
+			{blog.CommentColParentId, 1},
+		},
+		Options: &options.IndexOptions{
+			Name:   &idxName,
+			Unique: &nonUnique,
+		},
+	}}); err != nil {
+		log.Printf("[WARN] creating collection index %s/%s (%s): %s\n", blog.TableBlogComment, blog.CommentColPostId+":"+blog.CommentColParentId, "MongoDB", err)
+	}
+
+	// blog vote
+	idxName = "idx_" + blog.VoteColOwnerId + "_" + blog.VoteColTargetId
+	if _, err := mc.CreateCollectionIndexes(blog.TableBlogVote, []interface{}{mongo.IndexModel{
+		Keys: bson.D{
+			{blog.VoteColOwnerId, 1},
+			{blog.VoteColTargetId, 1},
+		},
+		Options: &options.IndexOptions{
+			Name:   &idxName,
+			Unique: &unique,
+		},
+	}}); err != nil {
+		log.Printf("[WARN] creating collection index %s/%s (%s): %s\n", blog.TableBlogVote, blog.VoteColOwnerId+":"+blog.VoteColTargetId, "MongoDB", err)
+	}
+	idxName = "idx_" + blog.VoteColTargetId + "_" + blog.VoteColValue
+	if _, err := mc.CreateCollectionIndexes(blog.TableBlogVote, []interface{}{mongo.IndexModel{
+		Keys: bson.D{
+			{blog.VoteColTargetId, 1},
+			{blog.VoteColValue, 1},
+		},
+		Options: &options.IndexOptions{
+			Name:   &idxName,
+			Unique: &nonUnique,
+		},
+	}}); err != nil {
+		log.Printf("[WARN] creating collection index %s/%s (%s): %s\n", blog.TableBlogVote, blog.VoteColTargetId+":"+blog.VoteColValue, "MongoDB", err)
+	}
 }
 
 func initDaos() {
-	// create SqlConnect instance
 	dbtype := strings.ToLower(goapi.AppConfig.GetString("gvabe.db.type"))
-	sqlc := _createSqlConnect(dbtype) // only SQL-based datastore is supported
-	if sqlc == nil {
+
+	// create SqlConnect instance
+	sqlc := _createSqlConnect(dbtype)
+	mc := _createMongoConnect(dbtype)
+	if sqlc == nil && mc == nil {
 		panic(fmt.Sprintf("unknown databbase type: %s", dbtype))
 	}
 
-	// create database tables (assuming SQL-based datastore)
-	_createSqlTables(sqlc, dbtype)
+	if sqlc != nil {
+		// create database tables
+		_createSqlTables(sqlc, dbtype)
 
-	// create DAO instances
-	userDaov2 = _createUserDao(sqlc)
-	blogPostDaov2 = _createBlogPostDao(sqlc)
-	blogCommentDaov2 = _createBlogCommentDao(sqlc)
-	blogVoteDaov2 = _createBlogVoteDao(sqlc)
+		// create DAO instances
+		userDaov2 = _createUserDaoSql(sqlc)
+		blogPostDaov2 = _createBlogPostDaoSql(sqlc)
+		blogCommentDaov2 = _createBlogCommentDaoSql(sqlc)
+		blogVoteDaov2 = _createBlogVoteDaoSql(sqlc)
+	}
+	if mc != nil {
+		// create MongoDB collections
+		_createMongoCollections(mc)
+
+		// create DAO instances
+		userDaov2 = _createUserDaoMongo(mc)
+		blogPostDaov2 = _createBlogPostDaoMongo(mc)
+		blogCommentDaov2 = _createBlogCommentDaoMongo(mc)
+		blogVoteDaov2 = _createBlogVoteDaoMongo(mc)
+	}
 
 	_initUsers()
 	_initBlog()
@@ -122,7 +322,7 @@ func _initUsers() {
 	}
 	if adminUser == nil {
 		log.Printf("[INFO] Admin user [%s] not found, creating one...", adminUserId)
-		adminUser = userv2.NewUser(goapi.AppVersionNumber, adminUserId, utils.UniqueId())
+		adminUser = user.NewUser(goapi.AppVersionNumber, adminUserId, utils.UniqueId())
 		adminUser.SetPassword(encryptPassword(adminUserId, adminUserPwd)).SetDisplayName(adminUserName).SetAdmin(true)
 		result, err := userDaov2.Create(adminUser)
 		if err != nil {
@@ -163,7 +363,7 @@ Blog content supports <a href="https://en.wikipedia.org/wiki/Markdown" target="_
 
 _Public_ posts are visible to all users for _commenting_ (coming soon) and _voting_.
 `
-		introBlogPost = blogv2.NewBlogPost(goapi.AppVersionNumber, adminUser, true, title, content)
+		introBlogPost = blog.NewBlogPost(goapi.AppVersionNumber, adminUser, true, title, content)
 		introBlogPost.SetId(postId)
 		result, err := blogPostDaov2.Create(introBlogPost)
 		if err != nil {

@@ -5,19 +5,19 @@ import (
 	"strings"
 
 	"github.com/btnguyen2k/consu/reddo"
+	"github.com/btnguyen2k/henge"
 
-	userv2 "main/src/gvabe/bov2/user"
-	"main/src/henge"
+	"main/src/gvabe/bov2/user"
 	"main/src/utils"
 )
 
 // NewBlogPost is helper function to create new BlogPost bo
 //
-// available since template-v0.2.0
-func NewBlogPost(appVersion uint64, owner *userv2.User, isPublic bool, title, content string) *BlogPost {
+// Available since template-v0.2.0
+func NewBlogPost(appVersion uint64, owner *user.User, isPublic bool, title, content string) *BlogPost {
 	post := &BlogPost{
-		UniversalBo:  *henge.NewUniversalBo(utils.UniqueId(), appVersion),
-		ownerId:      strings.TrimSpace(strings.ToLower(owner.GetId())),
+		UniversalBo:  henge.NewUniversalBo(utils.UniqueId(), appVersion),
+		ownerId:      owner.GetId(),
 		isPublic:     isPublic,
 		title:        strings.TrimSpace(title),
 		content:      strings.TrimSpace(content),
@@ -30,101 +30,104 @@ func NewBlogPost(appVersion uint64, owner *userv2.User, isPublic bool, title, co
 
 // NewBlogPostFromUbo is helper function to create BlogPost bo from a universal bo
 //
-// available since template-v0.2.0
+// Available since template-v0.2.0
 func NewBlogPostFromUbo(ubo *henge.UniversalBo) *BlogPost {
 	if ubo == nil {
 		return nil
 	}
-	post := BlogPost{UniversalBo: *ubo.Clone()}
-	if v, err := post.GetExtraAttrAs(PostField_OwnerId, reddo.TypeString); err != nil {
+	ubo = ubo.Clone()
+	post := &BlogPost{UniversalBo: ubo}
+	if v, err := ubo.GetExtraAttrAs(PostFieldOwnerId, reddo.TypeString); err != nil {
 		return nil
 	} else {
 		post.ownerId = v.(string)
 	}
-	if v, err := post.GetExtraAttrAs(PostField_IsPublic, reddo.TypeInt); err != nil {
+	if v, err := ubo.GetExtraAttrAs(PostFieldIsPublic, reddo.TypeInt); err != nil {
 		return nil
 	} else {
 		post.isPublic = v.(int64) != 0
 	}
-	if v, err := post.GetDataAttrAs(PostAttr_Title, reddo.TypeString); err != nil {
+	if v, err := ubo.GetDataAttrAs(PostAttrTitle, reddo.TypeString); err != nil {
 		return nil
 	} else {
 		post.title = v.(string)
 	}
-	if v, err := post.GetDataAttrAs(PostAttr_Content, reddo.TypeString); err != nil {
+	if v, err := ubo.GetDataAttrAs(PostAttrContent, reddo.TypeString); err != nil {
 		return nil
 	} else {
 		post.content = v.(string)
 	}
-	if v, err := post.GetDataAttrAs(PostAttr_NumComments, reddo.TypeInt); err != nil {
+	if v, err := ubo.GetDataAttrAs(PostAttrNumComments, reddo.TypeInt); err != nil {
 		return nil
 	} else {
 		post.numComments = int(v.(int64))
 	}
-	if v, err := post.GetDataAttrAs(PostAttr_NumVotesUp, reddo.TypeInt); err != nil {
+	if v, err := ubo.GetDataAttrAs(PostAttrNumVotesUp, reddo.TypeInt); err != nil {
 		return nil
 	} else {
 		post.numVotesUp = int(v.(int64))
 	}
-	if v, err := post.GetDataAttrAs(PostAttr_NumVotesDown, reddo.TypeInt); err != nil {
+	if v, err := ubo.GetDataAttrAs(PostAttrNumVotesDown, reddo.TypeInt); err != nil {
 		return nil
 	} else {
 		post.numVotesDown = int(v.(int64))
 	}
-	return (&post).sync()
+	return post.sync()
 }
 
 const (
-	// id of user who is owner of the blog post
-	PostField_OwnerId = "oid"
+	// PostFieldOwnerId is id of the user who made the blog post.
+	PostFieldOwnerId = "oid"
 
-	// flag to mark if the blog post is public or private
-	PostField_IsPublic = "ispub"
+	// PostFieldIsPublic is a flag to mark if the blog post is public or private.
+	PostFieldIsPublic = "ispub"
 
-	// title of blog post
-	PostAttr_Title = "title"
+	// PostAttrTitle is blog post's title.
+	PostAttrTitle = "title"
 
-	// content of blog post
-	PostAttr_Content = "cont"
+	// PostAttrContent is blog post's content.
+	PostAttrContent = "cont"
 
-	// number of comments
-	PostAttr_NumComments = "ncmts"
+	// PostAttrNumComments is blog post's number of comments.
+	PostAttrNumComments = "ncmts"
 
-	// number of votes up
-	PostAttr_NumVotesUp = "vup"
+	// PostAttrNumVotesUp is blog post's number of votes up.
+	PostAttrNumVotesUp = "vup"
 
-	// number of votes down
-	PostAttr_NumVotesDown = "vdown"
+	// PostAttrNumVotesDown is blog post's number of votes down.
+	PostAttrNumVotesDown = "vdown"
 
+	// postAttr_Ubo is for internal use only!
 	postAttr_Ubo = "_ubo"
 )
 
-// BlogPost is the business object
-//	- BlogPost inherits unique id from bo.UniversalBo
+// BlogPost is the business object.
+//   - BlogPost inherits unique id from bo.UniversalBo
 //
-// available since template-v0.2.0
+// Available since template-v0.2.0
 type BlogPost struct {
-	henge.UniversalBo `json:"_ubo"`
-	ownerId           string `json:"oid"`
-	isPublic          bool   `json:"ispub"`
-	title             string `json:"title"`
-	content           string `json:"cont"`
-	numComments       int    `json:"ncmts"`
-	numVotesUp        int    `json:"vup"`
-	numVotesDown      int    `json:"vdown"`
+	*henge.UniversalBo `json:"_ubo"`
+	ownerId            string `json:"oid"`
+	isPublic           bool   `json:"ispub"`
+	title              string `json:"title"`
+	content            string `json:"cont"`
+	numComments        int    `json:"ncmts"`
+	numVotesUp         int    `json:"vup"`
+	numVotesDown       int    `json:"vdown"`
 }
 
+// ToMap transforms post's attributes to a map.
 func (p *BlogPost) ToMap(postFunc henge.FuncPostUboToMap) map[string]interface{} {
 	result := map[string]interface{}{
 		henge.FieldId:          p.GetId(),
 		henge.FieldTimeCreated: p.GetTimeCreated(),
-		PostField_OwnerId:      p.ownerId,
-		PostField_IsPublic:     p.isPublic,
-		PostAttr_Title:         p.title,
-		PostAttr_Content:       p.content,
-		PostAttr_NumComments:   p.numComments,
-		PostAttr_NumVotesUp:    p.numVotesUp,
-		PostAttr_NumVotesDown:  p.numVotesDown,
+		PostFieldOwnerId:       p.ownerId,
+		PostFieldIsPublic:      p.isPublic,
+		PostAttrTitle:          p.title,
+		PostAttrContent:        p.content,
+		PostAttrNumComments:    p.numComments,
+		PostAttrNumVotesUp:     p.numVotesUp,
+		PostAttrNumVotesDown:   p.numVotesDown,
 	}
 	if postFunc != nil {
 		result = postFunc(result)
@@ -132,29 +135,29 @@ func (p *BlogPost) ToMap(postFunc henge.FuncPostUboToMap) map[string]interface{}
 	return result
 }
 
-// MarshalJSON implements json.encode.Marshaler.MarshalJSON
-//	TODO: lock for read?
+// MarshalJSON implements json.encode.Marshaler.MarshalJSON.
+// TODO: lock for read?
 func (p *BlogPost) MarshalJSON() ([]byte, error) {
 	p.sync()
 	m := map[string]interface{}{
 		postAttr_Ubo: p.UniversalBo.Clone(),
 		"_cols": map[string]interface{}{
-			PostField_OwnerId:  p.ownerId,
-			PostField_IsPublic: p.isPublic,
+			PostFieldOwnerId:  p.ownerId,
+			PostFieldIsPublic: p.isPublic,
 		},
 		"_attrs": map[string]interface{}{
-			PostAttr_Title:        p.title,
-			PostAttr_Content:      p.content,
-			PostAttr_NumComments:  p.numComments,
-			PostAttr_NumVotesUp:   p.numVotesUp,
-			PostAttr_NumVotesDown: p.numVotesDown,
+			PostAttrTitle:        p.title,
+			PostAttrContent:      p.content,
+			PostAttrNumComments:  p.numComments,
+			PostAttrNumVotesUp:   p.numVotesUp,
+			PostAttrNumVotesDown: p.numVotesDown,
 		},
 	}
 	return json.Marshal(m)
 }
 
-// UnmarshalJSON implements json.decode.Unmarshaler.UnmarshalJSON
-//	TODO: lock for write?
+// UnmarshalJSON implements json.decode.Unmarshaler.UnmarshalJSON.
+// TODO: lock for write?
 func (p *BlogPost) UnmarshalJSON(data []byte) error {
 	var m map[string]interface{}
 	if err := json.Unmarshal(data, &m); err != nil {
@@ -168,31 +171,31 @@ func (p *BlogPost) UnmarshalJSON(data []byte) error {
 		}
 	}
 	if _cols, ok := m["_cols"].(map[string]interface{}); ok {
-		if p.ownerId, err = reddo.ToString(_cols[PostField_OwnerId]); err != nil {
+		if p.ownerId, err = reddo.ToString(_cols[PostFieldOwnerId]); err != nil {
 			return err
 		}
-		if p.isPublic, err = reddo.ToBool(_cols[PostField_IsPublic]); err != nil {
+		if p.isPublic, err = reddo.ToBool(_cols[PostFieldIsPublic]); err != nil {
 			return err
 		}
 	}
 	if _attrs, ok := m["_attrs"].(map[string]interface{}); ok {
-		if p.title, err = reddo.ToString(_attrs[PostAttr_Title]); err != nil {
+		if p.title, err = reddo.ToString(_attrs[PostAttrTitle]); err != nil {
 			return err
 		}
-		if p.content, err = reddo.ToString(_attrs[PostAttr_Content]); err != nil {
+		if p.content, err = reddo.ToString(_attrs[PostAttrContent]); err != nil {
 			return err
 		}
-		if v, err := reddo.ToInt(_attrs[PostAttr_NumComments]); err != nil {
+		if v, err := reddo.ToInt(_attrs[PostAttrNumComments]); err != nil {
 			return err
 		} else {
 			p.numComments = int(v)
 		}
-		if v, err := reddo.ToInt(_attrs[PostAttr_NumVotesUp]); err != nil {
+		if v, err := reddo.ToInt(_attrs[PostAttrNumVotesUp]); err != nil {
 			return err
 		} else {
 			p.numVotesUp = int(v)
 		}
-		if v, err := reddo.ToInt(_attrs[PostAttr_NumVotesDown]); err != nil {
+		if v, err := reddo.ToInt(_attrs[PostAttrNumVotesDown]); err != nil {
 			return err
 		} else {
 			p.numVotesDown = int(v)
@@ -247,7 +250,7 @@ func (p *BlogPost) SetContent(v string) *BlogPost {
 }
 
 // GetNumComments returns value of blog post's 'num-comments' attribute
-func (p *BlogPost) NumComments() int {
+func (p *BlogPost) GetNumComments() int {
 	return p.numComments
 }
 
@@ -303,42 +306,13 @@ func (p *BlogPost) sync() *BlogPost {
 	if !p.isPublic {
 		vIsPublic = 0
 	}
-	p.SetDataAttr(PostAttr_Title, p.title)
-	p.SetDataAttr(PostAttr_Content, p.content)
-	p.SetDataAttr(PostAttr_NumComments, p.numComments)
-	p.SetDataAttr(PostAttr_NumVotesUp, p.numVotesUp)
-	p.SetDataAttr(PostAttr_NumVotesDown, p.numVotesDown)
-	p.SetExtraAttr(PostField_OwnerId, p.ownerId)
-	p.SetExtraAttr(PostField_IsPublic, vIsPublic)
+	p.SetDataAttr(PostAttrTitle, p.title)
+	p.SetDataAttr(PostAttrContent, p.content)
+	p.SetDataAttr(PostAttrNumComments, p.numComments)
+	p.SetDataAttr(PostAttrNumVotesUp, p.numVotesUp)
+	p.SetDataAttr(PostAttrNumVotesDown, p.numVotesDown)
+	p.SetExtraAttr(PostFieldOwnerId, p.ownerId)
+	p.SetExtraAttr(PostFieldIsPublic, vIsPublic)
 	p.UniversalBo.Sync()
 	return p
-}
-
-// BlogPostDao defines API to access BlogPost storage
-//
-// available since template-v0.2.0
-type BlogPostDao interface {
-	// Delete removes the specified business object from storage
-	Delete(bo *BlogPost) (bool, error)
-
-	// Create persists a new business object to storage
-	Create(bo *BlogPost) (bool, error)
-
-	// Get retrieves a business object from storage
-	Get(id string) (*BlogPost, error)
-
-	// GetUserPostsN retrieves first N user's blog posts of a user, latest posts first
-	GetUserPostsN(user *userv2.User, fromOffset, maxNumRows int) ([]*BlogPost, error)
-
-	// GetUserPostsAll retrieves all available user's blog posts, latest posts first
-	GetUserPostsAll(user *userv2.User) ([]*BlogPost, error)
-
-	// GetUserFeedN retrieves first N blog posts for user's feed, latest posts first
-	GetUserFeedN(user *userv2.User, fromOffset, maxNumRows int) ([]*BlogPost, error)
-
-	// GetUserFeedAll retrieves all available blog posts for user's feed, latest posts first
-	GetUserFeedAll(user *userv2.User) ([]*BlogPost, error)
-
-	// Update modifies an existing business object
-	Update(bo *BlogPost) (bool, error)
 }
