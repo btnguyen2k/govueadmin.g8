@@ -81,10 +81,11 @@ type BlogVote struct {
 // Available since template-v0.3.0
 func (v *BlogVote) ToMap(postFunc henge.FuncPostUboToMap) map[string]interface{} {
 	result := map[string]interface{}{
-		henge.FieldId:     v.GetId(),
-		VoteFieldTargetId: v.GetTargetId(),
-		VoteFieldOwnerId:  v.GetOwnerId(),
-		VoteFieldValue:    v.GetValue(),
+		henge.FieldId:          v.GetId(),
+		henge.FieldTimeCreated: v.GetTimeUpdated(),
+		VoteFieldTargetId:      v.GetTargetId(),
+		VoteFieldOwnerId:       v.GetOwnerId(),
+		VoteFieldValue:         v.GetValue(),
 	}
 	if postFunc != nil {
 		result = postFunc(result)

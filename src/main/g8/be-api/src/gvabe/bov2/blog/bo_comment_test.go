@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/btnguyen2k/henge"
 	"main/src/gvabe/bov2/user"
@@ -101,11 +102,12 @@ func TestBlogComment_ToMap(t *testing.T) {
 
 	m := comment.ToMap(nil)
 	expected := map[string]interface{}{
-		henge.FieldId:        comment.GetId(),
-		CommentFieldPostId:   _post.GetId(),
-		CommentFieldOwnerId:  _userId,
-		CommentFieldParentId: "",
-		CommentAttrContent:   _commentContent,
+		henge.FieldId:          comment.GetId(),
+		henge.FieldTimeCreated: comment.GetTimeCreated(),
+		CommentFieldPostId:     _post.GetId(),
+		CommentFieldOwnerId:    _userId,
+		CommentFieldParentId:   "",
+		CommentAttrContent:     _commentContent,
 	}
 	if !reflect.DeepEqual(m, expected) {
 		t.Fatalf("%s failed: expected %#v but received %#v", name, expected, m)
@@ -114,6 +116,7 @@ func TestBlogComment_ToMap(t *testing.T) {
 	m = comment.ToMap(func(input map[string]interface{}) map[string]interface{} {
 		return map[string]interface{}{
 			"FieldId":              input[henge.FieldId],
+			"FieldTimeCreated":     input[henge.FieldTimeCreated],
 			"CommentFieldPostId":   input[CommentFieldPostId],
 			"CommentFieldOwnerId":  input[CommentFieldOwnerId],
 			"CommentFieldParentId": input[CommentFieldParentId],
@@ -122,6 +125,7 @@ func TestBlogComment_ToMap(t *testing.T) {
 	})
 	expected = map[string]interface{}{
 		"FieldId":              comment.GetId(),
+		"FieldTimeCreated":     comment.GetTimeCreated(),
 		"CommentFieldPostId":   _post.GetId(),
 		"CommentFieldOwnerId":  _userId,
 		"CommentFieldParentId": "",
@@ -167,5 +171,11 @@ func TestBlogComment_json(t *testing.T) {
 	}
 	if content := comment2.GetContent(); content != _commentContent {
 		t.Fatalf("%s failed: expected content to be %#v but received %#v", name, _commentContent, content)
+	}
+	if t2, t1 := comment2.GetTimeCreated(), comment.GetTimeCreated(); !t2.Equal(t1) {
+		t.Fatalf("%s failed: expected %#v but received %#v", name, t1.Format(time.RFC3339), t2.Format(time.RFC3339))
+	}
+	if comment2.GetChecksum() != comment.GetChecksum() {
+		t.Fatalf("%s failed: expected %#v but received %#v", name, comment2.GetChecksum(), comment.GetChecksum())
 	}
 }

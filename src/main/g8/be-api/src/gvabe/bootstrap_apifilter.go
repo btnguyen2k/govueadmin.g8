@@ -11,11 +11,10 @@ import (
 
 /*
 Setup API filters: application register its api-handlers by calling router.SetHandler(apiName, apiHandlerFunc)
-
-    - api-handler function must has the following signature: func (itineris.ApiContext, itineris.ApiAuth, itineris.ApiParams) *itineris.ApiResult
-	- filters are LIFO:
-		- request goes through the last filter to the first one
-		- response goes through the first filter to the last one
+  - api-handler function must has the following signature: func (itineris.ApiContext, itineris.ApiAuth, itineris.ApiParams) *itineris.ApiResult
+  - filters are LIFO:
+    - request goes through the last filter to the first one
+    - response goes through the first filter to the last one
 */
 func initApiFilters(apiRouter *itineris.ApiRouter) {
 	var apiFilter itineris.IApiFilter = nil

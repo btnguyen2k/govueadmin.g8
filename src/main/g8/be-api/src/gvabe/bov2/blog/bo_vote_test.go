@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/btnguyen2k/henge"
 	"main/src/gvabe/bov2/user"
@@ -90,10 +91,11 @@ func TestBlogVote_ToMap(t *testing.T) {
 
 	m := vote.ToMap(nil)
 	expected := map[string]interface{}{
-		henge.FieldId:     vote.GetId(),
-		VoteFieldTargetId: _targetId,
-		VoteFieldOwnerId:  _userId,
-		VoteFieldValue:    _value,
+		henge.FieldId:          vote.GetId(),
+		henge.FieldTimeCreated: vote.GetTimeCreated(),
+		VoteFieldTargetId:      _targetId,
+		VoteFieldOwnerId:       _userId,
+		VoteFieldValue:         _value,
 	}
 	if !reflect.DeepEqual(m, expected) {
 		t.Fatalf("%s failed: expected %#v but received %#v", name, expected, m)
@@ -102,6 +104,7 @@ func TestBlogVote_ToMap(t *testing.T) {
 	m = vote.ToMap(func(input map[string]interface{}) map[string]interface{} {
 		return map[string]interface{}{
 			"FieldId":           input[henge.FieldId],
+			"FieldTimeCreated":  input[henge.FieldTimeCreated],
 			"VoteFieldTargetId": input[VoteFieldTargetId],
 			"VoteFieldOwnerId":  input[VoteFieldOwnerId],
 			"VoteFieldValue":    input[VoteFieldValue],
@@ -109,6 +112,7 @@ func TestBlogVote_ToMap(t *testing.T) {
 	})
 	expected = map[string]interface{}{
 		"FieldId":           vote.GetId(),
+		"FieldTimeCreated":  vote.GetTimeCreated(),
 		"VoteFieldTargetId": _targetId,
 		"VoteFieldOwnerId":  _userId,
 		"VoteFieldValue":    _value,
@@ -149,5 +153,11 @@ func TestBlogVote_json(t *testing.T) {
 	}
 	if value := vote2.GetValue(); value != _value {
 		t.Fatalf("%s failed: expected value to be %#v but received %#v", name, _value, value)
+	}
+	if t2, t1 := vote2.GetTimeCreated(), vote.GetTimeCreated(); !t2.Equal(t1) {
+		t.Fatalf("%s failed: expected %#v but received %#v", name, t1.Format(time.RFC3339), t2.Format(time.RFC3339))
+	}
+	if vote2.GetChecksum() != vote.GetChecksum() {
+		t.Fatalf("%s failed: expected %#v but received %#v", name, vote2.GetChecksum(), vote.GetChecksum())
 	}
 }

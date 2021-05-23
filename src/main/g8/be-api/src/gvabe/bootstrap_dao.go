@@ -55,31 +55,35 @@ func _createMongoConnect(dbtype string) *prom.MongoConnect {
 }
 
 func _createUserDaoSql(sqlc *prom.SqlConnect) user.UserDao {
-	return user.NewUserDaoSql(sqlc, user.TableUser)
+	return user.NewUserDaoSql(sqlc, user.TableUser, true)
 }
 func _createUserDaoMongo(mc *prom.MongoConnect) user.UserDao {
-	return user.NewUserDaoMongo(mc, user.TableUser)
+	url := mc.GetUrl()
+	return user.NewUserDaoMongo(mc, user.TableUser, strings.Index(url, "replicaSet=") >= 0)
 }
 
 func _createBlogPostDaoSql(sqlc *prom.SqlConnect) blog.BlogPostDao {
-	return blog.NewBlogPostDaoSql(sqlc, blog.TableBlogPost)
+	return blog.NewBlogPostDaoSql(sqlc, blog.TableBlogPost, true)
 }
 func _createBlogPostDaoMongo(mc *prom.MongoConnect) blog.BlogPostDao {
-	return blog.NewBlogPostDaoMongo(mc, blog.TableBlogPost)
+	url := mc.GetUrl()
+	return blog.NewBlogPostDaoMongo(mc, blog.TableBlogPost, strings.Index(url, "replicaSet=") >= 0)
 }
 
 func _createBlogCommentDaoSql(sqlc *prom.SqlConnect) blog.BlogCommentDao {
-	return blog.NewBlogCommentDaoSql(sqlc, blog.TableBlogComment)
+	return blog.NewBlogCommentDaoSql(sqlc, blog.TableBlogComment, true)
 }
 func _createBlogCommentDaoMongo(mc *prom.MongoConnect) blog.BlogCommentDao {
-	return blog.NewBlogCommentDaoMongo(mc, blog.TableBlogComment)
+	url := mc.GetUrl()
+	return blog.NewBlogCommentDaoMongo(mc, blog.TableBlogComment, strings.Index(url, "replicaSet=") >= 0)
 }
 
 func _createBlogVoteDaoSql(sqlc *prom.SqlConnect) blog.BlogVoteDao {
-	return blog.NewBlogVoteDaoSql(sqlc, blog.TableBlogVote)
+	return blog.NewBlogVoteDaoSql(sqlc, blog.TableBlogVote, true)
 }
 func _createBlogVoteDaoMongo(mc *prom.MongoConnect) blog.BlogVoteDao {
-	return blog.NewBlogVoteDaoMongo(mc, blog.TableBlogVote)
+	url := mc.GetUrl()
+	return blog.NewBlogVoteDaoMongo(mc, blog.TableBlogVote, strings.Index(url, "replicaSet=") >= 0)
 }
 
 func _createSqlTables(sqlc *prom.SqlConnect, dbtype string) {

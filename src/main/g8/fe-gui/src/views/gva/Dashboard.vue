@@ -48,7 +48,7 @@ export default {
     clientUtils.apiDoGet(clientUtils.apiMyFeed,
         (apiRes) => {
           if (apiRes.status == 200) {
-            apiRes.data.forEach((post) => {
+            apiRes.data.forEach(post => {
               vue.$set(vue.blogPostMap, post.id, post)
               blogPostIdList.push(post.id)
             })
@@ -101,7 +101,7 @@ export default {
       const vue = this
       clientUtils.apiDoPost(clientUtils.apiUserVoteForPost + "/" + postId, data,
           (apiRes) => {
-            console.log(apiRes)
+            // console.log(apiRes)
             if (apiRes.status == 200 && apiRes.data.vote) {
               vue.blogPostVotes[postId] = apiRes.data.value
               vue.blogPostMap[postId].num_votes_up = apiRes.data.num_votes_up

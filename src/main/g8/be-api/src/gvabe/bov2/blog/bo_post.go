@@ -119,14 +119,15 @@ type BlogPost struct {
 // ToMap transforms post's attributes to a map.
 func (p *BlogPost) ToMap(postFunc henge.FuncPostUboToMap) map[string]interface{} {
 	result := map[string]interface{}{
-		henge.FieldId:        p.GetId(),
-		PostFieldOwnerId:     p.ownerId,
-		PostFieldIsPublic:    p.isPublic,
-		PostAttrTitle:        p.title,
-		PostAttrContent:      p.content,
-		PostAttrNumComments:  p.numComments,
-		PostAttrNumVotesUp:   p.numVotesUp,
-		PostAttrNumVotesDown: p.numVotesDown,
+		henge.FieldId:          p.GetId(),
+		henge.FieldTimeCreated: p.GetTimeCreated(),
+		PostFieldOwnerId:       p.ownerId,
+		PostFieldIsPublic:      p.isPublic,
+		PostAttrTitle:          p.title,
+		PostAttrContent:        p.content,
+		PostAttrNumComments:    p.numComments,
+		PostAttrNumVotesUp:     p.numVotesUp,
+		PostAttrNumVotesDown:   p.numVotesDown,
 	}
 	if postFunc != nil {
 		result = postFunc(result)

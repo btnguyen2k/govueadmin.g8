@@ -89,6 +89,9 @@ func doTestUserDaoCreateGet(t *testing.T, name string, dao UserDao) {
 		if v1, v0 := user1.IsAdmin(), _isAdmin; v1 != v0 {
 			t.Fatalf("%s failed: expected %#v but received %#v", name, v0, v1)
 		}
+		if t1, t0 := user1.GetTimeCreated(), user0.GetTimeCreated(); !t1.Equal(t0) {
+			t.Fatalf("%s failed: expected %#v but received %#v", name, t0.Format(time.RFC3339), t1.Format(time.RFC3339))
+		}
 		if user1.GetChecksum() != user0.GetChecksum() {
 			t.Fatalf("%s failed: expected %#v but received %#v", name, user0.GetChecksum(), user1.GetChecksum())
 		}
@@ -157,6 +160,9 @@ func doTestUserDaoCreateUpdateGet(t *testing.T, name string, dao UserDao) {
 		}
 		if v1, v0 := user1.IsAdmin(), !_isAdmin; v1 != v0 {
 			t.Fatalf("%s failed: expected %#v but received %#v", name, v0, v1)
+		}
+		if t1, t0 := user1.GetTimeCreated(), user0.GetTimeCreated(); !t1.Equal(t0) {
+			t.Fatalf("%s failed: expected %#v but received %#v", name, t0.Format(time.RFC3339), t1.Format(time.RFC3339))
 		}
 		if user1.GetChecksum() != user0.GetChecksum() {
 			t.Fatalf("%s failed: expected %#v but received %#v", name, user0.GetChecksum(), user1.GetChecksum())

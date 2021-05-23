@@ -93,11 +93,12 @@ type BlogComment struct {
 // Available since template-v0.3.0
 func (c *BlogComment) ToMap(postFunc henge.FuncPostUboToMap) map[string]interface{} {
 	result := map[string]interface{}{
-		henge.FieldId:        c.GetId(),
-		CommentFieldPostId:   c.GetPostId(),
-		CommentFieldOwnerId:  c.GetOwnerId(),
-		CommentFieldParentId: c.GetParentId(),
-		CommentAttrContent:   c.GetContent(),
+		henge.FieldId:          c.GetId(),
+		henge.FieldTimeCreated: c.GetTimeCreated(),
+		CommentFieldPostId:     c.GetPostId(),
+		CommentFieldOwnerId:    c.GetOwnerId(),
+		CommentFieldParentId:   c.GetParentId(),
+		CommentAttrContent:     c.GetContent(),
 	}
 	if postFunc != nil {
 		result = postFunc(result)

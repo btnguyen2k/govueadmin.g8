@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/btnguyen2k/henge"
 	"main/src/gvabe/bov2/user"
@@ -126,14 +127,15 @@ func TestBlogPost_ToMap(t *testing.T) {
 
 	m := post.ToMap(nil)
 	expected := map[string]interface{}{
-		henge.FieldId:        post.GetId(),
-		PostFieldOwnerId:     _userId,
-		PostFieldIsPublic:    _postIsPublic,
-		PostAttrTitle:        _postTitle,
-		PostAttrContent:      _postContent,
-		PostAttrNumComments:  _postNumComments,
-		PostAttrNumVotesUp:   _postVotesUp,
-		PostAttrNumVotesDown: _postVotesDown,
+		henge.FieldId:          post.GetId(),
+		henge.FieldTimeCreated: post.GetTimeCreated(),
+		PostFieldOwnerId:       _userId,
+		PostFieldIsPublic:      _postIsPublic,
+		PostAttrTitle:          _postTitle,
+		PostAttrContent:        _postContent,
+		PostAttrNumComments:    _postNumComments,
+		PostAttrNumVotesUp:     _postVotesUp,
+		PostAttrNumVotesDown:   _postVotesDown,
 	}
 	if !reflect.DeepEqual(m, expected) {
 		t.Fatalf("%s failed: expected %#v but received %#v", name, expected, m)
@@ -142,6 +144,7 @@ func TestBlogPost_ToMap(t *testing.T) {
 	m = post.ToMap(func(input map[string]interface{}) map[string]interface{} {
 		return map[string]interface{}{
 			"FieldId":              input[henge.FieldId],
+			"FieldTimeCreated":     input[henge.FieldTimeCreated],
 			"PostFieldOwnerId":     input[PostFieldOwnerId],
 			"PostFieldIsPublic":    input[PostFieldIsPublic],
 			"PostAttrTitle":        input[PostAttrTitle],
@@ -153,6 +156,7 @@ func TestBlogPost_ToMap(t *testing.T) {
 	})
 	expected = map[string]interface{}{
 		"FieldId":              post.GetId(),
+		"FieldTimeCreated":     post.GetTimeCreated(),
 		"PostFieldOwnerId":     _userId,
 		"PostFieldIsPublic":    _postIsPublic,
 		"PostAttrTitle":        _postTitle,
@@ -211,5 +215,11 @@ func TestBlogPost_json(t *testing.T) {
 	}
 	if numVotesDown := post2.GetNumVotesDown(); numVotesDown != _postVotesDown {
 		t.Fatalf("%s failed: expected num-votes-down to be %#v but received %#v", name, _postVotesDown, numVotesDown)
+	}
+	if t2, t1 := post2.GetTimeCreated(), post.GetTimeCreated(); !t2.Equal(t1) {
+		t.Fatalf("%s failed: expected %#v but received %#v", name, t1.Format(time.RFC3339), t2.Format(time.RFC3339))
+	}
+	if post2.GetChecksum() != post.GetChecksum() {
+		t.Fatalf("%s failed: expected %#v but received %#v", name, post2.GetChecksum(), post.GetChecksum())
 	}
 }

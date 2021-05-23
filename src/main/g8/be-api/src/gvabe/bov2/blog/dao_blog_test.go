@@ -93,6 +93,9 @@ func doTestCommentDaoCreateGet(t *testing.T, name string, dao BlogCommentDao) {
 		if v1, v0 := comment1.GetParentId(), ""; v1 != v0 {
 			t.Fatalf("%s failed: expected %#v but received %#v", name, v0, v1)
 		}
+		if t1, t0 := comment1.GetTimeCreated(), comment0.GetTimeCreated(); !t1.Equal(t0) {
+			t.Fatalf("%s failed: expected %#v but received %#v", name, t0.Format(time.RFC3339), t1.Format(time.RFC3339))
+		}
 		if comment1.GetChecksum() != comment0.GetChecksum() {
 			t.Fatalf("%s failed: expected %#v but received %#v", name, comment0.GetChecksum(), comment1.GetChecksum())
 		}
@@ -159,6 +162,9 @@ func doTestCommentDaoCreateUpdateGet(t *testing.T, name string, dao BlogCommentD
 		}
 		if v1, v0 := comment1.GetParentId(), "-new"; v1 != v0 {
 			t.Fatalf("%s failed: expected %#v but received %#v", name, v0, v1)
+		}
+		if t1, t0 := comment1.GetTimeCreated(), comment0.GetTimeCreated(); !t1.Equal(t0) {
+			t.Fatalf("%s failed: expected %#v but received %#v", name, t0.Format(time.RFC3339), t1.Format(time.RFC3339))
 		}
 		if comment1.GetChecksum() != comment0.GetChecksum() {
 			t.Fatalf("%s failed: expected %#v but received %#v", name, comment0.GetChecksum(), comment1.GetChecksum())
@@ -323,6 +329,9 @@ func doTestPostDaoCreateGet(t *testing.T, name string, dao BlogPostDao) {
 		if v1, v0 := post1.GetNumVotesDown(), _numVotesDown; v1 != v0 {
 			t.Fatalf("%s failed: expected %#v but received %#v", name, v0, v1)
 		}
+		if t1, t0 := post1.GetTimeCreated(), post0.GetTimeCreated(); !t1.Equal(t0) {
+			t.Fatalf("%s failed: expected %#v but received %#v", name, t0.Format(time.RFC3339), t1.Format(time.RFC3339))
+		}
 		if post1.GetChecksum() != post0.GetChecksum() {
 			t.Fatalf("%s failed: expected %#v but received %#v", name, post0.GetChecksum(), post1.GetChecksum())
 		}
@@ -402,6 +411,9 @@ func doTestPostDaoCreateUpdateGet(t *testing.T, name string, dao BlogPostDao) {
 		}
 		if v1, v0 := post1.GetNumVotesDown(), _numVotesDown+3; v1 != v0 {
 			t.Fatalf("%s failed: expected %#v but received %#v", name, v0, v1)
+		}
+		if t1, t0 := post1.GetTimeCreated(), post0.GetTimeCreated(); !t1.Equal(t0) {
+			t.Fatalf("%s failed: expected %#v but received %#v", name, t0.Format(time.RFC3339), t1.Format(time.RFC3339))
 		}
 		if post1.GetChecksum() != post0.GetChecksum() {
 			t.Fatalf("%s failed: expected %#v but received %#v", name, post0.GetChecksum(), post1.GetChecksum())
@@ -579,6 +591,9 @@ func doTestVoteDaoCreateGet(t *testing.T, name string, dao BlogVoteDao) {
 		if v1, v0 := vote1.GetValue(), _value; v1 != v0 {
 			t.Fatalf("%s failed: expected %#v but received %#v", name, v0, v1)
 		}
+		if t1, t0 := vote1.GetTimeCreated(), vote0.GetTimeCreated(); !t1.Equal(t0) {
+			t.Fatalf("%s failed: expected %#v but received %#v", name, t0.Format(time.RFC3339), t1.Format(time.RFC3339))
+		}
 		if vote1.GetChecksum() != vote0.GetChecksum() {
 			t.Fatalf("%s failed: expected %#v but received %#v", name, vote0.GetChecksum(), vote1.GetChecksum())
 		}
@@ -640,6 +655,9 @@ func doTestVoteDaoCreateUpdateGet(t *testing.T, name string, dao BlogVoteDao) {
 		}
 		if v1, v0 := vote1.GetValue(), _value+2; v1 != v0 {
 			t.Fatalf("%s failed: expected %#v but received %#v", name, v0, v1)
+		}
+		if t1, t0 := vote1.GetTimeCreated(), vote0.GetTimeCreated(); !t1.Equal(t0) {
+			t.Fatalf("%s failed: expected %#v but received %#v", name, t0.Format(time.RFC3339), t1.Format(time.RFC3339))
 		}
 		if vote1.GetChecksum() != vote0.GetChecksum() {
 			t.Fatalf("%s failed: expected %#v but received %#v", name, vote0.GetChecksum(), vote1.GetChecksum())
