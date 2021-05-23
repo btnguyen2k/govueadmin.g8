@@ -288,15 +288,18 @@ var funcPostToMapTransform = func(m map[string]interface{}) map[string]interface
 	u, _ := userDaov2.Get(m[blog.PostFieldOwnerId].(string))
 	// transform input map
 	result := map[string]interface{}{
-		"id":        m[henge.FieldId],
-		"t_created": m[henge.FieldTimeCreated],
-		"is_public": m[blog.PostFieldIsPublic],
-		// "owner_id":       m[blog.PostFieldOwnerId],
+		"id":             m[henge.FieldId],
+		"t_created":      m[henge.FieldTimeCreated],
+		"is_public":      m[blog.PostFieldIsPublic],
+		"owner_id":       m[blog.PostFieldOwnerId],
 		"title":          m[blog.PostAttrTitle],
 		"content":        m[blog.PostAttrContent],
 		"num_comments":   m[blog.PostAttrNumComments],
 		"num_votes_up":   m[blog.PostAttrNumVotesUp],
 		"num_votes_down": m[blog.PostAttrNumVotesDown],
+	}
+	if t, ok := result["t_created"].(time.Time); ok {
+		result["t_created"] = t.In(time.UTC)
 	}
 	if u != nil {
 		result["owner"] = u.ToMap(func(m map[string]interface{}) map[string]interface{} {

@@ -11,7 +11,7 @@
           </CCardHeader>
           <CCardBody>
             <p style="font-style: italic">by <strong>{{ displayName(blogPostMap[postId]) }}</strong> on
-              {{ creationTime(blogPostMap[postId]) }})</p>
+              {{ creationTime(blogPostMap[postId]) }}</p>
             <div v-html="renderMarkdown(blogPostMap[postId])"></div>
           </CCardBody>
           <CCardFooter>
