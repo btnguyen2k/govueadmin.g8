@@ -11,7 +11,6 @@ import (
 	"github.com/btnguyen2k/henge"
 	"github.com/btnguyen2k/prom"
 
-	_ "github.com/btnguyen2k/gocosmos"
 	_ "github.com/denisenkom/go-mssqldb"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/godror/godror"
@@ -24,17 +23,22 @@ const (
 	testSqlTableComment = "test_comment"
 	testSqlTablePost    = "test_post"
 	testSqlTableVote    = "test_vote"
-	cosmosdbDbName      = "gva"
 )
 
 func sqlInitTableComment(sqlc *prom.SqlConnect, table string) error {
 	rand.Seed(time.Now().UnixNano())
+	var err error
 	if sqlc.GetDbFlavor() == prom.FlavorCosmosDb {
-		sqlc.GetDB().Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", cosmosdbDbName))
+		_, err = sqlc.GetDB().Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s WITH MAXRU=10000", cosmosdbDbName))
+		if err != nil {
+			return err
+		}
 	}
 	sqlc.GetDB().Exec(fmt.Sprintf("DROP TABLE %s", table))
-	var err error
 	switch sqlc.GetDbFlavor() {
+	case prom.FlavorCosmosDb:
+		spec := &henge.CosmosdbCollectionSpec{Pk: henge.CosmosdbColId}
+		err = henge.InitCosmosdbCollection(sqlc, table, spec)
 	case prom.FlavorPgSql:
 		err = henge.InitPgsqlTable(sqlc, table, map[string]string{
 			CommentColParentId: "VARCHAR(32)",
@@ -47,12 +51,18 @@ func sqlInitTableComment(sqlc *prom.SqlConnect, table string) error {
 
 func sqlInitTablePost(sqlc *prom.SqlConnect, table string) error {
 	rand.Seed(time.Now().UnixNano())
+	var err error
 	if sqlc.GetDbFlavor() == prom.FlavorCosmosDb {
-		sqlc.GetDB().Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", cosmosdbDbName))
+		_, err = sqlc.GetDB().Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s WITH MAXRU=10000", cosmosdbDbName))
+		if err != nil {
+			return err
+		}
 	}
 	sqlc.GetDB().Exec(fmt.Sprintf("DROP TABLE %s", table))
-	var err error
 	switch sqlc.GetDbFlavor() {
+	case prom.FlavorCosmosDb:
+		spec := &henge.CosmosdbCollectionSpec{Pk: henge.CosmosdbColId}
+		err = henge.InitCosmosdbCollection(sqlc, table, spec)
 	case prom.FlavorPgSql:
 		err = henge.InitPgsqlTable(sqlc, table, map[string]string{PostColOwnerId: "VARCHAR(32)", PostColIsPublic: "INT"})
 	}
@@ -61,12 +71,18 @@ func sqlInitTablePost(sqlc *prom.SqlConnect, table string) error {
 
 func sqlInitTableVote(sqlc *prom.SqlConnect, table string) error {
 	rand.Seed(time.Now().UnixNano())
+	var err error
 	if sqlc.GetDbFlavor() == prom.FlavorCosmosDb {
-		sqlc.GetDB().Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", cosmosdbDbName))
+		_, err = sqlc.GetDB().Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s WITH MAXRU=10000", cosmosdbDbName))
+		if err != nil {
+			return err
+		}
 	}
 	sqlc.GetDB().Exec(fmt.Sprintf("DROP TABLE %s", table))
-	var err error
 	switch sqlc.GetDbFlavor() {
+	case prom.FlavorCosmosDb:
+		spec := &henge.CosmosdbCollectionSpec{Pk: henge.CosmosdbColId}
+		err = henge.InitCosmosdbCollection(sqlc, table, spec)
 	case prom.FlavorPgSql:
 		err = henge.InitPgsqlTable(sqlc, table, map[string]string{VoteColOwnerId: "VARCHAR(32)", VoteColTargetId: "VARCHAR(32)", VoteColValue: "INT"})
 	}
@@ -93,14 +109,23 @@ func newSqlConnect(t *testing.T, testName string, driver, url, timezone string, 
 }
 
 func initBlogCommentDaoSql(sqlc *prom.SqlConnect) BlogCommentDao {
+	if sqlc.GetDbFlavor() == prom.FlavorCosmosDb {
+		return NewBlogCommentDaoCosmosdb(sqlc, testSqlTableComment, true)
+	}
 	return NewBlogCommentDaoSql(sqlc, testSqlTableComment, true)
 }
 
 func initBlogPostDaoSql(sqlc *prom.SqlConnect) BlogPostDao {
+	if sqlc.GetDbFlavor() == prom.FlavorCosmosDb {
+		return NewBlogPostDaoCosmosdb(sqlc, testSqlTablePost, true)
+	}
 	return NewBlogPostDaoSql(sqlc, testSqlTablePost, true)
 }
 
 func initBlogVoteDaoSql(sqlc *prom.SqlConnect) BlogVoteDao {
+	if sqlc.GetDbFlavor() == prom.FlavorCosmosDb {
+		return NewBlogVoteDaoCosmosdb(sqlc, testSqlTableVote, true)
+	}
 	return NewBlogVoteDaoSql(sqlc, testSqlTableVote, true)
 }
 
@@ -115,8 +140,6 @@ const (
 	envOracleUrl    = "ORACLE_URL"
 	envPgsqlDriver  = "PGSQL_DRIVER"
 	envPgsqlUrl     = "PGSQL_URL"
-	envCosmosDriver = "COSMOSDB_DRIVER"
-	envCosmosUrl    = "COSMOSDB_URL"
 )
 
 type sqlDriverAndUrl struct {
