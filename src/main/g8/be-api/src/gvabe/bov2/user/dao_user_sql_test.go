@@ -11,7 +11,6 @@ import (
 	"github.com/btnguyen2k/henge"
 	"github.com/btnguyen2k/prom"
 
-	_ "github.com/btnguyen2k/gocosmos"
 	_ "github.com/denisenkom/go-mssqldb"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/godror/godror"
@@ -20,19 +19,28 @@ import (
 )
 
 const (
-	testTimeZone   = "Asia/Ho_Chi_Minh"
-	testSqlTable   = "test_user"
-	cosmosdbDbName = "gva"
+	testTimeZone = "Asia/Ho_Chi_Minh"
+	testSqlTable = "test_user"
 )
 
 func sqlInitTable(sqlc *prom.SqlConnect, table string) error {
 	rand.Seed(time.Now().UnixNano())
+	var err error
 	if sqlc.GetDbFlavor() == prom.FlavorCosmosDb {
-		sqlc.GetDB().Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", cosmosdbDbName))
+		_, err = sqlc.GetDB().Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s WITH MAXRU=10000", cosmosdbDbName))
+		if err != nil {
+			return err
+		}
 	}
 	sqlc.GetDB().Exec(fmt.Sprintf("DROP TABLE %s", table))
-	var err error
+	// _, err = sqlc.GetDB().Exec(fmt.Sprintf("DROP TABLE %s", table))
+	// if err != nil {
+	// 	fmt.Printf("WARNING: %s\n", err)
+	// }
 	switch sqlc.GetDbFlavor() {
+	case prom.FlavorCosmosDb:
+		spec := &henge.CosmosdbCollectionSpec{Pk: henge.CosmosdbColId, Uk: [][]string{{"/" + UserColMaskUid}}}
+		err = henge.InitCosmosdbCollection(sqlc, table, spec)
 	case prom.FlavorPgSql:
 		err = henge.InitPgsqlTable(sqlc, table, map[string]string{UserColMaskUid: "VARCHAR(32)"})
 	}
@@ -59,6 +67,9 @@ func newSqlConnect(t *testing.T, testName string, driver, url, timezone string, 
 }
 
 func initDaoSql(sqlc *prom.SqlConnect) UserDao {
+	if sqlc.GetDbFlavor() == prom.FlavorCosmosDb {
+		return NewUserDaoCosmosdb(sqlc, testSqlTable, true)
+	}
 	return NewUserDaoSql(sqlc, testSqlTable, true)
 }
 
@@ -73,8 +84,6 @@ const (
 	envOracleUrl    = "ORACLE_URL"
 	envPgsqlDriver  = "PGSQL_DRIVER"
 	envPgsqlUrl     = "PGSQL_URL"
-	envCosmosDriver = "COSMOSDB_DRIVER"
-	envCosmosUrl    = "COSMOSDB_URL"
 )
 
 type sqlDriverAndUrl struct {
@@ -173,6 +182,9 @@ func TestUserDaoSql_CreateGet(t *testing.T) {
 			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTable/"+dbtype, err)
 		}
 		dao := initDaoSql(sqlc)
+		if dao == nil {
+			t.Fatalf("%s failed: nil", name)
+		}
 		doTestUserDaoCreateGet(t, name, dao)
 		sqlc.Close()
 	}
@@ -196,6 +208,9 @@ func TestUserDaoSql_CreateUpdateGet(t *testing.T) {
 			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTable/"+dbtype, err)
 		}
 		dao := initDaoSql(sqlc)
+		if dao == nil {
+			t.Fatalf("%s failed: nil", name)
+		}
 		doTestUserDaoCreateUpdateGet(t, name, dao)
 		sqlc.Close()
 	}
@@ -219,6 +234,9 @@ func TestUserDaoSql_CreateDelete(t *testing.T) {
 			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTable/"+dbtype, err)
 		}
 		dao := initDaoSql(sqlc)
+		if dao == nil {
+			t.Fatalf("%s failed: nil", name)
+		}
 		doTestUserDaoCreateDelete(t, name, dao)
 		sqlc.Close()
 	}
@@ -242,6 +260,9 @@ func TestUserDaoSql_GetAll(t *testing.T) {
 			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTable/"+dbtype, err)
 		}
 		dao := initDaoSql(sqlc)
+		if dao == nil {
+			t.Fatalf("%s failed: nil", name)
+		}
 		doTestUserDaoGetAll(t, name, dao)
 		sqlc.Close()
 	}
@@ -265,6 +286,9 @@ func TestUserDaoSql_GetN(t *testing.T) {
 			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTable/"+dbtype, err)
 		}
 		dao := initDaoSql(sqlc)
+		if dao == nil {
+			t.Fatalf("%s failed: nil", name)
+		}
 		doTestUserDaoGetN(t, name, dao)
 		sqlc.Close()
 	}

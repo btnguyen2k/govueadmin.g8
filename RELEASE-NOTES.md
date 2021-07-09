@@ -1,10 +1,11 @@
 # govueadmin.g8 Release Notes
 
-## 2021-05-xx: template-v0.3.0
+## 2021-07-xx: template-v0.3.0
 
 - AB#42: I18n support in FE using [Vue-i18n](https://kazupon.github.io/vue-i18n/).
 - AB#41: MongoDB implementation of BO & DAO.
 - AB#40: AWS DynamoDB implementation of BO & DAO.
+- AB#39: Azure Cosmos DB implementation of BO & DAO.
 - Others:
   - BE: bump to Go v1.13.
   - BE: migrate to built-in `henge` package to `github.com/btnguyen2k/henge`.
