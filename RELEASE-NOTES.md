@@ -2,6 +2,8 @@
 
 ## 2021-07-xx: template-v0.3.0
 
+- Backend migrated to [Echo](https://echo.labstack.com) `v4.3.x`.
+- AB#43: Frontend migrated to [CoreUI for Vue.js](https://coreui.io/vue/) `v3.1.4`.
 - AB#42: I18n support in FE using [Vue-i18n](https://kazupon.github.io/vue-i18n/).
 - AB#41: MongoDB implementation of BO & DAO.
 - AB#40: AWS DynamoDB implementation of BO & DAO.

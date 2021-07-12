@@ -2,18 +2,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 
-// // Groups - #GovueAdmin-Customized
-// const Groups = () => import('@/views/gva/groups/Groups')
-// const CreateGroup = () => import('@/views/gva/groups/CreateGroup')
-// const EditGroup = () => import('@/views/gva/groups/EditGroup')
-// const DeleteGroup = () => import('@/views/gva/groups/DeleteGroup')
-//
-// // Users - #GovueAdmin-Customized
-// const Users = () => import('@/views/gva/users/Users')
-// const CreateUser = () => import('@/views/gva/users/CreateUser')
-// const EditUser = () => import('@/views/gva/users/EditUser')
-// const DeleteUser = () => import('@/views/gva/users/DeleteUser')
-
 // Containers
 const TheContainer = () => import('@/containers/TheContainer')
 
@@ -94,7 +82,10 @@ function configRoutes() {
             component: TheContainer,
             children: [
                 {
-                    path: 'dashboard', name: 'Dashboard', meta: {label: i18n.t('message.dashboard')}, component: Dashboard
+                    path: 'dashboard',
+                    name: 'Dashboard',
+                    meta: {label: i18n.t('message.dashboard')},
+                    component: Dashboard
                 },
                 {
                     path: 'posts', meta: {label: i18n.t('message.blog')},
@@ -105,16 +96,29 @@ function configRoutes() {
                     },
                     children: [
                         {
-                            path: '', meta: {label: i18n.t('message.my_blog')}, name: 'MyBlog', component: MyBlog, props: true, //[props=true] to pass flashMsg
+                            path: '',
+                            meta: {label: i18n.t('message.my_blog')},
+                            name: 'MyBlog',
+                            component: MyBlog,
+                            props: true, //[props=true] to pass flashMsg
                         },
                         {
-                            path: '_create', meta: {label: i18n.t('message.create_blog_post')}, name: 'CreatePost', component: CreatePost,
+                            path: '_create',
+                            meta: {label: i18n.t('message.create_blog_post')},
+                            name: 'CreatePost',
+                            component: CreatePost,
                         },
                         {
-                            path: '_edit/:id', meta: {label: i18n.t('message.edit_blog_post')}, name: 'EditPost', component: EditPost,
+                            path: '_edit/:id',
+                            meta: {label: i18n.t('message.edit_blog_post')},
+                            name: 'EditPost',
+                            component: EditPost,
                         },
                         {
-                            path: '_delete/:id', meta: {label: i18n.t('message.delete_blog_post')}, name: 'DeletePost', component: DeletePost,
+                            path: '_delete/:id',
+                            meta: {label: i18n.t('message.delete_blog_post')},
+                            name: 'DeletePost',
+                            component: DeletePost,
                         },
                     ]
                 },
