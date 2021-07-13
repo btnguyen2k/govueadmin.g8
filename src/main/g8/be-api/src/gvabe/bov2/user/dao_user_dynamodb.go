@@ -10,7 +10,7 @@ import (
 // Available since template-v0.3.0
 func NewUserDaoDynamodb(adc *prom.AwsDynamodbConnect, tableName string) UserDao {
 	dao := &BaseUserDaoImpl{}
-	spec := &henge.DynamodbDaoSpec{}
+	spec := &henge.DynamodbDaoSpec{UidxAttrs: [][]string{{UserFieldMaskId}}}
 	dao.UniversalDao = henge.NewUniversalDaoDynamodb(adc, tableName, spec)
 	return dao
 }
