@@ -30,7 +30,7 @@ func NewBlogPostDaoDynamodb(adc *prom.AwsDynamodbConnect, tableName string) Blog
 // Available since template-v0.3.0
 func NewBlogVoteDaoDynamodb(adc *prom.AwsDynamodbConnect, tableName string) BlogVoteDao {
 	dao := &BaseBlogVoteDaoImpl{}
-	spec := &henge.DynamodbDaoSpec{}
+	spec := &henge.DynamodbDaoSpec{UidxAttrs: [][]string{{VoteFieldOwnerId, VoteFieldTargetId}}}
 	dao.UniversalDao = henge.NewUniversalDaoDynamodb(adc, tableName, spec)
 	return dao
 }
