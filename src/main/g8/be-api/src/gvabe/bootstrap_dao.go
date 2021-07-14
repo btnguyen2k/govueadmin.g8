@@ -20,6 +20,7 @@ import (
 	"main/src/gvabe/bov2/user"
 	"main/src/utils"
 
+	_ "github.com/btnguyen2k/gocosmos"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -63,6 +64,9 @@ func _createSqlConnect(dbtype string) *prom.SqlConnect {
 	case "pg", "pgsql", "postgres", "postgresql":
 		url := goapi.AppConfig.GetString("gvabe.db.pgsql.url")
 		sqlc, err = henge.NewPgsqlConnection(url, timezone, "pgx", 10000, nil)
+	case "cosmos", "cosmosdb":
+		url := goapi.AppConfig.GetString("gvabe.db.cosmosdb.url")
+		sqlc, err = henge.NewCosmosdbConnection(url, timezone, "gocosmos", 10000, nil)
 	}
 	if err != nil {
 		panic(err)
@@ -86,6 +90,9 @@ func _createMongoConnect(dbtype string) *prom.MongoConnect {
 }
 
 func _createUserDaoSql(sqlc *prom.SqlConnect) user.UserDao {
+	if sqlc.GetDbFlavor() == prom.FlavorCosmosDb {
+		return user.NewUserDaoCosmosdb(sqlc, user.TableUser, true)
+	}
 	return user.NewUserDaoSql(sqlc, user.TableUser, true)
 }
 func _createUserDaoDynamodb(adc *prom.AwsDynamodbConnect) user.UserDao {
@@ -97,6 +104,9 @@ func _createUserDaoMongo(mc *prom.MongoConnect) user.UserDao {
 }
 
 func _createBlogPostDaoSql(sqlc *prom.SqlConnect) blog.BlogPostDao {
+	if sqlc.GetDbFlavor() == prom.FlavorCosmosDb {
+		return blog.NewBlogPostDaoCosmosdb(sqlc, blog.TableBlogPost, true)
+	}
 	return blog.NewBlogPostDaoSql(sqlc, blog.TableBlogPost, true)
 }
 func _createBlogPostDaoDynamodb(adc *prom.AwsDynamodbConnect) blog.BlogPostDao {
@@ -108,6 +118,9 @@ func _createBlogPostDaoMongo(mc *prom.MongoConnect) blog.BlogPostDao {
 }
 
 func _createBlogCommentDaoSql(sqlc *prom.SqlConnect) blog.BlogCommentDao {
+	if sqlc.GetDbFlavor() == prom.FlavorCosmosDb {
+		return blog.NewBlogCommentDaoCosmosdb(sqlc, blog.TableBlogComment, true)
+	}
 	return blog.NewBlogCommentDaoSql(sqlc, blog.TableBlogComment, true)
 }
 func _createBlogCommentDaoDynamodb(adc *prom.AwsDynamodbConnect) blog.BlogCommentDao {
@@ -119,6 +132,9 @@ func _createBlogCommentDaoMongo(mc *prom.MongoConnect) blog.BlogCommentDao {
 }
 
 func _createBlogVoteDaoSql(sqlc *prom.SqlConnect) blog.BlogVoteDao {
+	if sqlc.GetDbFlavor() == prom.FlavorCosmosDb {
+		return blog.NewBlogVoteDaoCosmosdb(sqlc, blog.TableBlogVote, true)
+	}
 	return blog.NewBlogVoteDaoSql(sqlc, blog.TableBlogVote, true)
 }
 func _createBlogVoteDaoDynamodb(adc *prom.AwsDynamodbConnect) blog.BlogVoteDao {
@@ -129,40 +145,53 @@ func _createBlogVoteDaoMongo(mc *prom.MongoConnect) blog.BlogVoteDao {
 	return blog.NewBlogVoteDaoMongo(mc, blog.TableBlogVote, strings.Index(url, "replicaSet=") >= 0)
 }
 
+var _sqliteTableSchema = map[string]map[string]string{
+	user.TableUser:        {user.UserColMaskUid: "VARCHAR(32)"},
+	blog.TableBlogPost:    {blog.PostColOwnerId: "VARCHAR(32)", blog.PostColIsPublic: "INT"},
+	blog.TableBlogComment: {blog.CommentColOwnerId: "VARCHAR(32)", blog.CommentColPostId: "VARCHAR(32)", blog.CommentColParentId: "VARCHAR(32)"},
+	blog.TableBlogVote:    {blog.VoteColOwnerId: "VARCHAR(32)", blog.VoteColTargetId: "VARCHAR(32)", blog.VoteColValue: "INT"},
+}
+
+var _pgsqlTableSchema = map[string]map[string]string{
+	user.TableUser:        {user.UserColMaskUid: "VARCHAR(32)"},
+	blog.TableBlogPost:    {blog.PostColOwnerId: "VARCHAR(32)", blog.PostColIsPublic: "INT"},
+	blog.TableBlogComment: {blog.CommentColOwnerId: "VARCHAR(32)", blog.CommentColPostId: "VARCHAR(32)", blog.CommentColParentId: "VARCHAR(32)"},
+	blog.TableBlogVote:    {blog.VoteColOwnerId: "VARCHAR(32)", blog.VoteColTargetId: "VARCHAR(32)", blog.VoteColValue: "INT"},
+}
+
+var _cosmosdbTableSpec = map[string]*henge.CosmosdbCollectionSpec{
+	user.TableUser:        {Pk: henge.CosmosdbColId, Uk: [][]string{{"/" + user.UserFieldMaskId}}},
+	blog.TableBlogPost:    {Pk: henge.CosmosdbColId},
+	blog.TableBlogComment: {Pk: henge.CosmosdbColId},
+	blog.TableBlogVote:    {Pk: henge.CosmosdbColId, Uk: [][]string{{"/" + blog.VoteFieldOwnerId, "/" + blog.VoteFieldTargetId}}},
+}
+
 func _createSqlTables(sqlc *prom.SqlConnect, dbtype string) {
+	isCosmosDb := false
 	switch dbtype {
 	case "sqlite":
-		if err := henge.InitSqliteTable(sqlc, user.TableUser, map[string]string{user.UserColMaskUid: "VARCHAR(32)"}); err != nil {
-			log.Printf("[WARN] creating table %s (%s): %s\n", user.TableUser, dbtype, err)
-		}
-		if err := henge.InitSqliteTable(sqlc, blog.TableBlogPost, map[string]string{
-			blog.PostColOwnerId: "VARCHAR(32)", blog.PostColIsPublic: "INT"}); err != nil {
-			log.Printf("[WARN] creating table %s (%s): %s\n", blog.TableBlogPost, dbtype, err)
-		}
-		if err := henge.InitSqliteTable(sqlc, blog.TableBlogComment, map[string]string{
-			blog.CommentColOwnerId: "VARCHAR(32)", blog.CommentColPostId: "VARCHAR(32)", blog.CommentColParentId: "VARCHAR(32)"}); err != nil {
-			log.Printf("[WARN] creating table %s (%s): %s\n", blog.TableBlogComment, dbtype, err)
-		}
-		if err := henge.InitSqliteTable(sqlc, blog.TableBlogVote, map[string]string{
-			blog.VoteColOwnerId: "VARCHAR(32)", blog.VoteColTargetId: "VARCHAR(32)", blog.VoteColValue: "INT"}); err != nil {
-			log.Printf("[WARN] creating table %s (%s): %s\n", blog.TableBlogVote, dbtype, err)
+		for tbl, schema := range _sqliteTableSchema {
+			if err := henge.InitSqliteTable(sqlc, tbl, schema); err != nil {
+				log.Printf("[WARN] creating table %s (%s): %s\n", tbl, dbtype, err)
+			}
 		}
 	case "pg", "pgsql", "postgres", "postgresql":
-		if err := henge.InitPgsqlTable(sqlc, user.TableUser, map[string]string{user.UserColMaskUid: "VARCHAR(32)"}); err != nil {
-			log.Printf("[WARN] creating table %s (%s): %s\n", user.TableUser, dbtype, err)
+		for tbl, schema := range _pgsqlTableSchema {
+			if err := henge.InitSqliteTable(sqlc, tbl, schema); err != nil {
+				log.Printf("[WARN] creating table %s (%s): %s\n", tbl, dbtype, err)
+			}
 		}
-		if err := henge.InitPgsqlTable(sqlc, blog.TableBlogPost, map[string]string{
-			blog.PostColOwnerId: "VARCHAR(32)", blog.PostColIsPublic: "INT"}); err != nil {
-			log.Printf("[WARN] creating table %s (%s): %s\n", blog.TableBlogPost, dbtype, err)
+	case "cosmos", "cosmosdb":
+		isCosmosDb = true
+		for tbl, spec := range _cosmosdbTableSpec {
+			if err := henge.InitCosmosdbCollection(sqlc, tbl, spec); err != nil {
+				log.Printf("[WARN] creating table %s (%s): %s\n", tbl, dbtype, err)
+			}
 		}
-		if err := henge.InitPgsqlTable(sqlc, blog.TableBlogComment, map[string]string{
-			blog.CommentColOwnerId: "VARCHAR(32)", blog.CommentColPostId: "VARCHAR(32)", blog.CommentColParentId: "VARCHAR(32)"}); err != nil {
-			log.Printf("[WARN] creating table %s (%s): %s\n", blog.TableBlogComment, dbtype, err)
-		}
-		if err := henge.InitPgsqlTable(sqlc, blog.TableBlogVote, map[string]string{
-			blog.VoteColOwnerId: "VARCHAR(32)", blog.VoteColTargetId: "VARCHAR(32)", blog.VoteColValue: "INT"}); err != nil {
-			log.Printf("[WARN] creating table %s (%s): %s\n", blog.TableBlogVote, dbtype, err)
-		}
+	}
+
+	if isCosmosDb {
+		return
 	}
 
 	// user
