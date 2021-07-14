@@ -1,8 +1,8 @@
 # govueadmin.g8
 
-Giter8 template to develop `Admin Control Panel` in Go with VueJS-based frontend.
+[![Release](https://img.shields.io/github/release/btnguyen2k/govueadmin.g8.svg?style=flat-square)](RELEASE-NOTES.md)
 
-Latest release: [template-v0.2.0](RELEASE-NOTES.md).
+Giter8 template to develop `Admin Control Panel` in Go with VueJS-based frontend.
 
 Demo: https://demo-govueadmin.herokuapp.com/.
 
@@ -17,8 +17,10 @@ Demo: https://demo-govueadmin.herokuapp.com/.
   - Dashboard/Feed
     - Vote up/down on public blog posts
   - BO & DAO:
-    - [SQLite3](https://github.com/mattn/go-sqlite3) implementation.
-    - PostgreSQL implementation.
+    - [SQLite3](https://sqlite.org/index.html) implementation.
+    - [PostgreSQL](https://www.postgresql.org/) implementation.
+    - [Azure Cosmos DB](https://azure.microsoft.com/services/cosmos-db/) implementation.
+    - [AWS DynamoDB](https://aws.amazon.com/dynamodb/) implementation.
 - Sample `Dockerfile` to package application as Docker image.
 
 
@@ -62,7 +64,7 @@ It purely provides APIs for frontend to call (e.g. it has no GUI) and can be ope
 
 > The backend is based on `goapi.g8` template. See [goapi.g8](https://github.com/btnguyen2k/goapi.g8) for API implementation guideline.
 
-**Note: The frontend is only GUI, it needs to call backend API to retrieve and modify data.**
+**Note: The frontend is GUI only, it needs to call backend APIs to retrieve and modify data.**
 
 
 ## LICENSE & COPYRIGHT
