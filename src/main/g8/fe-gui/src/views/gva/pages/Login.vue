@@ -42,7 +42,6 @@
                       label="Language"
                       :value.sync="$i18n.locale"
                       :options="[{value:'en',label:'English'},{value:'vi',label:'Tiếng Việt'}]"
-                      @change="doChangeLanguage"
                   />
                 </CForm>
               </CCardBody>
