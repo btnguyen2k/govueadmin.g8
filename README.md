@@ -41,7 +41,7 @@ g8 new btnguyen2k/govueadmin.g8
 
 and follow the instructions.
 
-> Note: This template requires `go-giter8 v0.4.2` or higher.
+> Note: This template requires `go-giter8 v0.5.1` or higher.
 
 Upon successful project creation, 2 sub-projects are created:
 
