@@ -57,7 +57,7 @@ func TestNewUserDaoDynamodb(t *testing.T) {
 	} else if adc == nil {
 		t.Fatalf("%s failed: nil", name)
 	}
-	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, UidxTableRcu: 2, UidxTableWcu: 1}
+	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, CreateUidxTable: true, UidxTableRcu: 2, UidxTableWcu: 1}
 	err = dynamodbInitTable(adc, testDynamodbTable, spec)
 	if err != nil {
 		t.Fatalf("%s failed: error [%s]", name+"/dynamodbInitTable", err)
@@ -77,7 +77,7 @@ func TestUserDaoDynamodb_CreateGet(t *testing.T) {
 	} else if adc == nil {
 		t.Fatalf("%s failed: nil", name)
 	}
-	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, UidxTableRcu: 2, UidxTableWcu: 1}
+	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, CreateUidxTable: true, UidxTableRcu: 2, UidxTableWcu: 1}
 	err = dynamodbInitTable(adc, testDynamodbTable, spec)
 	if err != nil {
 		t.Fatalf("%s failed: error [%s]", name+"/dynamodbInitTable", err)
@@ -98,7 +98,7 @@ func TestUserDaoDynamodb_CreateUpdateGet(t *testing.T) {
 	} else if adc == nil {
 		t.Fatalf("%s failed: nil", name)
 	}
-	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, UidxTableRcu: 2, UidxTableWcu: 1}
+	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, CreateUidxTable: true, UidxTableRcu: 2, UidxTableWcu: 1}
 	err = dynamodbInitTable(adc, testDynamodbTable, spec)
 	if err != nil {
 		t.Fatalf("%s failed: error [%s]", name+"/dynamodbInitTable", err)
@@ -119,7 +119,7 @@ func TestUserDaoDynamodb_CreateDelete(t *testing.T) {
 	} else if adc == nil {
 		t.Fatalf("%s failed: nil", name)
 	}
-	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, UidxTableRcu: 2, UidxTableWcu: 1}
+	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, CreateUidxTable: true, UidxTableRcu: 2, UidxTableWcu: 1}
 	err = dynamodbInitTable(adc, testDynamodbTable, spec)
 	if err != nil {
 		t.Fatalf("%s failed: error [%s]", name+"/dynamodbInitTable", err)
@@ -140,7 +140,7 @@ func TestUserDaoDynamodb_GetAll(t *testing.T) {
 	} else if adc == nil {
 		t.Fatalf("%s failed: nil", name)
 	}
-	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, UidxTableRcu: 2, UidxTableWcu: 1}
+	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, CreateUidxTable: true, UidxTableRcu: 2, UidxTableWcu: 1}
 	err = dynamodbInitTable(adc, testDynamodbTable, spec)
 	if err != nil {
 		t.Fatalf("%s failed: error [%s]", name+"/dynamodbInitTable", err)
@@ -161,7 +161,7 @@ func TestUserDaoDynamodb_GetN(t *testing.T) {
 	} else if adc == nil {
 		t.Fatalf("%s failed: nil", name)
 	}
-	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, UidxTableRcu: 2, UidxTableWcu: 1}
+	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, CreateUidxTable: true, UidxTableRcu: 2, UidxTableWcu: 1}
 	err = dynamodbInitTable(adc, testDynamodbTable, spec)
 	if err != nil {
 		t.Fatalf("%s failed: error [%s]", name+"/dynamodbInitTable", err)
