@@ -41,7 +41,7 @@ func sqlInitTable(sqlc *prom.SqlConnect, table string) error {
 	case prom.FlavorCosmosDb:
 		spec := &henge.CosmosdbCollectionSpec{Pk: henge.CosmosdbColId, Uk: [][]string{{"/" + UserColMaskUid}}}
 		err = henge.InitCosmosdbCollection(sqlc, table, spec)
-	case prom.FlavorPgSql:
+	case prom.FlavorPgSql, prom.FlavorSqlite:
 		err = henge.InitPgsqlTable(sqlc, table, map[string]string{UserColMaskUid: "VARCHAR(32)"})
 	}
 	return err
@@ -184,6 +184,11 @@ func TestUserDaoSql_CreateGet(t *testing.T) {
 		dao := initDaoSql(sqlc)
 		if dao == nil {
 			t.Fatalf("%s failed: nil", name)
+		}
+		if sqlc.GetDbFlavor() == prom.FlavorSqlite {
+			henge.TimeLayout = "2006-01-02 15:04:05Z07:00"
+		} else {
+			henge.TimeLayout = time.RFC3339
 		}
 		doTestUserDaoCreateGet(t, name, dao)
 		sqlc.Close()

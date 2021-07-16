@@ -39,7 +39,7 @@ func sqlInitTableComment(sqlc *prom.SqlConnect, table string) error {
 	case prom.FlavorCosmosDb:
 		spec := &henge.CosmosdbCollectionSpec{Pk: henge.CosmosdbColId}
 		err = henge.InitCosmosdbCollection(sqlc, table, spec)
-	case prom.FlavorPgSql:
+	case prom.FlavorPgSql, prom.FlavorSqlite:
 		err = henge.InitPgsqlTable(sqlc, table, map[string]string{
 			CommentColParentId: "VARCHAR(32)",
 			CommentColPostId:   "VARCHAR(32)",
@@ -63,7 +63,7 @@ func sqlInitTablePost(sqlc *prom.SqlConnect, table string) error {
 	case prom.FlavorCosmosDb:
 		spec := &henge.CosmosdbCollectionSpec{Pk: henge.CosmosdbColId}
 		err = henge.InitCosmosdbCollection(sqlc, table, spec)
-	case prom.FlavorPgSql:
+	case prom.FlavorPgSql, prom.FlavorSqlite:
 		err = henge.InitPgsqlTable(sqlc, table, map[string]string{PostColOwnerId: "VARCHAR(32)", PostColIsPublic: "INT"})
 	}
 	return err
@@ -83,7 +83,7 @@ func sqlInitTableVote(sqlc *prom.SqlConnect, table string) error {
 	case prom.FlavorCosmosDb:
 		spec := &henge.CosmosdbCollectionSpec{Pk: henge.CosmosdbColId}
 		err = henge.InitCosmosdbCollection(sqlc, table, spec)
-	case prom.FlavorPgSql:
+	case prom.FlavorPgSql, prom.FlavorSqlite:
 		err = henge.InitPgsqlTable(sqlc, table, map[string]string{VoteColOwnerId: "VARCHAR(32)", VoteColTargetId: "VARCHAR(32)", VoteColValue: "INT"})
 	}
 	return err
@@ -238,6 +238,14 @@ func TestCommentDaoSql_CreateGet(t *testing.T) {
 			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTableComment/"+dbtype, err)
 		}
 		dao := initBlogCommentDaoSql(sqlc)
+		if dao == nil {
+			t.Fatalf("%s failed: nil", name)
+		}
+		if sqlc.GetDbFlavor() == prom.FlavorSqlite {
+			henge.TimeLayout = "2006-01-02 15:04:05Z07:00"
+		} else {
+			henge.TimeLayout = time.RFC3339
+		}
 		doTestCommentDaoCreateGet(t, name, dao)
 		sqlc.Close()
 	}
@@ -261,6 +269,14 @@ func TestCommentDaoSql_CreateUpdateGet(t *testing.T) {
 			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTableComment/"+dbtype, err)
 		}
 		dao := initBlogCommentDaoSql(sqlc)
+		if dao == nil {
+			t.Fatalf("%s failed: nil", name)
+		}
+		if sqlc.GetDbFlavor() == prom.FlavorSqlite {
+			henge.TimeLayout = "2006-01-02 15:04:05Z07:00"
+		} else {
+			henge.TimeLayout = time.RFC3339
+		}
 		doTestCommentDaoCreateUpdateGet(t, name, dao)
 		sqlc.Close()
 	}
@@ -380,6 +396,14 @@ func TestPostDaoSql_CreateGet(t *testing.T) {
 			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTablePost/"+dbtype, err)
 		}
 		dao := initBlogPostDaoSql(sqlc)
+		if dao == nil {
+			t.Fatalf("%s failed: nil", name)
+		}
+		if sqlc.GetDbFlavor() == prom.FlavorSqlite {
+			henge.TimeLayout = "2006-01-02 15:04:05Z07:00"
+		} else {
+			henge.TimeLayout = time.RFC3339
+		}
 		doTestPostDaoCreateGet(t, name, dao)
 		sqlc.Close()
 	}
@@ -403,6 +427,14 @@ func TestPostDaoSql_CreateUpdateGet(t *testing.T) {
 			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTablePost/"+dbtype, err)
 		}
 		dao := initBlogPostDaoSql(sqlc)
+		if dao == nil {
+			t.Fatalf("%s failed: nil", name)
+		}
+		if sqlc.GetDbFlavor() == prom.FlavorSqlite {
+			henge.TimeLayout = "2006-01-02 15:04:05Z07:00"
+		} else {
+			henge.TimeLayout = time.RFC3339
+		}
 		doTestPostDaoCreateUpdateGet(t, name, dao)
 		sqlc.Close()
 	}
@@ -568,6 +600,14 @@ func TestVoteDaoSql_CreateGet(t *testing.T) {
 			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTableVote/"+dbtype, err)
 		}
 		dao := initBlogVoteDaoSql(sqlc)
+		if dao == nil {
+			t.Fatalf("%s failed: nil", name)
+		}
+		if sqlc.GetDbFlavor() == prom.FlavorSqlite {
+			henge.TimeLayout = "2006-01-02 15:04:05Z07:00"
+		} else {
+			henge.TimeLayout = time.RFC3339
+		}
 		doTestVoteDaoCreateGet(t, name, dao)
 		sqlc.Close()
 	}
@@ -591,6 +631,14 @@ func TestVoteDaoSql_CreateUpdateGet(t *testing.T) {
 			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTableVote/"+dbtype, err)
 		}
 		dao := initBlogVoteDaoSql(sqlc)
+		if dao == nil {
+			t.Fatalf("%s failed: nil", name)
+		}
+		if sqlc.GetDbFlavor() == prom.FlavorSqlite {
+			henge.TimeLayout = "2006-01-02 15:04:05Z07:00"
+		} else {
+			henge.TimeLayout = time.RFC3339
+		}
 		doTestVoteDaoCreateUpdateGet(t, name, dao)
 		sqlc.Close()
 	}

@@ -167,22 +167,20 @@ var _cosmosdbTableSpec = map[string]*henge.CosmosdbCollectionSpec{
 }
 
 func _createSqlTables(sqlc *prom.SqlConnect, dbtype string) {
-	isCosmosDb := false
-	switch dbtype {
-	case "sqlite":
+	switch sqlc.GetDbFlavor() {
+	case prom.FlavorSqlite:
 		for tbl, schema := range _sqliteTableSchema {
 			if err := henge.InitSqliteTable(sqlc, tbl, schema); err != nil {
 				log.Printf("[WARN] creating table %s (%s): %s\n", tbl, dbtype, err)
 			}
 		}
-	case "pg", "pgsql", "postgres", "postgresql":
+	case prom.FlavorPgSql:
 		for tbl, schema := range _pgsqlTableSchema {
 			if err := henge.InitSqliteTable(sqlc, tbl, schema); err != nil {
 				log.Printf("[WARN] creating table %s (%s): %s\n", tbl, dbtype, err)
 			}
 		}
-	case "cosmos", "cosmosdb":
-		isCosmosDb = true
+	case prom.FlavorCosmosDb:
 		for tbl, spec := range _cosmosdbTableSpec {
 			if err := henge.InitCosmosdbCollection(sqlc, tbl, spec); err != nil {
 				log.Printf("[WARN] creating table %s (%s): %s\n", tbl, dbtype, err)
@@ -190,7 +188,7 @@ func _createSqlTables(sqlc *prom.SqlConnect, dbtype string) {
 		}
 	}
 
-	if isCosmosDb {
+	if sqlc.GetDbFlavor() == prom.FlavorCosmosDb {
 		return
 	}
 
