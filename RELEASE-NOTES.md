@@ -1,6 +1,6 @@
 # govueadmin.g8 Release Notes
 
-## 2021-07-14: template-v0.3.0
+## 2021-07-17: template-v0.3.0
 
 - Backend migrated to [Echo](https://echo.labstack.com) `v4.3.x`.
 - AB#43: Frontend migrated to [CoreUI for Vue.js](https://coreui.io/vue/) `v3.1.4`.
