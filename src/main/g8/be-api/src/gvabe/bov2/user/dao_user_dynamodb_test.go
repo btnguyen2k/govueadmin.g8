@@ -1,6 +1,7 @@
 package user
 
 import (
+	"errors"
 	"math/rand"
 	"os"
 	"strings"
@@ -17,9 +18,33 @@ const (
 	testDynamodbTable = "test_user"
 )
 
+func _dynamodbWaitForTableStatus(adc *prom.AwsDynamodbConnect, table, status string, timeout time.Duration) error {
+	t := time.Now()
+	for tblStatus, err := adc.GetTableStatus(nil, table); ; {
+		if err != nil {
+			return err
+		}
+		if strings.ToUpper(tblStatus) == status {
+			return nil
+		}
+		if time.Now().Sub(t).Milliseconds() > timeout.Milliseconds() {
+			return errors.New("")
+		}
+	}
+}
+
 func dynamodbInitTable(adc *prom.AwsDynamodbConnect, table string, spec *henge.DynamodbTablesSpec) error {
 	rand.Seed(time.Now().UnixNano())
 	adc.DeleteTable(nil, table)
+	if err := _dynamodbWaitForTableStatus(adc, table, "", 10*time.Second); err != nil {
+		return err
+	}
+	if spec.CreateUidxTable {
+		adc.DeleteTable(nil, table+henge.AwsDynamodbUidxTableSuffix)
+		if err := _dynamodbWaitForTableStatus(adc, table+henge.AwsDynamodbUidxTableSuffix, "", 10*time.Second); err != nil {
+			return err
+		}
+	}
 	return henge.InitDynamodbTables(adc, table, spec)
 }
 
@@ -57,7 +82,7 @@ func TestNewUserDaoDynamodb(t *testing.T) {
 	} else if adc == nil {
 		t.Fatalf("%s failed: nil", name)
 	}
-	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, UidxTableRcu: 2, UidxTableWcu: 1}
+	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, CreateUidxTable: true, UidxTableRcu: 2, UidxTableWcu: 1}
 	err = dynamodbInitTable(adc, testDynamodbTable, spec)
 	if err != nil {
 		t.Fatalf("%s failed: error [%s]", name+"/dynamodbInitTable", err)
@@ -77,7 +102,7 @@ func TestUserDaoDynamodb_CreateGet(t *testing.T) {
 	} else if adc == nil {
 		t.Fatalf("%s failed: nil", name)
 	}
-	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, UidxTableRcu: 2, UidxTableWcu: 1}
+	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, CreateUidxTable: true, UidxTableRcu: 2, UidxTableWcu: 1}
 	err = dynamodbInitTable(adc, testDynamodbTable, spec)
 	if err != nil {
 		t.Fatalf("%s failed: error [%s]", name+"/dynamodbInitTable", err)
@@ -98,7 +123,7 @@ func TestUserDaoDynamodb_CreateUpdateGet(t *testing.T) {
 	} else if adc == nil {
 		t.Fatalf("%s failed: nil", name)
 	}
-	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, UidxTableRcu: 2, UidxTableWcu: 1}
+	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, CreateUidxTable: true, UidxTableRcu: 2, UidxTableWcu: 1}
 	err = dynamodbInitTable(adc, testDynamodbTable, spec)
 	if err != nil {
 		t.Fatalf("%s failed: error [%s]", name+"/dynamodbInitTable", err)
@@ -119,7 +144,7 @@ func TestUserDaoDynamodb_CreateDelete(t *testing.T) {
 	} else if adc == nil {
 		t.Fatalf("%s failed: nil", name)
 	}
-	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, UidxTableRcu: 2, UidxTableWcu: 1}
+	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, CreateUidxTable: true, UidxTableRcu: 2, UidxTableWcu: 1}
 	err = dynamodbInitTable(adc, testDynamodbTable, spec)
 	if err != nil {
 		t.Fatalf("%s failed: error [%s]", name+"/dynamodbInitTable", err)
@@ -140,7 +165,7 @@ func TestUserDaoDynamodb_GetAll(t *testing.T) {
 	} else if adc == nil {
 		t.Fatalf("%s failed: nil", name)
 	}
-	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, UidxTableRcu: 2, UidxTableWcu: 1}
+	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, CreateUidxTable: true, UidxTableRcu: 2, UidxTableWcu: 1}
 	err = dynamodbInitTable(adc, testDynamodbTable, spec)
 	if err != nil {
 		t.Fatalf("%s failed: error [%s]", name+"/dynamodbInitTable", err)
@@ -161,7 +186,7 @@ func TestUserDaoDynamodb_GetN(t *testing.T) {
 	} else if adc == nil {
 		t.Fatalf("%s failed: nil", name)
 	}
-	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, UidxTableRcu: 2, UidxTableWcu: 1}
+	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, CreateUidxTable: true, UidxTableRcu: 2, UidxTableWcu: 1}
 	err = dynamodbInitTable(adc, testDynamodbTable, spec)
 	if err != nil {
 		t.Fatalf("%s failed: error [%s]", name+"/dynamodbInitTable", err)
