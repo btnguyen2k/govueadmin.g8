@@ -1,168 +1,146 @@
 <template>
   <CRow>
-    <CCol col="12" md="6">
-      <CCard>
+    <CCol :xs="12">
+      <DocsCallout name="Alert" href="components/alert.html" />
+    </CCol>
+    <CCol :xs="12">
+      <CCard class="mb-4">
         <CCardHeader>
-          <CIcon name="cil-justify-center"/>
-          <strong> Bootstrap Alert</strong>
-          <div class="card-header-actions">
-            <a 
-              href="https://coreui.io/vue/docs/components/alert" 
-              class="card-header-action" 
-              rel="noreferrer noopener" 
-              target="_blank"
+          <strong>Vue Alert</strong>
+        </CCardHeader>
+        <CCardBody>
+          <p class="text-medium-emphasis small">
+            Vue Alert is prepared for any length of text, as well as an optional
+            close button. For a styling, use one of the
+            <strong>required</strong> contextual <code>color</code> props (e.g.,
+            <code>primary</code>). For inline dismissal, use the
+            <a
+              href="https://coreui.io/vue/docs/4.0/components/alert.html#dismissing"
             >
-              <small class="text-muted">docs</small>
+              dismissing prop
             </a>
-          </div>
-        </CCardHeader>
-        <CCardBody>
-          <div>
-            <p></p>
-            <CAlert show color="primary">Primary Alert</CAlert>
-            <CAlert show color="secondary">Secondary Alert</CAlert>
-            <CAlert show color="success">Success Alert</CAlert>
-            <CAlert show color="danger">Danger Alert</CAlert>
-            <CAlert show color="warning">Warning Alert</CAlert>
-            <CAlert show color="info">Info Alert</CAlert>
-            <CAlert show color="light">Light Alert</CAlert>
-            <CAlert show color="dark">Dark Alert</CAlert>
-          </div>
+            .
+          </p>
+          <DocsExample href="components/alert.html">
+            <CAlert color="primary"
+              >A simple primary alert—check it out!</CAlert
+            >
+            <CAlert color="secondary"
+              >A simple secondary alert—check it out!</CAlert
+            >
+            <CAlert color="success"
+              >A simple success alert—check it out!</CAlert
+            >
+            <CAlert color="danger">A simple danger alert—check it out!</CAlert>
+            <CAlert color="warning"
+              >A simple warning alert—check it out!</CAlert
+            >
+            <CAlert color="info">A simple info alert—check it out!</CAlert>
+            <CAlert color="light">A simple light alert—check it out!</CAlert>
+            <CAlert color="dark">A simple dark alert—check it out!</CAlert>
+          </DocsExample>
         </CCardBody>
       </CCard>
     </CCol>
-    <CCol col="12" md="6">
-      <CCard>
+    <CCol :xs="12">
+      <CCard class="mb-4">
         <CCardHeader>
-          <CIcon name="cil-justify-center"/> Alert
-          <small> use <code>.alert-link</code> to provide links</small>
+          <strong>Vue Alert</strong> <small>Link color</small>
         </CCardHeader>
         <CCardBody>
-          <div>
-            <CAlert show color="primary">
-              Primary Alert with <a href="#" class="alert-link">an example link</a>.
+          <p class="text-medium-emphasis small">
+            Use the <code>&lt;CAlertLink&gt;</code> component to immediately
+            give matching colored links inside any alert.
+          </p>
+          <DocsExample href="components/alert.html#link-color">
+            <CAlert color="primary">
+              A simple primary alert with
+              <CAlertLink href="#">an example link</CAlertLink>. Give it a click
+              if you like.
             </CAlert>
-            <CAlert show color="secondary">
-              Secondary Alert with <a href="#" class="alert-link">an example link</a>.
+            <CAlert color="secondary">
+              A simple secondary alert with
+              <CAlertLink href="#">an example link</CAlertLink>. Give it a click
+              if you like.
             </CAlert>
-            <CAlert show color="success">
-              Success Alert with <a href="#" class="alert-link">an example link</a>.
+            <CAlert color="success">
+              A simple success alert with
+              <CAlertLink href="#">an example link</CAlertLink>. Give it a click
+              if you like.
             </CAlert>
-            <CAlert show color="danger">
-              Danger Alert with <a href="#" class="alert-link">an example link</a>.
+            <CAlert color="danger">
+              A simple danger alert with
+              <CAlertLink href="#">an example link</CAlertLink>. Give it a click
+              if you like.
             </CAlert>
-            <CAlert show color="warning">
-              Warning Alert with <a href="#" class="alert-link">an example link</a>.
+            <CAlert color="warning">
+              A simple warning alert with
+              <CAlertLink href="#">an example link</CAlertLink>. Give it a click
+              if you like.
             </CAlert>
-            <CAlert show color="info">
-              Info Alert with <a href="#" class="alert-link">an example link</a>.
+            <CAlert color="info">
+              A simple info alert with
+              <CAlertLink href="#">an example link</CAlertLink>. Give it a click
+              if you like.
             </CAlert>
-            <CAlert show color="light">
-              Light Alert with <a href="#" class="alert-link">an example link</a>.
+            <CAlert color="light">
+              A simple light alert with
+              <CAlertLink href="#">an example link</CAlertLink>. Give it a click
+              if you like.
             </CAlert>
-            <CAlert show color="dark">
-              Dark Alert with
-              <CLink href="#" class="alert-link">an example link</CLink>
-              .
+            <CAlert color="dark">
+              A simple dark alert with
+              <CAlertLink href="#">an example link</CAlertLink>. Give it a click
+              if you like.
             </CAlert>
-          </div>
+          </DocsExample>
         </CCardBody>
       </CCard>
     </CCol>
-    <CCol col="12" md="6">
-      <CCard>
+    <CCol :xs="12">
+      <CCard class="mb-4">
         <CCardHeader>
-          <CIcon name="cil-justify-center"/> Alerts <small>with additional content</small>
+          <strong>Vue Alert</strong> <small>Additional content</small>
         </CCardHeader>
         <CCardBody>
-          <CAlert show color="success">
-            <h4 class="alert-heading">Well done!</h4>
-            <p>
-              Aww yeah, you successfully read this important alert message.
-              This example text is going to run a bit longer so that you can see
-              how spacing within an alert works with this kind of content.
-            </p>
-            <hr>
-            <p class="mb-0">
-              Whenever you need to, be sure to use margin utilities to keep things nice and tidy.
-            </p>
-          </CAlert>
+          <p class="text-medium-emphasis small">
+            Alert can also incorporate supplementary components &amp; elements
+            like heading, paragraph, and divider.
+          </p>
+          <DocsExample href="components/alert.html#additional-content">
+            <CAlert color="success">
+              <CAlertHeading tag="h4">Well done!</CAlertHeading>
+              <p>
+                Aww yeah, you successfully read this important alert message.
+                This example text is going to run a bit longer so that you can
+                see how spacing within an alert works with this kind of content.
+              </p>
+              <hr />
+              <p class="mb-0">
+                Whenever you need to, be sure to use margin utilities to keep
+                things nice and tidy.
+              </p>
+            </CAlert>
+          </DocsExample>
         </CCardBody>
       </CCard>
     </CCol>
-    <CCol col="12" md="6">
-      <CCard>
+    <CCol :xs="12">
+      <CCard class="mb-4">
         <CCardHeader>
-          <CIcon name="cil-justify-center"/> Alerts
-          <small>dismissible</small>
+          <strong>Vue Alert</strong> <small>Dismissing</small>
         </CCardHeader>
         <CCardBody>
-          <CAlert
-            color="secondary"
-            closeButton
-            :show.sync="alert1"
-          >
-            Dismissible Alert!
-          </CAlert>
-
-          <CAlert
-            color="secondary"
-            :show.sync="alert2"
-            class="alert-dismissible"
-          >
-            Dismissible Alert with custom button!
-            <CButton
-              class="position-absolute"
-              color="secondary"
-              style="right:10px;top: 50%;transform: translateY(-50%);"
-              @click="alert2 = false"
-            >
-              Close
-            </CButton>
-          </CAlert>
-          <CButton
-            @click="showDismissibleAlerts"
-            color="info"
-            class="m-1"
-          >
-            Show dismissible alerts
-          </CButton>
-        </CCardBody>
-      </CCard>
-      <CCard>
-        <CCardHeader>
-          <CIcon name="cil-justify-center"/> Alerts
-          <small>auto dismissible</small>
-        </CCardHeader>
-        <CCardBody>
-          <div>
-            <CAlert
-              :show.sync="dismissCountDown"
-              closeButton
-              color="warning"
-              fade
-            >
-              Alert will dismiss after
-              <strong>{{dismissCountDown}}</strong> seconds...
+          <p class="text-medium-emphasis small">
+            Alerts can also be easily dismissed. Just add the
+            <code>dismissible</code> prop.
+          </p>
+          <DocsExample href="components/alert.html#dismissing">
+            <CAlert color="warning" dismissible @dismiss="alert">
+              <strong>Go right ahead</strong> and click that dimiss over there
+              on the right.
             </CAlert>
-
-            <CAlert
-              :show.sync="dismissCountDown"
-              closeButton
-              color="info"
-            >
-              Alert will dismiss after {{dismissCountDown}} seconds...
-              <CProgress
-                color="info"
-                :max="dismissSecs"
-                :value="dismissCountDown"
-                height="4px"
-              />
-            </CAlert>
-            <CButton @click="showAlert" color="info" class="m-1">
-              Show alert with timer
-            </CButton>
-          </div>
+          </DocsExample>
         </CCardBody>
       </CCard>
     </CCol>
@@ -172,24 +150,10 @@
 <script>
 export default {
   name: 'Alerts',
-  data () {
-    return {
-      dismissSecs: 10,
-      dismissCountDown: 10,
-      alert1: true,
-      alert2: true
-    }
-  },
   methods: {
-    countDownChanged (dismissCountDown) {
-      this.dismissCountDown = dismissCountDown
+    alert: function () {
+      alert('👋 Well, hi there! Thanks for dismissing me.')
     },
-    showAlert () {
-      this.dismissCountDown = this.dismissSecs
-    },
-    showDismissibleAlerts () {
-      ['alert1', 'alert2'].forEach(alert => this[alert] = true)
-    }
-  }
+  },
 }
 </script>
