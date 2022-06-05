@@ -1,25 +1,25 @@
-//#GovueAdmin-Customized
-import 'core-js/stable'
-import Vue from 'vue'
-import App from './App'
-import i18n from './i18n'
+// #GovueAdmin-Customized
+import { createApp } from 'vue'
+import App from './App.vue'
 import router from './router'
-import CoreuiVue from '@coreui/vue'
-import { iconsSet as icons } from './assets/icons/icons.js'
 import store from './store'
 
-Vue.config.performance = true
-Vue.use(CoreuiVue)
-Vue.prototype.$log = console.log.bind(console)
+import CoreuiVue from '@coreui/vue'
+import CIcon from '@coreui/icons-vue'
+import { iconsSet as icons } from '@/assets/icons'
+import DocsCallout from '@/components/DocsCallout'
+import DocsExample from '@/components/DocsExample'
 
-new Vue({
-    el: '#app',
-    router,
-    store,
-    icons,
-    template: '<App/>',
-    components: {
-        App
-    },
-    i18n
-})
+import i18n from './i18n'
+
+const app = createApp(App)
+app.use(store)
+app.use(router)
+app.use(CoreuiVue)
+app.provide('icons', icons)
+app.provide('i18n', i18n)
+app.component('CIcon', CIcon)
+app.component('DocsCallout', DocsCallout)
+app.component('DocsExample', DocsExample)
+
+app.mount('#app')
