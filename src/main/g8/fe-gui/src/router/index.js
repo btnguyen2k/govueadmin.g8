@@ -4,21 +4,6 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 
 import DefaultLayout from '@/layouts/DefaultLayout'
 
-// // Views
-// const Dashboard = () => import('@/views/gva/Dashboard')
-// const MyBlog = () => import('@/views/gva/blog/MyBlog')
-// const CreatePost = () => import('@/views/gva/blog/CreatePost')
-// const EditPost = () => import('@/views/gva/blog/EditPost')
-// const DeletePost = () => import('@/views/gva/blog/DeletePost')
-//
-// // Views - Pages
-// const Login = () => import('@/views/gva/pages/Login')
-// const Page404 = () => import('@/views/pages/Page404')
-// const Page500 = () => import('@/views/pages/Page500')
-// const Register = () => import('@/views/pages/Register')
-
-// Vue.use(Router)
-//
 // let router = new Router({
 //   mode: 'hash', // https://router.vuejs.org/api/#mode
 //   linkActiveClass: 'active',
@@ -28,11 +13,12 @@ import DefaultLayout from '@/layouts/DefaultLayout'
 // })
 const router = createRouter({
   history: createWebHashHistory(process.env.BASE_URL),
-  routes: configRoutes(),
+  linkActiveClass: 'active',
   scrollBehavior: () => {
     // always scroll to top
     return { top: 0 }
   },
+  routes: configRoutes(),
 })
 
 import appConfig from '@/utils/app_config'
@@ -97,26 +83,26 @@ router.beforeEach((to, from, next) => {
 
 export default router
 
-import i18n from '../i18n'
+import i18n from '@/i18n'
 
 function configRoutes() {
   return [
     {
       path: '/',
       name: 'Home',
-      meta: { label: i18n.t('message.home') },
+      meta: { label: i18n.global.t('message.home') },
       component: DefaultLayout,
       redirect: { name: 'Dashboard' },
       children: [
         {
           path: 'dashboard',
           name: 'Dashboard',
-          meta: { label: i18n.t('message.dashboard') },
+          meta: { label: i18n.global.t('message.dashboard') },
           component: () => import('@/views/gva/Dashboard'),
         },
         {
           path: 'posts',
-          meta: { label: i18n.t('message.blog') },
+          meta: { label: i18n.global.t('message.blog') },
           component: {
             render() {
               return h(resolveComponent('router-view'))
@@ -130,26 +116,26 @@ function configRoutes() {
           children: [
             {
               path: '',
-              meta: { label: i18n.t('message.my_blog') },
+              meta: { label: i18n.global.t('message.my_blog') },
               name: 'MyBlog',
               component: () => import('@/views/gva/blog/MyBlog'),
               props: true, //[props=true] to pass flashMsg
             },
             {
               path: '_create',
-              meta: { label: i18n.t('message.create_blog_post') },
+              meta: { label: i18n.global.t('message.create_blog_post') },
               name: 'CreatePost',
               component: () => import('@/views/gva/blog/CreatePost'),
             },
             {
               path: '_edit/:id',
-              meta: { label: i18n.t('message.edit_blog_post') },
+              meta: { label: i18n.global.t('message.edit_blog_post') },
               name: 'EditPost',
               component: () => import('@/views/gva/blog/EditPost'),
             },
             {
               path: '_delete/:id',
-              meta: { label: i18n.t('message.delete_blog_post') },
+              meta: { label: i18n.global.t('message.delete_blog_post') },
               name: 'DeletePost',
               component: () => import('@/views/gva/blog/DeletePost'),
             },
