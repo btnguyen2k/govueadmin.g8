@@ -200,9 +200,10 @@ export default {
               })
               let rUrl = this.returnUrl
               if (rUrl == null || rUrl == '') {
-                this.$router.push(
-                  this.$router.resolve({ name: 'Dashboard' }).location,
-                )
+                this.$router.push({ name: 'Dashboard' })
+                // this.$router.push(
+                //   this.$router.resolve({ name: 'Dashboard' }).location,
+                // )
               } else {
                 window.location.href = rUrl
               }
