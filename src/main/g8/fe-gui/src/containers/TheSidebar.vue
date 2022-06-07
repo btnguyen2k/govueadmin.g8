@@ -1,17 +1,30 @@
 <!-- #GovueAdmin-Customized -->
 <template>
-  <CSidebar fixed :minimize="minimize" :show="show"
-            @update:show="(value) => $store.commit('set', ['sidebarShow', value])">
+  <CSidebar
+    fixed
+    :minimize="minimize"
+    :show="show"
+    @update:show="(value) => $store.commit('set', ['sidebarShow', value])"
+  >
     <div class="c-sidebar-brand">
       <a href="/">
-        <span class="c-sidebar-brand-full"
-              style="color: #fff; font-weight: bolder; font-size: x-large">{{ appName }}</span>
-        <span class="c-sidebar-brand-minimized"
-              style="color: #fff; font-weight: bolder; font-size: large">{{ appInitial }}</span>
+        <span
+          class="c-sidebar-brand-full"
+          style="color: #fff; font-weight: bolder; font-size: x-large"
+          >{{ appName }}</span
+        >
+        <span
+          class="c-sidebar-brand-minimized"
+          style="color: #fff; font-weight: bolder; font-size: large"
+          >{{ appInitial }}</span
+        >
       </a>
     </div>
-    <CRenderFunction flat :content-to-render="$options.nav"/>
-    <CSidebarMinimizer class="d-md-down-none" @click.native="$store.commit('set', ['sidebarMinimize', !minimize])"/>
+    <CRenderFunction flat :content-to-render="$options.nav" />
+    <CSidebarMinimizer
+      class="d-md-down-none"
+      @click.native="$store.commit('set', ['sidebarMinimize', !minimize])"
+    />
   </CSidebar>
 </template>
 

@@ -1,32 +1,33 @@
+<!-- #GovueAdmin-Customized -->
 <template>
   <CSidebar
     position="fixed"
     :unfoldable="sidebarUnfoldable"
     :visible="sidebarVisible"
     @visible-change="
-      (event) =>
-        $store.commit({
+      (value) =>
+        this.$store.commit({
           type: 'updateSidebarVisible',
-          value: event,
+          value: value,
         })
     "
   >
     <CSidebarBrand>
-      <CIcon
-        custom-class-name="sidebar-brand-full"
-        :icon="logoNegative"
-        :height="35"
-      />
-      <CIcon
-        custom-class-name="sidebar-brand-narrow"
-        :icon="sygnet"
-        :height="35"
-      />
+      <span
+        class="sidebar-brand-full"
+        style="color: #fff; font-weight: bolder; font-size: x-large"
+        >{{ appName }}</span
+      >
+      <span
+        class="sidebar-brand-narrow"
+        style="color: #fff; font-weight: bolder; font-size: large"
+        >{{ appInitial }}</span
+      >
     </CSidebarBrand>
     <AppSidebarNav />
     <CSidebarToggler
       class="d-none d-lg-flex"
-      @click="$store.commit('toggleUnfoldable')"
+      @click="this.$store.commit('toggleUnfoldable')"
     />
   </CSidebar>
 </template>
@@ -35,8 +36,8 @@
 import { computed } from 'vue'
 import { useStore } from 'vuex'
 import { AppSidebarNav } from './AppSidebarNav'
-import { logoNegative } from '@/assets/brand/logo-negative'
-import { sygnet } from '@/assets/brand/sygnet'
+import cfg from '@/utils/app_config'
+
 export default {
   name: 'AppSidebar',
   components: {
@@ -45,10 +46,10 @@ export default {
   setup() {
     const store = useStore()
     return {
-      logoNegative,
-      sygnet,
       sidebarUnfoldable: computed(() => store.state.sidebarUnfoldable),
       sidebarVisible: computed(() => store.state.sidebarVisible),
+      appName: cfg.APP_CONFIG.app.name,
+      appInitial: cfg.APP_CONFIG.app.initial,
     }
   },
 }
