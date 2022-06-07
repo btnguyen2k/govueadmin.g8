@@ -1,21 +1,34 @@
+<!-- #GovueAdmin-Customized -->
 <template>
   <CHeader position="sticky" class="mb-4">
     <CContainer fluid>
       <CHeaderToggler class="ps-1" @click="$store.commit('toggleSidebar')">
         <CIcon icon="cil-menu" size="lg" />
       </CHeaderToggler>
-      <CHeaderBrand class="mx-auto d-lg-none" to="/">
-        <CIcon :icon="logo" height="48" alt="Logo" />
-      </CHeaderBrand>
+      <!--      <CHeaderBrand class="mx-auto d-lg-none" to="/">-->
+      <!--        <CIcon :icon="logo" height="48" alt="Logo" />-->
+      <!--      </CHeaderBrand>-->
+      <a
+        href="/"
+        class="c-header-brand mx-auto d-lg-none"
+        style="font-weight: bolder; font-size: x-large"
+        >{{ appName }}</a
+      >
       <CHeaderNav class="d-none d-md-flex me-auto">
-        <CNavItem>
-          <CNavLink href="/dashboard"> Dashboard </CNavLink>
+        <CNavItem class="px-2">
+          <CNavLink :href="this.$router.resolve({ name: 'Dashboard' }).href">{{
+            $t('message.dashboard')
+          }}</CNavLink>
         </CNavItem>
-        <CNavItem>
-          <CNavLink href="#">Users</CNavLink>
+        <CNavItem class="px-2">
+          <CNavLink :href="this.$router.resolve({ name: 'MyBlog' }).href">{{
+            $t('message.my_blog')
+          }}</CNavLink>
         </CNavItem>
-        <CNavItem>
-          <CNavLink href="#">Settings</CNavLink>
+        <CNavItem class="px-2">
+          <CNavLink :href="this.$router.resolve({ name: 'CreatePost' }).href">{{
+            $t('message.create_blog_post')
+          }}</CNavLink>
         </CNavItem>
       </CHeaderNav>
       <CHeaderNav>
@@ -48,11 +61,18 @@
 import AppBreadcrumb from './AppBreadcrumb'
 import AppHeaderDropdownAccnt from './AppHeaderDropdownAccnt'
 import { logo } from '@/assets/brand/logo'
+import cfg from '@/utils/app_config'
+
 export default {
   name: 'AppHeader',
   components: {
     AppBreadcrumb,
     AppHeaderDropdownAccnt,
+  },
+  computed: {
+    appName() {
+      return cfg.APP_CONFIG.app.name
+    },
   },
   setup() {
     return {
