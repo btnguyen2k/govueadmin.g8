@@ -2,7 +2,7 @@
 <template>
   <CDropdown variant="nav-item">
     <CDropdownToggle placement="bottom-end" class="py-0" :caret="false">
-      <CAvatar :src="avatar" size="md" />
+      <CAvatar :src="avatarUrl" size="md" />
     </CDropdownToggle>
     <CDropdownMenu class="pt-0">
       <CDropdownHeader component="h6" class="bg-light fw-semibold py-2">
@@ -68,7 +68,7 @@ export default {
     return {
       itemsCount: 42,
       displayName: session != null ? session.name : uid,
-      avatar: 'https://www.gravatar.com/avatar/{aid}?s=40'.replace(
+      avatarUrl: 'https://www.gravatar.com/avatar/{aid}?s=40'.replace(
         '{aid}',
         uid.trim().toLowerCase().md5(),
       ),
