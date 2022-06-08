@@ -55,7 +55,6 @@
 <script>
 import MD5 from 'crypto-js/md5'
 import utils from '@/utils/app_utils'
-import appConfig from '@/utils/app_config'
 
 export default {
   name: 'AppHeaderDropdownAccnt',
