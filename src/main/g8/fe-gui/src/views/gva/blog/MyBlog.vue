@@ -107,6 +107,12 @@
             </CTableBody>
           </CTable>
         </CCardBody>
+        <CCardFooter>
+          <CButton class="btn-sm btn-primary" @click="clickCreateBlogPost">
+            <CIcon name="cil-image-plus" />
+            {{ $t('message.create_blog_post') }}
+          </CButton>
+        </CCardFooter>
       </CCard>
     </CCol>
   </CRow>
