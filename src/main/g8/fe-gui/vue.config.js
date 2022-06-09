@@ -1,4 +1,4 @@
-// #GovueAdmin-Customized
+// #GoVueAdmin-Customized
 module.exports = {
   publicPath: '/app/',
   transpileDependencies: true,

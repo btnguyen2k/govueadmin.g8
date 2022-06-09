@@ -1,4 +1,4 @@
-<!-- #GovueAdmin-Customized -->
+<!-- #GoVueAdmin-Customized -->
 <template>
   <div>
     <CRow v-for="postId in blogPostIdList" :key="postId">

@@ -1,4 +1,4 @@
-<!-- #GovueAdmin-Customized -->
+<!-- #GoVueAdmin-Customized -->
 <template>
   <CHeader position="sticky" class="mb-4">
     <CContainer fluid>

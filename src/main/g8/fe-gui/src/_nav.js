@@ -1,4 +1,4 @@
-// #GovueAdmin-Customized
+// #GoVueAdmin-Customized
 import i18n from '@/i18n'
 
 export default [

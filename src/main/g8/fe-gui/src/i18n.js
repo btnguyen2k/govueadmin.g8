@@ -1,4 +1,4 @@
-// #GovueAdmin-Customized
+// #GoVueAdmin-Customized
 import { createI18n } from 'vue-i18n'
 
 const messages = {

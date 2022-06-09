@@ -2,7 +2,7 @@
 Misc utilities.
 
 @author Thanh Nguyen <btnguyen2k@gmail.com>
-@GovueAdmin
+@GoVueAdmin
 */
 import jsrsasign from 'jsrsasign'
 

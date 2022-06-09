@@ -1,3 +1,4 @@
+<!-- #GoVueAdmin-Customized -->
 <template>
   <CBreadcrumb class="d-md-down-none me-auto mb-0">
     <CBreadcrumbItem
@@ -24,7 +25,7 @@ export default {
       return router.currentRoute.value.matched.map((route) => {
         return {
           active: route.path === router.currentRoute.value.fullPath,
-          name: route.name,
+          name: route.meta.label ? route.meta.label : route.name, // GoVueAdmin-Customized
           path: `${router.options.history.base}${route.path}`,
         }
       })

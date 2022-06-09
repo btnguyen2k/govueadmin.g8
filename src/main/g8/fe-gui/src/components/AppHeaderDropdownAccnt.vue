@@ -1,4 +1,4 @@
-<!-- #GovueAdmin-Customized -->
+<!-- #GoVueAdmin-Customized -->
 <template>
   <CDropdown variant="nav-item">
     <CDropdownToggle placement="bottom-end" class="py-0" :caret="false">

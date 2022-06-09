@@ -1,4 +1,4 @@
-<!-- #GovueAdmin-Customized -->
+<!-- #GoVueAdmin-Customized -->
 <template>
   <CFooter>
     <div>© {{ appName }} version {{ appVersion }}.</div>

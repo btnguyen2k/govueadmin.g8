@@ -1,5 +1,5 @@
 {
-  "_": "#GovueAdmin-Customized",
+  "_": "#GoVueAdmin-Customized",
   "app": {
     "name": "#{appName}",
     "initial": "#{appInitial}",
