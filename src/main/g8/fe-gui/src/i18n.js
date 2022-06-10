@@ -21,23 +21,31 @@ const messages = {
       action_edit: 'Edit',
       action_delete: 'Delete',
 
+      wait: 'Please wait...',
+
       login: 'Login',
       login_info: 'Please sign in to continue',
       login_social: 'Login with social account',
       username: 'Username',
       password: 'Password',
-      wait: 'Please wait...',
       error_parse_login_token: 'Error parsing login-token',
+
+      home: 'Home',
       dashboard: 'Dashboard',
       blog: 'Blog',
       my_blog: 'My blog',
+
       create_blog_post: 'Create blog post',
       edit_blog_post: 'Edit blog post',
       delete_blog_post: 'Delete blog post',
-      blog_posts: 'Blog post ({count}) | Blog post ({count}) | Blog posts ({count})',
-      home: 'Home',
+      blog_posts:
+        'Blog post ({count}) | Blog post ({count}) | Blog posts ({count})',
+
+      error_blog_post_not_found: 'Blog post "{id}" not found!',
+
       blog_public: 'Public',
-      blog_public_msg: 'Other people can see, comment and vote your public posts',
+      blog_public_msg:
+        'Other people can see, comment and vote your public posts',
       blog_tcreated: 'Created',
       blog_title: 'Title',
       blog_title_msg: "My awesome blog post's title",
@@ -70,13 +78,16 @@ const messages = {
       action_edit: 'Sửa',
       action_delete: 'Xoá',
 
+      wait: 'Vui lòng giờ giây lát...',
+
       login: 'Đăng nhập',
       login_info: 'Đăng nhập để tiếp tục',
       login_social: 'Đăng nhập với tài khoản mxh',
       username: 'Tên đăng nhập',
       password: 'Mật mã',
-      wait: 'Vui lòng giờ giây lát...',
-      error_parse_login_token: 'Có lỗi khi xử lý login-token',
+      error_parse_login_token: 'Có lỗi khi xử lý login-token!',
+
+      home: 'Trang gốc',
       dashboard: 'Trang nhà',
       blog: 'Bài viết',
       my_blog: 'Bài viết của tôi',
@@ -84,9 +95,12 @@ const messages = {
       edit_blog_post: 'Chỉnh sửa bài viết',
       delete_blog_post: 'Xoá bài viết',
       blog_posts: 'Bài viết của tôi ({count})',
-      home: 'Trang gốc',
+
+      error_blog_post_not_found: 'Bài viết "{id}" không tồn tại!',
+
       blog_public: 'Công cộng',
-      blog_public_msg: 'Các thành viên khác có thể thấy, nhận xét hoặc bầu chọn bài viết của bạn',
+      blog_public_msg:
+        'Các thành viên khác có thể thấy, nhận xét hoặc bầu chọn bài viết của bạn',
       blog_tcreated: 'Thời gian tạo',
       blog_title: 'Tựa đề',
       blog_title_msg: 'Tựa đề của bài viết',

@@ -16,7 +16,7 @@
           </div>
         </CCardHeader>
         <CCardBody>
-          <p v-if="flashMsg" class="alert alert-success">{{ flashMsg }}</p>
+          <CAlert color="success" v-if="flashMsg">{{ flashMsg }}</CAlert>
           <CTable>
             <CTableHead>
               <CTableRow>

@@ -10,15 +10,15 @@
           >
           <CForm @submit.prevent="doSubmit" method="post">
             <CCardBody>
-              <p v-if="errorMsg != ''" class="alert alert-danger">
-                {{ errorMsg }}
-              </p>
+              <CAlert color="danger" v-if="errorMsg != ''">{{
+                errorMsg
+              }}</CAlert>
               <CRow class="mb-2">
                 <CCol :sm="{ offset: 3, size: 9 }">
                   <CFormCheck
                     inline
                     :label="$t('message.blog_public')"
-                    v-model:checked="form.isPublic"
+                    v-model="form.is_public"
                   />
                   <small>({{ $t('message.blog_public_msg') }})</small>
                 </CCol>
@@ -128,7 +128,7 @@ export default {
   },
   data() {
     return {
-      form: { title: '', content: '', isPublic: false },
+      form: { title: '', content: '', is_public: false },
       errorMsg: '',
       tabPaneActiveKey: 1,
     }
@@ -143,7 +143,7 @@ export default {
     doSubmit(e) {
       e.preventDefault()
       let data = {
-        is_public: this.form.isPublic,
+        is_public: this.form.is_public,
         title: this.form.title,
         content: this.form.content,
       }
