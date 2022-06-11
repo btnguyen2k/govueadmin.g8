@@ -1,241 +1,366 @@
 <template>
-  <div>
-    <CRow>
-      <CCol md="6">
-        <CCard>
-          <CCardHeader>
-            <CIcon name="cil-justify-center"/>
-            <strong> List group </strong>
-            <small>disabled items</small>
-          </CCardHeader>
-          <CCardBody>
+  <CRow>
+    <CCol :xs="12">
+      <DocsCallout name="List Group" href="components/list-group.html" />
+    </CCol>
+    <CCol :xs="12">
+      <CCard class="mb-4">
+        <CCardHeader>
+          <strong>Vue List Group</strong> <small>Basic example</small>
+        </CCardHeader>
+        <CCardBody>
+          <p class="text-medium-emphasis small">
+            The default list group is an unordered list with items and the
+            proper CSS classes. Build upon it with the options that follow, or
+            with your CSS as required.
+          </p>
+          <DocsExample href="components/list-group.html">
+            <CListGroup>
+              <CListGroupItem>Cras justo odio</CListGroupItem>
+              <CListGroupItem>Dapibus ac facilisis in</CListGroupItem>
+              <CListGroupItem>Morbi leo risus</CListGroupItem>
+              <CListGroupItem>Porta ac consectetur ac</CListGroupItem>
+              <CListGroupItem>Vestibulum at eros</CListGroupItem>
+            </CListGroup>
+          </DocsExample>
+        </CCardBody>
+      </CCard>
+    </CCol>
+    <CCol :xs="12">
+      <CCard class="mb-4">
+        <CCardHeader>
+          <strong>Vue List Group</strong> <small>Active items</small>
+        </CCardHeader>
+        <CCardBody>
+          <p class="text-medium-emphasis small">
+            Add <code>active</code> boolean property to a
+            <code>&lt;CListGroupItem&gt;</code> to show the current active
+            selection.
+          </p>
+          <DocsExample href="components/list-group.html#active-items">
+            <CListGroup>
+              <CListGroupItem active>Cras justo odio</CListGroupItem>
+              <CListGroupItem>Dapibus ac facilisis in</CListGroupItem>
+              <CListGroupItem>Morbi leo risus</CListGroupItem>
+              <CListGroupItem>Porta ac consectetur ac</CListGroupItem>
+              <CListGroupItem>Vestibulum at eros</CListGroupItem>
+            </CListGroup>
+          </DocsExample>
+        </CCardBody>
+      </CCard>
+    </CCol>
+    <CCol :xs="12">
+      <CCard class="mb-4">
+        <CCardHeader>
+          <strong>Vue List Group</strong> <small>Disabled items</small>
+        </CCardHeader>
+        <CCardBody>
+          <p class="text-medium-emphasis small">
+            Add <code>disabled</code> boolean property to a
+            <code>&lt;CListGroupItem&gt;</code> to make it appear disabled.
+          </p>
+          <DocsExample href="components/list-group.html#disabled-items">
             <CListGroup>
               <CListGroupItem disabled>Cras justo odio</CListGroupItem>
               <CListGroupItem>Dapibus ac facilisis in</CListGroupItem>
               <CListGroupItem>Morbi leo risus</CListGroupItem>
-              <CListGroupItemDivider/>
-              <CListGroupItem disabled>Porta ac consectetur ac</CListGroupItem>
+              <CListGroupItem>Porta ac consectetur ac</CListGroupItem>
               <CListGroupItem>Vestibulum at eros</CListGroupItem>
             </CListGroup>
-          </CCardBody>
-        </CCard>
-      </CCol>
-      <CCol md="6">
-        <CCard>
-          <CCardHeader>
-            <CIcon name="cil-justify-center"/>
-            <strong> List group </strong>
-            <small>actionable items</small>
-          </CCardHeader>
-          <CCardBody>
+          </DocsExample>
+        </CCardBody>
+      </CCard>
+    </CCol>
+    <CCol :xs="12">
+      <CCard class="mb-4">
+        <CCardHeader>
+          <strong>Vue List Group</strong> <small>Links and buttons</small>
+        </CCardHeader>
+        <CCardBody>
+          <p class="text-medium-emphasis small">
+            Use <code>&lt;a&gt;</code>s or <code>&lt;button&gt;</code>s to
+            create <em>actionable</em> list group items with hover, disabled,
+            and active states by adding
+            <code>component=&#34;a|button&#34;</code>. We separate these
+            pseudo-classes to ensure list groups made of non-interactive
+            elements (like <code>&lt;li&gt;</code>s or
+            <code>&lt;div&gt;</code>
+            s) don&#39;tprovide a click or tap affordance.
+          </p>
+          <DocsExample href="components/list-group.html#links-and-buttons">
             <CListGroup>
-              <CListGroupItem href="#some-link">Awesome link</CListGroupItem>
-              <CListGroupItem href="#" active>Link with active state</CListGroupItem>
-              <CListGroupItem href="#">Action links are easy</CListGroupItem>
-              <CListGroupItem href="#foobar" disabled>Disabled link</CListGroupItem>
+              <CListGroupItem component="a" href="#" active>
+                Cras justo odio
+              </CListGroupItem>
+              <CListGroupItem component="a" href="#">
+                Dapibus ac facilisis in
+              </CListGroupItem>
+              <CListGroupItem component="a" href="#">
+                Morbi leo risus
+              </CListGroupItem>
+              <CListGroupItem component="a" href="#">
+                Porta ac consectetur ac
+              </CListGroupItem>
+              <CListGroupItem component="a" href="#" disabled>
+                Vestibulum at eros
+              </CListGroupItem>
             </CListGroup>
-          </CCardBody>
-        </CCard>
-      </CCol>
-    </CRow>
-    <CRow>
-      <CCol md="6">
-        <CCard>
-          <CCardHeader>
-            <CIcon name="cil-justify-center"/>
-            <strong> List group </strong>
-            <small>buttons</small>
-          </CCardHeader>
-          <CCardBody>
+          </DocsExample>
+        </CCardBody>
+      </CCard>
+    </CCol>
+    <CCol :xs="12">
+      <CCard class="mb-4">
+        <CCardHeader>
+          <strong>Vue List Group</strong> <small>Flush</small>
+        </CCardHeader>
+        <CCardBody>
+          <p class="text-medium-emphasis small">
+            Add <code>flush</code> boolean property to remove some borders and
+            rounded corners to render list group items edge-to-edge in a parent
+            container (e.g., cards).
+          </p>
+          <DocsExample href="components/list-group.html#flush">
+            <CListGroup flush>
+              <CListGroupItem>Cras justo odio</CListGroupItem>
+              <CListGroupItem>Dapibus ac facilisis in</CListGroupItem>
+              <CListGroupItem>Morbi leo risus</CListGroupItem>
+              <CListGroupItem>Porta ac consectetur ac</CListGroupItem>
+              <CListGroupItem>Vestibulum at eros</CListGroupItem>
+            </CListGroup>
+          </DocsExample>
+        </CCardBody>
+      </CCard>
+    </CCol>
+    <CCol :xs="12">
+      <CCard class="mb-4">
+        <CCardHeader>
+          <strong>Vue List Group</strong> <small>Horizontal</small>
+        </CCardHeader>
+        <CCardBody>
+          <p class="text-medium-emphasis small">
+            Add <code>layout=&#34;horizontal&#34;</code> to change the layout of
+            list group items from vertical to horizontal across all breakpoints.
+            Alternatively, choose a responsive variant
+            <code
+              >.layout=&#34;horizontal-&#123;sm | md | lg | xl |
+              xxl&#125;&#34;</code
+            >
+            to make a list group horizontal starting at that breakpoint&#39;s
+            <code>min-width</code>. Currently
+            <strong
+              >horizontal list groups cannot be combined with flush list
+              groups.</strong
+            >
+          </p>
+          <DocsExample href="components/list-group.html#flush">
+            <template
+              v-for="item in ['', '-sm', '-md', '-lg', '-xl', '-xxl']"
+              :key="item"
+            >
+              <CListGroup class="mb-2" :layout="'horizontal' + item">
+                <CListGroupItem>Cras justo odio</CListGroupItem>
+                <CListGroupItem>Dapibus ac facilisis in</CListGroupItem>
+                <CListGroupItem>Morbi leo risus</CListGroupItem>
+              </CListGroup>
+            </template>
+          </DocsExample>
+        </CCardBody>
+      </CCard>
+    </CCol>
+    <CCol :xs="12">
+      <CCard class="mb-4">
+        <CCardHeader>
+          <strong>Vue List Group</strong> <small>Contextual classes</small>
+        </CCardHeader>
+        <CCardBody>
+          <p class="text-medium-emphasis small">
+            Use contextual classes to style list items with a stateful
+            background and color.
+          </p>
+          <DocsExample href="components/list-group.html#contextual-classes">
             <CListGroup>
-              <CListGroupItem tag="button">Button item</CListGroupItem>
-              <CListGroupItem tag="button">I am a button</CListGroupItem>
-              <CListGroupItem tag="button" disabled>Disabled button</CListGroupItem>
-              <CListGroupItem tag="button">This is a button too</CListGroupItem>
+              <CListGroupItem>Dapibus ac facilisis in</CListGroupItem>
+              <CListGroupItem
+                v-for="item in [
+                  'primary',
+                  'secondary',
+                  'success',
+                  'danger',
+                  'warning',
+                  'info',
+                  'light',
+                  'dark',
+                ]"
+                :key="item"
+                :color="item"
+                >A simple {{ item }} list group item</CListGroupItem
+              >
             </CListGroup>
-          </CCardBody>
-        </CCard>
-      </CCol>
-      <CCol md="6">
-        <CCard>
-          <CCardHeader>
-            <CIcon name="cil-justify-center"/>
-            <strong> List group </strong>
-            <small>with badges</small>
-          </CCardHeader>
-          <CCardBody>
+          </DocsExample>
+          <p class="text-medium-emphasis small">
+            Contextual classes also work with <code>&lt;a&gt;</code>s or
+            <code>&lt;button&gt;</code>s. Note the addition of the hover styles
+            here not present in the previous example. Also supported is the
+            <code>active</code> state; apply it to indicate an active selection
+            on a contextual list group item.
+          </p>
+          <DocsExample href="components/list-group.html#contextual-classes">
+            <CListGroup>
+              <CListGroupItem component="a" href="#"
+                >Dapibus ac facilisis in</CListGroupItem
+              >
+              <CListGroupItem
+                v-for="item in [
+                  'primary',
+                  'secondary',
+                  'success',
+                  'danger',
+                  'warning',
+                  'info',
+                  'light',
+                  'dark',
+                ]"
+                :key="item"
+                component="a"
+                href="#"
+                :color="item"
+                >A simple {{ item }} list group item</CListGroupItem
+              >
+            </CListGroup>
+          </DocsExample>
+        </CCardBody>
+      </CCard>
+    </CCol>
+    <CCol :xs="12">
+      <CCard class="mb-4">
+        <CCardHeader>
+          <strong>Vue List Group</strong> <small>With badges</small>
+        </CCardHeader>
+        <CCardBody>
+          <p class="text-medium-emphasis small">
+            Add badges to any list group item to show unread counts, activity,
+            and more.
+          </p>
+          <DocsExample href="components/list-group.html#with-badges">
             <CListGroup>
               <CListGroupItem
                 class="d-flex justify-content-between align-items-center"
               >
                 Cras justo odio
-                <CBadge color="primary" shape="pill">14</CBadge>
+                <CBadge color="primary" shape="rounded-pill"> 14 </CBadge>
               </CListGroupItem>
               <CListGroupItem
                 class="d-flex justify-content-between align-items-center"
               >
                 Dapibus ac facilisis in
-                <CBadge color="primary" shape="pill">2</CBadge>
+                <CBadge color="primary" shape="rounded-pill"> 2 </CBadge>
               </CListGroupItem>
               <CListGroupItem
                 class="d-flex justify-content-between align-items-center"
               >
                 Morbi leo risus
-                <CBadge color="primary" shape="pill">1</CBadge>
+                <CBadge color="primary" shape="rounded-pill"> 1 </CBadge>
               </CListGroupItem>
             </CListGroup>
-          </CCardBody>
-        </CCard>
-      </CCol>
-    </CRow>
-    <CRow>
-      <CCol md="6">
-        <CCard>
-          <CCardHeader>
-            <CIcon name="cil-justify-center"/>
-            <strong> List group </strong>
-            <small>colors</small>
-          </CCardHeader>
-          <CCardBody>
+          </DocsExample>
+        </CCardBody>
+      </CCard>
+    </CCol>
+    <CCol :xs="12">
+      <CCard class="mb-4">
+        <CCardHeader>
+          <strong>Vue List Group</strong> <small>Custom content</small>
+        </CCardHeader>
+        <CCardBody>
+          <p class="text-medium-emphasis small">
+            Add nearly any HTML within, even for linked list groups like the one
+            below, with the help of
+            <a href="https://coreui.io/docs/utilities/flex/"
+              >flexbox utilities</a
+            >.
+          </p>
+          <DocsExample href="components/list-group.html#custom-content">
             <CListGroup>
-              <CListGroupItem>This is a default list group item</CListGroupItem>
-              <CListGroupItem color="primary">This is a primary list group item</CListGroupItem>
-              <CListGroupItem color="secondary">This is a secondary list group item</CListGroupItem>
-              <CListGroupItem color="success">This is a success list group item</CListGroupItem>
-              <CListGroupItem color="danger">This is a danger list group item</CListGroupItem>
-              <CListGroupItem color="warning">This is a warning list group item</CListGroupItem>
-              <CListGroupItem color="info">This is a info list group item</CListGroupItem>
-              <CListGroupItem color="light">This is a light list group item</CListGroupItem>
-              <CListGroupItem color="dark">This is a dark list group item</CListGroupItem>
-            </CListGroup>
-          </CCardBody>
-        </CCard>
-      </CCol>
-      <CCol md="6">
-        <CCard>
-          <CCardHeader>
-            <CIcon name="cil-justify-center"/>
-            <strong> List group </strong>
-            <small>colors active accent</small>
-          </CCardHeader>
-          <CCardBody>
-            <CListGroup accent>
-              <CListGroupItem href="#" accent="light">This is a default list group item</CListGroupItem>
-              <CListGroupItem href="#" color="primary" accent="primary">This is a primary list group item</CListGroupItem>
-              <CListGroupItem href="#" color="secondary" accent="secondary">This is a secondary list group item</CListGroupItem>
-              <CListGroupItem href="#" color="success" accent="success">This is a success list group item</CListGroupItem>
-              <CListGroupItem href="#" color="danger" accent="danger">This is a danger list group item</CListGroupItem>
-              <CListGroupItem href="#" color="warning" accent="warning">This is a warning list group item</CListGroupItem>
-              <CListGroupItem href="#" color="info" accent="info">This is a info list group item</CListGroupItem>
-              <CListGroupItem href="#" color="light" accent="light">This is a light list group item</CListGroupItem>
-              <CListGroupItem href="#" color="dark" accent="dark">This is a dark list group item</CListGroupItem>
-            </CListGroup>
-          </CCardBody>
-        </CCard>
-      </CCol>
-    </CRow>
-    <CRow>
-      <CCol col="12">
-        <CCard>
-          <CCardHeader>
-            <CIcon name="cil-justify-center"/>
-            <strong> List group </strong>
-            <small>inside cards</small>
-          </CCardHeader>
-          <CCardBody>
-            <CCardGroup deck>
-              <CCard>
-                <CCardHeader>
-                  <b>Card with list group</b>
-                </CCardHeader>
-                <CCardBody>
-                  <CListGroup>
-                    <CListGroupItem href="#">Cras justo odio</CListGroupItem>
-                    <CListGroupItem href="#">Dapibus ac facilisis in</CListGroupItem>
-                    <CListGroupItem href="#">Vestibulum at eros</CListGroupItem>
-                  </CListGroup>
-                  <CCardText class="mt-2">
-                    Quis magna Lorem anim amet ipsum do mollit sit cillum voluptate ex
-                    nulla tempor. Laborum consequat non elit enim exercitation cillum aliqua
-                    consequat id aliqua. Esse ex consectetur mollit voluptate est in duis laboris
-                    ad sit ipsum anim Lorem.
-                  </CCardText>
-                </CCardBody>
-              </CCard>
-              <CCard>
-                <CCardHeader><b>Card with flush list group</b></CCardHeader>
-                <CListGroup flush>
-                  <CListGroupItem href="#">Cras justo odio</CListGroupItem>
-                  <CListGroupItem href="#">Dapibus ac facilisis in</CListGroupItem>
-                  <CListGroupItem href="#">Vestibulum at eros</CListGroupItem>
-                </CListGroup>
-                <CCardBody>
-                  Quis magna Lorem anim amet ipsum do mollit sit cillum voluptate ex
-                  nulla tempor. Laborum consequat non elit enim exercitation cillum aliqua
-                  consequat id aliqua. Esse ex consectetur mollit voluptate est in duis laboris
-                  ad sit ipsum anim Lorem.
-                </CCardBody>
-              </CCard>
-            </CCardGroup>
-          </CCardBody>
-        </CCard>
-      </CCol>
-    </CRow>
-    <CRow>
-      <CCol md="6">
-        <CCard>
-          <CCardHeader>
-            <CIcon name="cil-justify-center"/><strong> List group </strong><small>custom content</small>
-          </CCardHeader>
-          <CCardBody>
-            <CListGroup>
-              <CListGroupItem
-                href="#"
-                active
-                class="flex-column align-items-start"
-              >
+              <CListGroupItem component="a" href="#" active>
                 <div class="d-flex w-100 justify-content-between">
                   <h5 class="mb-1">List group item heading</h5>
                   <small>3 days ago</small>
                 </div>
                 <p class="mb-1">
-                  Donec id elit non mi porta gravida at eget metus. Maecenas
-                  sed diam eget risus varius blandit.
+                  Donec id elit non mi porta gravida at eget metus. Maecenas sed
+                  diam eget risus varius blandit.
                 </p>
                 <small>Donec id elit non mi porta.</small>
               </CListGroupItem>
-              <CListGroupItem href="#" class="flex-column align-items-start">
+              <CListGroupItem component="a" href="#">
                 <div class="d-flex w-100 justify-content-between">
                   <h5 class="mb-1">List group item heading</h5>
-                  <small class="text-muted">3 days ago</small>
+                  <small class="text-medium-emphasis">3 days ago</small>
                 </div>
                 <p class="mb-1">
-                  Donec id elit non mi porta gravida at eget metus. Maecenas
-                  sed diam eget risus varius blandit.
+                  Donec id elit non mi porta gravida at eget metus. Maecenas sed
+                  diam eget risus varius blandit.
                 </p>
-                <small class="text-muted">Donec id elit non mi porta.</small>
+                <small class="text-medium-emphasis"
+                  >Donec id elit non mi porta.</small
+                >
               </CListGroupItem>
-              <CListGroupItem href="#" disabled class="flex-column align-items-start">
+              <CListGroupItem component="a" href="#">
                 <div class="d-flex w-100 justify-content-between">
-                  <h5 class="mb-1">Disabled List group item</h5>
-                  <small class="text-muted">3 days ago</small>
+                  <h5 class="mb-1">List group item heading</h5>
+                  <small class="text-medium-emphasis">3 days ago</small>
                 </div>
                 <p class="mb-1">
-                  Donec id elit non mi porta gravida at eget metus. Maecenas
-                  sed diam eget risus varius blandit.
+                  Donec id elit non mi porta gravida at eget metus. Maecenas sed
+                  diam eget risus varius blandit.
                 </p>
-                <small class="text-muted">Donec id elit non mi porta.</small>
+                <small class="text-medium-emphasis"
+                  >Donec id elit non mi porta.</small
+                >
               </CListGroupItem>
             </CListGroup>
-          </CCardBody>
-        </CCard>
-      </CCol>
-    </CRow>
-  </div>
+          </DocsExample>
+        </CCardBody>
+      </CCard>
+    </CCol>
+    <CCol :xs="12">
+      <CCard class="mb-4">
+        <CCardHeader>
+          <strong>Vue List Group</strong> <small>Checkboxes and radios</small>
+        </CCardHeader>
+        <CCardBody>
+          <p class="text-medium-emphasis small">
+            Place CoreUI&#39;s checkboxes and radios within list group items and
+            customize as needed.
+          </p>
+          <DocsExample href="components/list-group.html#checkboxes-and-radios">
+            <CListGroup>
+              <CListGroupItem>
+                <CFormCheck label="Cras justo odio" />
+              </CListGroupItem>
+              <CListGroupItem>
+                <CFormCheck label="Dapibus ac facilisis in" checked />
+              </CListGroupItem>
+              <CListGroupItem>
+                <CFormCheck label="Morbi leo risus" checked />
+              </CListGroupItem>
+              <CListGroupItem>
+                <CFormCheck label="orta ac consectetur ac" />
+              </CListGroupItem>
+              <CListGroupItem>
+                <CFormCheck label="Vestibulum at eros" />
+              </CListGroupItem>
+            </CListGroup>
+          </DocsExample>
+        </CCardBody>
+      </CCard>
+    </CCol>
+  </CRow>
 </template>
 
 <script>
 export default {
-  name: 'ListGroups'
+  name: 'ListGroups',
 }
 </script>

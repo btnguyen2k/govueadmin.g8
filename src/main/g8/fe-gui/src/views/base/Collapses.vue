@@ -1,127 +1,124 @@
 <template>
   <CRow>
-    <CCol col="12" md="6">
-      <CCard>
+    <CCol :xs="12">
+      <DocsCallout name="Collapse" href="components/collapse.html" />
+    </CCol>
+    <CCol :xs="12">
+      <CCard class="mb-4">
         <CCardHeader>
-          <CIcon name="cil-justify-center"/>
-          <strong> Bootstrap Collapse </strong>
-          <div class="card-header-actions">
-            <a 
-              href="https://coreui.io/vue/docs/components/collapse" 
-              class="card-header-action" 
-              rel="noreferrer noopener" 
-              target="_blank"
-            >
-              <small class="text-muted">docs</small>
-            </a>
-          </div>
+          <strong>Vue Collapse</strong>
         </CCardHeader>
         <CCardBody>
-          <CButton @click="collapse = !collapse" color="primary" class="mb-2">
-            Toggle Collapse
-          </CButton>
-          <CCollapse :show="collapse" :duration="400">
-            <CCard body-wrapper>
-              <CCardText>Collapse contents Here</CCardText>
-              <CButton  
-                @click="innerCollapse = !innerCollapse" 
-                size="sm" 
-                color="secondary"
-              >
-                Toggle Inner Collapse
-              </CButton>
-              <CCollapse :show="innerCollapse" class="mt-2">
-                <CCard body-wrapper>Hello!</CCard>
-              </CCollapse>
-            </CCard>
-          </CCollapse>
+          <p class="text-medium-emphasis small">
+            You can use a link or a button component.
+          </p>
+          <DocsExample href="components/collapse.html#example">
+            <CButton color="primary" href="#" @click="visible = !visible"
+              >Link</CButton
+            >
+            <CButton color="primary" @click="visible = !visible"
+              >Button</CButton
+            >
+            <CCollapse :visible="visible">
+              <CCard class="mt-3">
+                <CCardBody>
+                  Anim pariatur cliche reprehenderit, enim eiusmod high life
+                  accusamus terry richardson ad squid. Nihil anim keffiyeh
+                  helvetica, craft beer labore wes anderson cred nesciunt
+                  sapiente ea proident.
+                </CCardBody>
+              </CCard>
+            </CCollapse>
+          </DocsExample>
         </CCardBody>
       </CCard>
-    </CCol>
-    <CCol col="12" md="6">
-      <CCard>
-        <CButton
-          @click="cardCollapse = !cardCollapse"
-          tag="button"
-          color="link" 
-          block
-          class="text-left shadow-none card-header"
-        > 
-          <h5 class="m-0">Collapsible card</h5>
-        </CButton>
-        <CCollapse :show="cardCollapse">
-          <CCardBody class="m-1">
-            {{text}}
-          </CCardBody>
-        </CCollapse>
-      </CCard>
-    </CCol>
-    <CCol xl="6">
-      <CCard>
+      <CCard class="mb-4">
         <CCardHeader>
-          Collapse
-          <small> accordion</small>
+          <strong>Vue Collapse</strong> <small> Horizontal</small>
         </CCardHeader>
         <CCardBody>
-          <div>
-            <CCard class="mb-0">
-              <CButton 
-                block 
-                color="link" 
-                class="text-left shadow-none card-header" 
-                @click="accordion = accordion === 0 ? false : 0" 
-              >
-                <h5 class="m-0">Collapsible Group Item #1</h5>
-              </CButton>
-              <CCollapse :show="accordion === 0">
-                <CCardBody>
-                  1. Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non
-                  cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird
-                  on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred
-                  nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft
-                  beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven''t heard of them accusamus labore sustainable VHS.
-                </CCardBody>
+          <p class="text-medium-emphasis small">
+            The collapse plugin also supports horizontal collapsing. Add the
+            <code>horizontal</code> property to transition the
+            <code>width</code> instead of <code>height</code> and set a
+            <code>width</code> on the immediate child element.
+          </p>
+          <DocsExample href="components/collapse.html#horizontal">
+            <CButton
+              class="mb-3"
+              color="primary"
+              aria-expanded="{visible}"
+              aria-controls="collapseWidthExample"
+              @click="visibleHorizontal = !visibleHorizontal"
+              >Button</CButton
+            >
+            <div style="min-height: 120px">
+              <CCollapse horizontal :visible="visibleHorizontal">
+                <CCard style="width: 300px">
+                  <CCardBody>
+                    This is some placeholder content for a horizontal collapse.
+                    It's hidden by default and shown when triggered.
+                  </CCardBody>
+                </CCard>
               </CCollapse>
-            </CCard>
-            <CCard class="mb-0">
-              <CButton 
-                block 
-                color="link" 
-                class="text-left shadow-none card-header" 
-                @click="accordion = accordion === 1 ? false : 1" 
-              >
-                <h5 class="m-0">Collapsible Group Item #2</h5>
-              </CButton>
-              <CCollapse :show="accordion === 1">
-                <CCardBody>
-                  2. Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non
-                  cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird
-                  on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred
-                  nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft
-                  beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven''t heard of them accusamus labore sustainable VHS.
-                </CCardBody>
-              </CCollapse>
-            </CCard>
-            <CCard class="mb-0">
-              <CButton 
-                block 
-                color="link" 
-                class="text-left shadow-none card-header" 
-                @click="accordion = accordion === 2 ? false : 2" 
-              >
-                <h5 class="m-0">Collapsible Group Item #3</h5>
-              </CButton>
-              <CCollapse :show="accordion === 2">
-                <CCardBody>
-                  3. Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non
-                  cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird
-                  on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred
-                  nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft
-                  beer farm-to-table, raw denim aesthetic synth nesciunt you probably havent heard of them accusamus labore sustainable VHS.
-                </CCardBody>
-              </CCollapse>
-            </CCard>
-          </div>
+            </div>
+          </DocsExample>
+        </CCardBody>
+      </CCard>
+      <CCard class="mb-4">
+        <CCardHeader>
+          <strong>Vue Collapse</strong> <small> multi target</small>
+        </CCardHeader>
+        <CCardBody>
+          <p class="text-medium-emphasis small">
+            A <code>&lt;CButton&gt;</code> can show and hide multiple elements.
+          </p>
+          <h4 class="mt-4">Toggle multiple targets</h4>
+          <DocsExample href="components/collapse.html#multiple-targets">
+            <CButton color="primary" @click="visibleA = !visibleA"
+              >Toggle first element</CButton
+            >
+            <CButton color="primary" @click="visibleB = !visibleB"
+              >Toggle second element</CButton
+            >
+            <CButton
+              color="primary"
+              @click="
+                () => {
+                  visibleA = !visibleA
+                  visibleB = !visibleB
+                }
+              "
+            >
+              Toggle both elements
+            </CButton>
+            <CRow>
+              <CCol :xs="6">
+                <CCollapse :visible="visibleA">
+                  <CCard class="mt-3">
+                    <CCardBody>
+                      Anim pariatur cliche reprehenderit, enim eiusmod high life
+                      accusamus terry richardson ad squid. Nihil anim keffiyeh
+                      helvetica, craft beer labore wes anderson cred nesciunt
+                      sapiente ea proident.
+                    </CCardBody>
+                  </CCard>
+                </CCollapse>
+              </CCol>
+              <CCol :xs="6">
+                <CCollapse :visible="visibleB">
+                  <CCard class="mt-3">
+                    <CCardBody>
+                      Anim pariatur cliche reprehenderit, enim eiusmod high life
+                      accusamus terry richardson ad squid. Nihil anim keffiyeh
+                      helvetica, craft beer labore wes anderson cred nesciunt
+                      sapiente ea proident.
+                    </CCardBody>
+                  </CCard>
+                </CCollapse>
+              </CCol>
+            </CRow>
+          </DocsExample>
         </CCardBody>
       </CCard>
     </CCol>
@@ -129,25 +126,20 @@
 </template>
 
 <script>
+import { ref } from 'vue'
 export default {
-  name: 'Collapses',
-  data () {
+  name: 'Collapse',
+  setup() {
+    const visible = ref(false)
+    const visibleA = ref(false)
+    const visibleB = ref(false)
+    const visibleHorizontal = ref(false)
     return {
-      collapse: false,
-      cardCollapse: true,
-      innerCollapse: false,
-      accordion: 0,
-      text: `
-        Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry
-        richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor
-        brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon
-        tempor, sunt aliqua put a bird on it squid single-origin coffee nulla
-        assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore
-        wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher
-        vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic
-        synth nesciunt you probably haven't heard of them accusamus labore VHS.
-      `
+      visible,
+      visibleA,
+      visibleB,
+      visibleHorizontal,
     }
-  }
+  },
 }
 </script>

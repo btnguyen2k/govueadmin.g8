@@ -1,196 +1,424 @@
 <template>
   <CRow>
-    <CCol col="12">
-      <CCard>
+    <CCol :xs="12">
+      <DocsCallout name="Button Group" href="components/button-group.html" />
+    </CCol>
+    <CCol :xs="12">
+      <CCard class="mb-4">
         <CCardHeader>
-          <CIcon name="cil-justify-center"/>
-          <strong> Bootstrap button group</strong>
-          <div class="card-header-actions">
-            <a 
-              href="https://coreui.io/vue/docs/components/button-components" 
-              class="card-header-action" 
-              rel="noreferrer noopener" 
-              target="_blank"
-            >
-              <small class="text-muted">docs</small>
-            </a>
-          </div>
+          <strong>Vue Button Group</strong> <span>Basic example</span>
         </CCardHeader>
         <CCardBody>
-          <div>
-            <CButtonGroup>
-              <CButton color="secondary">One</CButton>
-              <CButton color="secondary">Two</CButton>
-              <CButton color="secondary">Three</CButton>
-              <CButton color="secondary">Four</CButton>
-              <CButton color="secondary" class="d-sm-down-none">Five</CButton>
+          <p>
+            Wrap a series of <code>&lt;CButton&gt;</code> components in
+            <code>&lt;CButtonGroup&gt;</code>.
+          </p>
+          <DocsExample href="components/button-group.html">
+            <CButtonGroup role="group" aria-label="Basic example">
+              <CButton color="primary">Left</CButton>
+              <CButton color="primary">Middle</CButton>
+              <CButton color="primary">Right</CButton>
             </CButtonGroup>
-            <br><br>
+          </DocsExample>
+          <p>
+            These classes can also be added to groups of links, as an
+            alternative to the
+            <code>&lt;CNav&gt;</code> components.
+          </p>
+          <DocsExample href="components/button-group.html">
             <CButtonGroup>
-              <CButton class="d-sm-down-none" color="success">Success</CButton>
-              <CButton color="info">Info</CButton>
-              <CButton color="warning">Warn</CButton>
-              <CButton class="d-sm-down-none" color="primary">Primary</CButton>
-              <CButton color="danger">Danger</CButton>
-              <CButton color="link">Link</CButton>
+              <CButton href="#" color="primary" active> Active link </CButton>
+              <CButton href="#" color="primary"> Link </CButton>
+              <CButton href="#" color="primary"> Link </CButton>
             </CButtonGroup>
-          </div>
+          </DocsExample>
         </CCardBody>
       </CCard>
     </CCol>
-    <CCol col="12">
-      <CCard>
+    <CCol :xs="12">
+      <CCard class="mb-4">
         <CCardHeader>
-          <CIcon name="cil-justify-center"/>
-          <strong> Button group </strong>sizing
+          <strong>Vue Button Group</strong> <span>Mixed styles</span>
         </CCardHeader>
         <CCardBody>
-          <div>
-            <CButtonGroup>
-              <CButton color="secondary">Left</CButton>
-              <CButton color="secondary">Middle</CButton>
-              <CButton color="secondary">Right</CButton>
+          <DocsExample href="components/button-group.html#mixed-styles">
+            <CButtonGroup role="group" aria-label="Basic mixed styles example">
+              <CButton color="danger">Left</CButton>
+              <CButton color="warning">Middle</CButton>
+              <CButton color="success">Right</CButton>
             </CButtonGroup>
-            <br><br>
-            <CButtonGroup size="sm">
-              <CButton color="secondary">Left</CButton>
-              <CButton color="secondary">Middle</CButton>
-              <CButton color="secondary">Right</CButton>
-            </CButtonGroup>
-            <br><br>
-            <CButtonGroup size="lg">
-              <CButton color="secondary">Left</CButton>
-              <CButton color="secondary">Middle</CButton>
-              <CButton color="secondary">Right</CButton>
-            </CButtonGroup>
-          </div>
+          </DocsExample>
         </CCardBody>
       </CCard>
     </CCol>
-    <CCol col="12">
-      <CCard>
+    <CCol :xs="12">
+      <CCard class="mb-4">
         <CCardHeader>
-          <CIcon name="cil-justify-center"/><strong> Button group </strong>dropdown support
+          <strong>Vue Button Group</strong> <span>Outlined styles</span>
         </CCardHeader>
         <CCardBody>
-          <div>
-            <CButtonGroup>
-              <CButton color="secondary" class="d-sm-down-none">Button 1</CButton>
-              <CButton color="secondary" class="d-sm-down-none">Button 2</CButton>
-              <CDropdown right text="Menu" color="success">
-                <CDropdownItem>Item 1</CDropdownItem>
-                <CDropdownItem>Item 2</CDropdownItem>
-                <CDropdownDivider/>
-                <CDropdownItem>Item 3</CDropdownItem>
-              </CDropdown>
-              <CButton color="secondary" class="d-sm-down-none">Button 3</CButton>
-              <CDropdown right split text="Split Menu" color="info">
-                <CDropdownItem>Item 1</CDropdownItem>
-                <CDropdownItem>Item 2</CDropdownItem>
-                <CDropdownDivider/>
-                <CDropdownItem>Item 3</CDropdownItem>
-              </CDropdown>
+          <DocsExample href="components/button-group.html#outlined-styles">
+            <CButtonGroup role="group" aria-label="Basic outlined example">
+              <CButton color="primary" variant="outline"> Left </CButton>
+              <CButton color="primary" variant="outline"> Middle </CButton>
+              <CButton color="primary" variant="outline"> Right </CButton>
             </CButtonGroup>
-          </div>
+          </DocsExample>
         </CCardBody>
       </CCard>
     </CCol>
-    <CCol col="12">
-      <CCard>
+    <CCol :xs="12">
+      <CCard class="mb-4">
         <CCardHeader>
-          <CIcon name="cil-justify-center"/>
-          <strong> Button group </strong>vertical variation
+          <strong>Vue Button Group</strong>
+          <span>Checkbox and radio button groups</span>
         </CCardHeader>
         <CCardBody>
-          <div>
-            <CButtonGroup vertical>
-              <CButton color="secondary">Top</CButton>
-              <CButton color="secondary">Middle</CButton>
-              <CButton color="secondary">Bottom</CButton>
-            </CButtonGroup>
-          </div>
-        </CCardBody>
-      </CCard>
-    </CCol>
-    <CCol col="12">
-      <CCard>
-        <CCardHeader>
-          <CIcon name="cil-justify-center"/>
-          <strong> Button toolbar </strong>
-          <small>with button groups</small>
-        </CCardHeader>
-        <CCardBody>
-          <CButtonToolbar aria-label="Toolbar with button groups" >
-            <CButtonGroup class="mx-1">
-              <CButton color="secondary" class="d-sm-down-none">&laquo;</CButton>
-              <CButton color="secondary">&lsaquo;</CButton>
-            </CButtonGroup>
-            <CButtonGroup class="mx-1">
-              <CButton color="secondary" class="d-sm-down-none">Edit</CButton>
-              <CButton color="secondary">Undo</CButton>
-              <CButton color="secondary">Redo</CButton>
-            </CButtonGroup>
-            <CButtonGroup class="mx-1">
-              <CButton color="secondary">&rsaquo;</CButton>
-              <CButton color="secondary" class="d-sm-down-none">&raquo;</CButton>
-            </CButtonGroup>
-          </CButtonToolbar>
-          <hr class="d-sm-down-none"/>
-          <CButtonToolbar
-            aria-label="Toolbar with button groups and input groups"
-            class="d-sm-down-none"
+          <p>
+            Combine button-like checkbox and radio toggle buttons into a
+            seamless looking button group.
+          </p>
+          <DocsExample
+            href="components/button-group.html#checkbox-and-radio-button-groups"
           >
-            <CButtonGroup size="sm" class="mx-1">
-              <CButton color="secondary">New</CButton>
-              <CButton color="secondary">Edit</CButton>
-            </CButtonGroup>
-            <CInput
-              class="mb-0 w-25 mx-1"
-              size="sm"
-              append=".00"
-              value="100"
-              prepend="$"
-            />
-            <CSelect
-              class="mb-0 w-25 mx-1"
-              size="sm"
-              value="Medium"
-              :options="['Large','Medium','Small']"
-              custom
-              prepend="Size"
-            />
-            <CButtonGroup size="sm" class="mx-1">
-              <CButton color="secondary">Save</CButton>
-              <CButton color="secondary">Cancel</CButton>
-            </CButtonGroup>
-          </CButtonToolbar>
-          <hr/>
-          <CButtonToolbar aria-label="Toolbar with button groups and dropdown menu">
-            <CButtonGroup class="mx-1 d-sm-down-none">
-              <CButton color="secondary">New</CButton>
-              <CButton color="secondary">Edit</CButton>
-              <CButton color="secondary">Undo</CButton>
-            </CButtonGroup>
-            <CDropdown
-              color="secondary"
-              class="mx-1"
-              placement="bottom-end"
-              button-content="Menu"
+            <CButtonGroup
+              role="group"
+              aria-label="Basic checkbox toggle button group"
             >
-              <CDropdownItem>Item 1</CDropdownItem>
-              <CDropdownItem>Item 2</CDropdownItem>
-              <CDropdownItem>Item 3</CDropdownItem>
-            </CDropdown>
-            <CButtonGroup class="mx-1">
-              <CButton color="secondary">Save</CButton>
-              <CButton color="secondary">Cancel</CButton>
+              <CFormCheck
+                id="btncheck1"
+                :button="{ color: 'primary', variant: 'outline' }"
+                autocomplete="off"
+                label="Checkbox 1"
+              />
+              <CFormCheck
+                id="btncheck2"
+                :button="{ color: 'primary', variant: 'outline' }"
+                autocomplete="off"
+                label="Checkbox 2"
+              />
+              <CFormCheck
+                id="btncheck3"
+                :button="{ color: 'primary', variant: 'outline' }"
+                autocomplete="off"
+                label="Checkbox 3"
+              />
             </CButtonGroup>
-          </CButtonToolbar>
+          </DocsExample>
+          <DocsExample
+            href="components/button-group.html#checkbox-and-radio-button-groups"
+          >
+            <CButtonGroup
+              role="group"
+              aria-label="Basic checkbox toggle button group"
+            >
+              <CFormCheck
+                id="btnradio1"
+                type="radio"
+                :button="{ color: 'primary', variant: 'outline' }"
+                name="btnradio"
+                autocomplete="off"
+                label="Radio 1"
+              />
+              <CFormCheck
+                id="btnradio2"
+                type="radio"
+                :button="{ color: 'primary', variant: 'outline' }"
+                name="btnradio"
+                autocomplete="off"
+                label="Radio 2"
+              />
+              <CFormCheck
+                id="btnradio3"
+                type="radio"
+                :button="{ color: 'primary', variant: 'outline' }"
+                name="btnradio"
+                autocomplete="off"
+                label="Radio 3"
+              />
+            </CButtonGroup>
+          </DocsExample>
+        </CCardBody>
+      </CCard>
+    </CCol>
+    <CCol :xs="12">
+      <CCard class="mb-4">
+        <CCardHeader>
+          <strong>Vue Button Group</strong> <span>Button toolbar</span>
+        </CCardHeader>
+        <CCardBody>
+          <p>
+            Join sets of button groups into button toolbars for more complicated
+            components. Use utility classes as needed to space out groups,
+            buttons, and more.
+          </p>
+          <DocsExample href="components/button-group.html#button-toolbar">
+            <CButtonToolbar
+              role="group"
+              aria-label="Toolbar with button groups"
+            >
+              <CButtonGroup class="me-2" role="group" aria-label="First group">
+                <CButton color="primary">1</CButton>
+                <CButton color="primary">2</CButton>
+                <CButton color="primary">3</CButton>
+                <CButton color="primary">4</CButton>
+              </CButtonGroup>
+              <CButtonGroup class="me-2" role="group" aria-label="Second group">
+                <CButton color="secondary">5</CButton>
+                <CButton color="secondary">6</CButton>
+                <CButton color="secondary">7</CButton>
+              </CButtonGroup>
+              <CButtonGroup class="me-2" role="group" aria-label="Third group">
+                <CButton color="info">8</CButton>
+              </CButtonGroup>
+            </CButtonToolbar>
+          </DocsExample>
+          <p>
+            Feel free to combine input groups with button groups in your
+            toolbars. Similar to the example above, you’ll likely need some
+            utilities through to space items correctly.
+          </p>
+          <DocsExample href="components/button-group.html#button-toolbar">
+            <CButtonToolbar
+              class="mb-3"
+              role="group"
+              aria-label="Toolbar with button groups"
+            >
+              <CButtonGroup class="me-2" role="group" aria-label="First group">
+                <CButton color="secondary" variant="outline"> 1 </CButton>
+                <CButton color="secondary" variant="outline"> 2 </CButton>
+                <CButton color="secondary" variant="outline"> 3 </CButton>
+                <CButton color="secondary" variant="outline"> 4 </CButton>
+              </CButtonGroup>
+              <CInputGroup>
+                <CInputGroupText>@</CInputGroupText>
+                <CFormInput
+                  placeholder="Input group example"
+                  aria-label="Input group example"
+                  aria-describedby="btnGroupAddon"
+                />
+              </CInputGroup>
+            </CButtonToolbar>
+            <CButtonToolbar
+              class="justify-content-between"
+              role="group"
+              aria-label="Toolbar with button groups"
+            >
+              <CButtonGroup class="me-2" role="group" aria-label="First group">
+                <CButton color="secondary" variant="outline"> 1 </CButton>
+                <CButton color="secondary" variant="outline"> 2 </CButton>
+                <CButton color="secondary" variant="outline"> 3 </CButton>
+                <CButton color="secondary" variant="outline"> 4 </CButton>
+              </CButtonGroup>
+              <CInputGroup>
+                <CInputGroupText>@</CInputGroupText>
+                <CFormInput
+                  placeholder="Input group example"
+                  aria-label="Input group example"
+                  aria-describedby="btnGroupAddon"
+                />
+              </CInputGroup>
+            </CButtonToolbar>
+          </DocsExample>
+        </CCardBody>
+      </CCard>
+    </CCol>
+    <CCol :xs="12">
+      <CCard class="mb-4">
+        <CCardHeader>
+          <strong>Vue Button Group</strong> <span>Sizing</span>
+        </CCardHeader>
+        <CCardBody>
+          <p>
+            Alternatively, of implementing button sizing classes to each button
+            in a group, set
+            <code>size</code> property to all
+            <code>&lt;CButtonGroup&gt;</code>&#39;s, including each one when
+            nesting multiple groups.
+          </p>
+          <DocsExample href="components/button-group.html#sizing">
+            <CButtonGroup
+              size="lg"
+              role="group"
+              aria-label="Large button group"
+            >
+              <CButton color="dark" variant="outline"> Left </CButton>
+              <CButton color="dark" variant="outline"> Middle </CButton>
+              <CButton color="dark" variant="outline"> Right </CButton>
+            </CButtonGroup>
+            <br />
+            <CButtonGroup role="group" aria-label="Default button group">
+              <CButton color="dark" variant="outline"> Left </CButton>
+              <CButton color="dark" variant="outline"> Middle </CButton>
+              <CButton color="dark" variant="outline"> Right </CButton>
+            </CButtonGroup>
+            <br />
+            <CButtonGroup
+              size="sm"
+              role="group"
+              aria-label="Small button group"
+            >
+              <CButton color="dark" variant="outline"> Left </CButton>
+              <CButton color="dark" variant="outline"> Middle </CButton>
+              <CButton color="dark" variant="outline"> Right </CButton>
+            </CButtonGroup>
+          </DocsExample>
+        </CCardBody>
+      </CCard>
+    </CCol>
+    <CCol :xs="12">
+      <CCard class="mb-4">
+        <CCardHeader>
+          <strong>Vue Button Group</strong> <span>Nesting</span>
+        </CCardHeader>
+        <CCardBody>
+          <p class="text-medium-emphasis small">
+            Put a <code>&lt;CButtonGroup&gt;</code> inside another
+            <code>&lt;CButtonGroup&gt;</code> when you need dropdown menus
+            combined with a series of buttons.
+          </p>
+          <DocsExample href="components/button-group.html#nesting">
+            <CButtonGroup
+              role="group"
+              aria-label="Button group with nested dropdown"
+            >
+              <CButton color="primary">1</CButton>
+              <CButton color="primary">2</CButton>
+              <CDropdown variant="btn-group">
+                <CDropdownToggle color="primary">Dropdown</CDropdownToggle>
+                <CDropdownMenu>
+                  <CDropdownItem href="#">Action</CDropdownItem>
+                  <CDropdownItem href="#">Another action</CDropdownItem>
+                  <CDropdownItem href="#">Something else here</CDropdownItem>
+                  <CDropdownDivider />
+                  <CDropdownItem href="#">Separated link</CDropdownItem>
+                </CDropdownMenu>
+              </CDropdown>
+            </CButtonGroup>
+          </DocsExample>
+        </CCardBody>
+      </CCard>
+    </CCol>
+    <CCol :xs="12">
+      <CCard class="mb-4">
+        <CCardHeader>
+          <strong>Vue Button Group</strong> <span>Vertical variation</span>
+        </CCardHeader>
+        <CCardBody>
+          <p class="text-medium-emphasis small">
+            Create a set of buttons that appear vertically stacked rather than
+            horizontally.
+            <strong>Split button dropdowns are not supported here.</strong>
+          </p>
+          <DocsExample href="components/button-group.html/#vertical-variation">
+            <CButtonGroup
+              vertical
+              role="group"
+              aria-label="Vertical button group"
+            >
+              <CButton color="dark">Button</CButton>
+              <CButton color="dark">Button</CButton>
+              <CButton color="dark">Button</CButton>
+              <CButton color="dark">Button</CButton>
+              <CButton color="dark">Button</CButton>
+              <CButton color="dark">Button</CButton>
+              <CButton color="dark">Button</CButton>
+            </CButtonGroup>
+          </DocsExample>
+          <DocsExample href="components/button-group.html/#vertical-variation">
+            <CButtonGroup
+              vertical
+              role="group"
+              aria-label="Vertical button group"
+            >
+              <CButton color="primary">Button</CButton>
+              <CButton color="primary">Button</CButton>
+              <CDropdown variant="btn-group">
+                <CDropdownToggle color="primary">Dropdown</CDropdownToggle>
+                <CDropdownMenu>
+                  <CDropdownItem href="#">Action</CDropdownItem>
+                  <CDropdownItem href="#">Another action</CDropdownItem>
+                  <CDropdownItem href="#">Something else here</CDropdownItem>
+                  <CDropdownDivider />
+                  <CDropdownItem href="#">Separated link</CDropdownItem>
+                </CDropdownMenu>
+              </CDropdown>
+              <CButton color="primary">Button</CButton>
+              <CButton color="primary">Button</CButton>
+              <CDropdown variant="btn-group">
+                <CDropdownToggle color="primary">Dropdown</CDropdownToggle>
+                <CDropdownMenu>
+                  <CDropdownItem href="#">Action</CDropdownItem>
+                  <CDropdownItem href="#">Another action</CDropdownItem>
+                  <CDropdownItem href="#">Something else here</CDropdownItem>
+                  <CDropdownDivider />
+                  <CDropdownItem href="#">Separated link</CDropdownItem>
+                </CDropdownMenu>
+              </CDropdown>
+              <CDropdown variant="btn-group">
+                <CDropdownToggle color="primary">Dropdown</CDropdownToggle>
+                <CDropdownMenu>
+                  <CDropdownItem href="#">Action</CDropdownItem>
+                  <CDropdownItem href="#">Another action</CDropdownItem>
+                  <CDropdownItem href="#">Something else here</CDropdownItem>
+                  <CDropdownDivider />
+                  <CDropdownItem href="#">Separated link</CDropdownItem>
+                </CDropdownMenu>
+              </CDropdown>
+              <CDropdown variant="btn-group">
+                <CDropdownToggle color="primary">Dropdown</CDropdownToggle>
+                <CDropdownMenu>
+                  <CDropdownItem href="#">Action</CDropdownItem>
+                  <CDropdownItem href="#">Another action</CDropdownItem>
+                  <CDropdownItem href="#">Something else here</CDropdownItem>
+                  <CDropdownDivider />
+                  <CDropdownItem href="#">Separated link</CDropdownItem>
+                </CDropdownMenu>
+              </CDropdown>
+            </CButtonGroup>
+          </DocsExample>
+          <DocsExample href="components/button-group.html/#vertical-variation">
+            <CButtonGroup
+              vertical
+              role="group"
+              aria-label="Vertical button group"
+            >
+              <CFormCheck
+                id="vbtnradio1"
+                type="radio"
+                :button="{ color: 'danger', variant: 'outline' }"
+                name="vbtnradio"
+                autocomplete="off"
+                label="Radio
+              1"
+                checked
+              />
+              <CFormCheck
+                id="vbtnradio2"
+                type="radio"
+                :button="{ color: 'danger', variant: 'outline' }"
+                name="vbtnradio"
+                autocomplete="off"
+                label="Radio
+              2"
+              />
+              <CFormCheck
+                id="vbtnradio3"
+                type="radio"
+                :button="{ color: 'danger', variant: 'outline' }"
+                name="vbtnradio"
+                autocomplete="off"
+                label="Radio
+              3"
+              />
+            </CButtonGroup>
+          </DocsExample>
         </CCardBody>
       </CCard>
     </CCol>
   </CRow>
 </template>
+
 <script>
 export default {
   name: 'ButtonGroups',

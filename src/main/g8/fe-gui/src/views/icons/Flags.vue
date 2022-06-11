@@ -1,49 +1,41 @@
 <template>
-  <div>
-    <CCard>
-      <CCardHeader>
-        <CIcon name="cil-globe-alt"/> Flags
-      </CCardHeader>
-      <CCardBody>
-        <CRow class="text-center">
-          <CCol class="mb-5" col="12">
-            <!-- For using the flags inline with text add the classes
-            <code>.flag-icon</code> and <code>.flag-icon-xx</code>
-            (where xx is the ISO 3166-1-alpha-2 code of a country) to an empty
-            span. If you want to have a squared version flag then add the class
-            flag-icon-squared as well. -->
-          </CCol>
-          <template v-for="(flag, flagName) in displayedFlags">
-            <CCol
-              class="mb-5"
-              col="3"
-              sm="2"
-              :key="flagName"
-            >
-              <CIcon :height="42" :content="flag"/>
-              <div>{{toKebabCase(flagName)}}</div>
-            </CCol>
-          </template>
-        </CRow>
-      </CCardBody>
-    </CCard>
-  </div>
+  <CRow>
+    <CCol>
+      <DocsCallout
+        name="CoreUI Flag Icons"
+        href="components/icon"
+        content="CoreUI Flag Icons. CoreUI Icons package is delivered with more than 1500 icons in multiple formats SVG, PNG, and Webfonts. CoreUI Icons are beautifully crafted symbols for common actions and items. You can use them in your digital products for web or mobile app."
+      />
+      <CCard>
+        <CCardHeader>CoreUI Icons - Flag</CCardHeader>
+        <CCardBody>
+          <CRow class="text-center">
+            <template v-for="(icon, iconName) in icons" :key="iconName">
+              <CCol class="mb-5" :xs="3" :sm="2">
+                <CIcon :content="icon" size="xxl" />
+                <div>{{ toKebabCase(iconName) }}</div>
+              </CCol>
+            </template>
+          </CRow>
+        </CCardBody>
+      </CCard>
+    </CCol>
+  </CRow>
 </template>
 
 <script>
 import { flagSet } from '@coreui/icons'
 export default {
-  name: 'Flags',
-  flagSet,
-  computed: {
-    displayedFlags () {
-      return this.$options.flagSet
+  name: 'CoreUIIcons',
+  setup() {
+    const toKebabCase = (str) =>
+      str.replace(/([a-z])([A-Z0-9])/g, '$1-$2').toLowerCase()
+    const icons = flagSet
+
+    return {
+      icons,
+      toKebabCase,
     }
   },
-  methods: {
-    toKebabCase (str) {
-      return str.replace(/([a-z])([A-Z0-9])/g, '$1-$2').toLowerCase()
-    }
-  }
 }
 </script>

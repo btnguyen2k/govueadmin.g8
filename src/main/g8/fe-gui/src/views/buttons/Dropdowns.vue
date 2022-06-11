@@ -1,363 +1,364 @@
 <template>
-  <div>
-    <CRow>
-      <CCol col="12" md="6">
-        <CCard>
-          <CCardHeader>
-            <CIcon name="cil-justify-center"/>
-            <strong> Bootstrap Dropdown</strong>
-            <div class="card-header-actions">
-              <a 
-                href="https://coreui.io/vue/docs/components/dropdown" 
-                class="card-header-action" 
-                rel="noreferrer noopener" 
-                target="_blank"
+  <CRow>
+    <CCol :xs="12">
+      <DocsCallout name="Dropdown" href="components/dropdown.html" />
+    </CCol>
+    <CCol :xs="12">
+      <CCard class="mb-4">
+        <CCardHeader>
+          <strong>Vue Dropdown</strong> <small>Single button</small>
+        </CCardHeader>
+        <CCardBody>
+          <p class="text-medium-emphasis small">
+            Here&#39;s how you can put them to work with either
+            <code>&lt;button&gt;</code>
+            elements:
+          </p>
+          <DocsExample href="components/dropdown.html#single-button">
+            <CDropdown>
+              <CDropdownToggle color="secondary"
+                >Dropdown button</CDropdownToggle
               >
-                <small class="text-muted">docs</small>
-              </a>
-            </div>
-          </CCardHeader>
-          <CCardBody>
-            <div>
-              <CDropdown 
-                toggler-text="Dropdown Button" 
-                class="m-2"
-                color="secondary"
-              >
-                <CDropdownItem>First Action</CDropdownItem>
-                <CDropdownItem>Second Action</CDropdownItem>
-                <CDropdownItem>Third Action</CDropdownItem>
-                <CDropdownDivider/>
-                <CDropdownItem>Something else here...</CDropdownItem>
-                <CDropdownItem disabled>Disabled action</CDropdownItem>
+              <CDropdownMenu>
+                <CDropdownItem href="#">Action</CDropdownItem>
+                <CDropdownItem href="#">Another action</CDropdownItem>
+                <CDropdownItem href="#">Something else here</CDropdownItem>
+              </CDropdownMenu>
+            </CDropdown>
+          </DocsExample>
+          <p class="text-medium-emphasis small">
+            The best part is you can do this with any button variant, too:
+          </p>
+          <DocsExample href="components/dropdown.html#single-button">
+            <template
+              v-for="color in [
+                'primary',
+                'secondary',
+                'success',
+                'danger',
+                'warning',
+                'info',
+                'light',
+                'dark',
+              ]"
+              :key="color"
+            >
+              <CDropdown variant="btn-group">
+                <CDropdownToggle :color="color">{{ color }}</CDropdownToggle>
+                <CDropdownMenu>
+                  <CDropdownItem href="#">Action</CDropdownItem>
+                  <CDropdownItem href="#">Another action</CDropdownItem>
+                  <CDropdownItem href="#">Something else here</CDropdownItem>
+                  <CDropdownDivider />
+                  <CDropdownItem href="#">Separated link</CDropdownItem>
+                </CDropdownMenu>
               </CDropdown>
-            </div>
-            <!-- <div>
-              <CDropdown toggler-text="Dropdown using buttons as menu items" class="m-2">
-                <CDropdownItem>I'm a button</CDropdownItem>
-                <CDropdownItem>I'm also a button</CDropdownItem>
-                <CDropdownItem disabled>I'm a button, but disabled!</CDropdownItem>
-                <CDropdownItem>I don't look like a button, but I am!</CDropdownItem>
+            </template>
+          </DocsExample>
+        </CCardBody>
+      </CCard>
+    </CCol>
+    <CCol :xs="12">
+      <CCard class="mb-4">
+        <CCardHeader>
+          <strong>Vue Dropdown</strong> <small>Split button</small>
+        </CCardHeader>
+        <CCardBody>
+          <p class="text-medium-emphasis small">
+            Similarly, create split button dropdowns with virtually the same
+            markup as single button dropdowns, but with the addition of boolean
+            prop <code>split</code> for proper spacing around the dropdown
+            caret.
+          </p>
+          <p class="text-medium-emphasis small">
+            We use this extra class to reduce the horizontal
+            <code>padding</code> on either side of the caret by 25% and remove
+            the <code>margin-left</code> that&#39;s attached for normal button
+            dropdowns. Those additional changes hold the caret centered in the
+            split button and implement a more properly sized hit area next to
+            the main button.
+          </p>
+          <DocsExample href="components/dropdown.html#split-button">
+            <template
+              v-for="color in [
+                'primary',
+                'secondary',
+                'success',
+                'danger',
+                'warning',
+                'info',
+                'light',
+                'dark',
+              ]"
+              :key="color"
+            >
+              <CDropdown variant="btn-group">
+                <CButton :color="color">{{ color }}</CButton>
+                <CDropdownToggle :color="color" split>{{
+                  color
+                }}</CDropdownToggle>
+                <CDropdownMenu>
+                  <CDropdownItem href="#">Action</CDropdownItem>
+                  <CDropdownItem href="#">Another action</CDropdownItem>
+                  <CDropdownItem href="#">Something else here</CDropdownItem>
+                  <CDropdownDivider />
+                  <CDropdownItem href="#">Separated link</CDropdownItem>
+                </CDropdownMenu>
               </CDropdown>
-            </div> -->
-            <div>
-              <CDropdown 
-                toggler-text="Dropdown with divider" 
-                class="m-2"
-                color="secondary"
+            </template>
+          </DocsExample>
+        </CCardBody>
+      </CCard>
+    </CCol>
+    <CCol :xs="12">
+      <CCard class="mb-4">
+        <CCardHeader>
+          <strong>Vue Dropdown</strong> <small>Sizing</small>
+        </CCardHeader>
+        <CCardBody>
+          <p class="text-medium-emphasis small">
+            Button dropdowns work with buttons of all sizes, including default
+            and split dropdown buttons.
+          </p>
+          <DocsExample href="components/dropdown.html#sizing">
+            <CDropdown variant="btn-group">
+              <CDropdownToggle color="secondary" size="lg">
+                Large button
+              </CDropdownToggle>
+              <CDropdownMenu>
+                <CDropdownItem href="#">Action</CDropdownItem>
+                <CDropdownItem href="#">Another action</CDropdownItem>
+                <CDropdownItem href="#">Something else here</CDropdownItem>
+                <CDropdownDivider />
+                <CDropdownItem href="#">Separated link</CDropdownItem>
+              </CDropdownMenu>
+            </CDropdown>
+            <CDropdown variant="btn-group">
+              <CButton color="secondary" size="lg">
+                Large split button
+              </CButton>
+              <CDropdownToggle color="secondary" size="lg" split />
+              <CDropdownMenu>
+                <CDropdownItem href="#">Action</CDropdownItem>
+                <CDropdownItem href="#">Another action</CDropdownItem>
+                <CDropdownItem href="#">Something else here</CDropdownItem>
+                <CDropdownDivider />
+                <CDropdownItem href="#">Separated link</CDropdownItem>
+              </CDropdownMenu>
+            </CDropdown>
+          </DocsExample>
+          <DocsExample href="components/dropdown.html#sizing">
+            <CDropdown variant="btn-group">
+              <CDropdownToggle color="secondary" size="sm">
+                Small button
+              </CDropdownToggle>
+              <CDropdownMenu>
+                <CDropdownItem href="#">Action</CDropdownItem>
+                <CDropdownItem href="#">Another action</CDropdownItem>
+                <CDropdownItem href="#">Something else here</CDropdownItem>
+                <CDropdownDivider />
+                <CDropdownItem href="#">Separated link</CDropdownItem>
+              </CDropdownMenu>
+            </CDropdown>
+            <CDropdown variant="btn-group">
+              <CButton color="secondary" size="sm">
+                Small split button
+              </CButton>
+              <CDropdownToggle color="secondary" size="sm" split />
+              <CDropdownMenu>
+                <CDropdownItem href="#">Action</CDropdownItem>
+                <CDropdownItem href="#">Another action</CDropdownItem>
+                <CDropdownItem href="#">Something else here</CDropdownItem>
+                <CDropdownDivider />
+                <CDropdownItem href="#">Separated link</CDropdownItem>
+              </CDropdownMenu>
+            </CDropdown>
+          </DocsExample>
+        </CCardBody>
+      </CCard>
+    </CCol>
+    <CCol :xs="12">
+      <CCard class="mb-4">
+        <CCardHeader>
+          <strong>Vue Dropdown</strong> <small>Single button</small>
+        </CCardHeader>
+        <CCardBody>
+          <p class="text-medium-emphasis small">
+            Opt into darker dropdowns to match a dark navbar or custom style by
+            set
+            <code>dark</code> property. No changes are required to the dropdown
+            items.
+          </p>
+          <DocsExample href="components/dropdown.html#dark-dropdowns">
+            <CDropdown dark>
+              <CDropdownToggle color="secondary"
+                >Dropdown button</CDropdownToggle
               >
-                <CDropdownItem>First item</CDropdownItem>
-                <CDropdownItem>Second item</CDropdownItem>
-                <CDropdownDivider/>
-                <CDropdownItem>Separated Item</CDropdownItem>
-              </CDropdown>
-            </div>
-            <div>
-              <CDropdown 
-                toggler-text="Dropdown with header" 
-                class="m-2"
-                color="secondary"
-              >
-                <CDropdownHeader>Dropdown header</CDropdownHeader>
-                <CDropdownItem>First item</CDropdownItem>
-                <CDropdownItem>Second Item</CDropdownItem>
-              </CDropdown>
-            </div>
-          </CCardBody>
-        </CCard>
-      </CCol>
-      <CCol col="12" md="6">
-        <CCard>
-          <CCardHeader>
-            <CIcon name="cil-justify-center"/>
-            <strong> Dropdown </strong>
-            <small>positioning</small>
-          </CCardHeader>
-          <CCardBody>
-            <div>
-              <CDropdown
-                toggler-text="Left align"
-                color="primary"
-                class="m-2 d-inline-block"
-              >
-                <CDropdownItem>Action</CDropdownItem>
-                <CDropdownItem>Another action</CDropdownItem>
-                <CDropdownItem>Something else here</CDropdownItem>
-              </CDropdown>
-              <CDropdown
-                placement="bottom-end"
-                toggler-text="Right align"
-                color="primary"
-                class="m-2 d-inline-block"
-              >
-                <CDropdownItem>Action</CDropdownItem>
-                <CDropdownItem>Another action</CDropdownItem>
-                <CDropdownItem>Something else here</CDropdownItem>
-              </CDropdown>
-            </div>
-            <div>
-              <CDropdown
-                toggler-text="Drop-Up"
-                color="info"
-                class="m-2"
-                placement="top-start"
-
-              >
-                <CDropdownItem>Action</CDropdownItem>
-                <CDropdownItem>Another action</CDropdownItem>
-                <CDropdownItem>Something else here</CDropdownItem>
-              </CDropdown>
-            </div>
-            <div>
-              <CDropdown
-                color="secondary"
-                :offset="[10, 5]"
-                toggler-text="Offset Dropdown"
-                class="m-2"
-              >
-                <CDropdownItem>Action</CDropdownItem>
-                <CDropdownItem>Another action</CDropdownItem>
-                <CDropdownItem>Something else here</CDropdownItem>
-              </CDropdown>
-            </div>
-            <div>
-              <CDropdown
-                color="secondary"
-                split
-                toggler-text="Split Dropdown"
-                class="m-2"
-              >
-                <CDropdownItem>Action</CDropdownItem>
-                <CDropdownItem>Another action</CDropdownItem>
-                <CDropdownItem>Something else here...</CDropdownItem>
-              </CDropdown>
-            </div>
-          </CCardBody>
-        </CCard>
-      </CCol>
-    </CRow>
-    <CRow>
-      <CCol col="12" md="6">
-        <CCard>
-          <CCardHeader>
-            <CIcon name="cil-justify-center"/>
-            <strong> Dropdown </strong>
-            <small>hidden caret</small>
-          </CCardHeader>
-          <CCardBody>
-            <div>
-              <CDropdown
-                color="link"
-                size="lg"
-                :caret="false"
-              >
-                <template #toggler-content>
-                  &#x1f50d;<span class="sr-only">Search</span>
-                </template>
-                <CDropdownItem>Action</CDropdownItem>
-                <CDropdownItem>Another action</CDropdownItem>
-                <CDropdownItem>Something else here...</CDropdownItem>
-              </CDropdown>
-            </div>
-          </CCardBody>
-        </CCard>
-      </CCol>
-      <CCol col="12" md="6">
-        <CCard>
-          <CCardHeader>
-            <CIcon name="cil-justify-center"/>
-            <strong> Dropdown </strong>
-            <small>sizing</small>
-          </CCardHeader>
-          <CCardBody>
-            <div>
-              <CDropdown
-                color="secondary"
-                size="lg"
-                toggler-text="Large"
-                class="m-2 d-inline-block"
-              >
-                <CDropdownItem>Action</CDropdownItem>
-                <CDropdownItem>Another action</CDropdownItem>
-                <CDropdownItem>Something else here</CDropdownItem>
-              </CDropdown>
-              <CDropdown
-                color="secondary"
-                size="lg"
-                split
-                toggler-text="Large Split"
-                class="m-2"
-              >
-                <CDropdownItem>Action</CDropdownItem>
-                <CDropdownItem>Another action</CDropdownItem>
-                <CDropdownItem>Something else here...</CDropdownItem>
-              </CDropdown>
-              <br>
-              <CDropdown
-                color="secondary"
-                size="sm"
-                toggler-text="Small"
-                class="m-2 d-inline-block"
-              >
-                <CDropdownItem>Action</CDropdownItem>
-                <CDropdownItem>Another action</CDropdownItem>
-                <CDropdownItem>Something else here...</CDropdownItem>
-              </CDropdown>
-              <CDropdown
-                color="secondary"
-                size="sm"
-                split toggler-text="Small Split"
-                class="m-2"
-              >
-                <CDropdownItem>Action</CDropdownItem>
-                <CDropdownItem>Another action</CDropdownItem>
-                <CDropdownItem>Something else here...</CDropdownItem>
-              </CDropdown>
-            </div>
-          </CCardBody>
-        </CCard>
-      </CCol>
-    </CRow>
-    <CRow>
-      <CCol col="12" md="6">
-        <CCard>
-          <CCardHeader>
-            <CIcon name="cil-justify-center"/>
-            <strong> Dropdown </strong>
-            <small>headers and accessibility</small>
-          </CCardHeader>
-          <CCardBody>
-            <div>
-              <CDropdown
-                toggler-text="Dropdown ARIA" color="primary"
-                class="m-2"
-              >
-                <div role="group">
-                  <CDropdownHeader>Groups</CDropdownHeader>
-                  <CDropdownItem>Add</CDropdownItem>
-                  <CDropdownItem>Delete</CDropdownItem>
+              <CDropdownMenu>
+                <CDropdownItem href="#">Action</CDropdownItem>
+                <CDropdownItem href="#">Another action</CDropdownItem>
+                <CDropdownItem href="#">Something else here</CDropdownItem>
+                <CDropdownDivider />
+                <CDropdownItem href="#">Separated link</CDropdownItem>
+              </CDropdownMenu>
+            </CDropdown>
+          </DocsExample>
+          <p class="text-medium-emphasis small">
+            And putting it to use in a navbar:
+          </p>
+          <DocsExample href="components/dropdown.html#dark-dropdowns">
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+              <div class="container-fluid">
+                <a class="navbar-brand" href="https://coreui.io/vue/">
+                  Navbar
+                </a>
+                <button
+                  class="navbar-toggler"
+                  type="button"
+                  data-coreui-toggle="collapse"
+                  data-coreui-target="#navbarNavDarkDropdown"
+                  aria-controls="navbarNavDarkDropdown"
+                  aria-expanded="false"
+                  aria-label="Toggle navigation"
+                >
+                  <span class="navbar-toggler-icon"></span>
+                </button>
+                <div
+                  id="navbarNavDarkDropdown"
+                  class="collapse navbar-collapse"
+                >
+                  <ul class="navbar-nav">
+                    <CDropdown dark component="li" variant="nav-item">
+                      <CDropdownToggle>Dropdown</CDropdownToggle>
+                      <CDropdownMenu>
+                        <CDropdownItem href="#">Action</CDropdownItem>
+                        <CDropdownItem href="#">Another action</CDropdownItem>
+                        <CDropdownItem href="#"
+                          >Something else here</CDropdownItem
+                        >
+                        <CDropdownDivider />
+                        <CDropdownItem href="#">Separated link</CDropdownItem>
+                      </CDropdownMenu>
+                    </CDropdown>
+                  </ul>
                 </div>
-                <div role="group">
-                  <CDropdownHeader>Users</CDropdownHeader>
-                  <CDropdownItem>Add</CDropdownItem>
-                  <CDropdownItem>Delete</CDropdownItem>
-                </div>
-                <CDropdownDivider/>
-                <CDropdownItem>
-                  Something <strong>not</strong> associated with user
-                </CDropdownItem>
+              </div>
+            </nav>
+          </DocsExample>
+        </CCardBody>
+      </CCard>
+    </CCol>
+    <CCol :xs="12">
+      <CCard class="mb-4">
+        <CCardHeader>
+          <strong>Vue Dropdown</strong> <small>Dropup</small>
+        </CCardHeader>
+        <CCardBody>
+          <p class="text-medium-emphasis small">
+            Trigger dropdown menus above elements by adding
+            <code>direction=&#34;dropup&#34;</code> to the
+            <code>&lt;CDropdown&gt;</code>
+            component.
+          </p>
+          <DocsExample href="components/dropdown.html#dropup">
+            <CDropdown variant="btn-group" direction="dropup">
+              <CDropdownToggle color="secondary">Dropdown</CDropdownToggle>
+              <CDropdownMenu>
+                <CDropdownItem href="#">Action</CDropdownItem>
+                <CDropdownItem href="#">Another action</CDropdownItem>
+                <CDropdownItem href="#">Something else here</CDropdownItem>
+                <CDropdownDivider />
+                <CDropdownItem href="#">Separated link</CDropdownItem>
+              </CDropdownMenu>
+            </CDropdown>
+            <CDropdown variant="btn-group" direction="dropup">
+              <CButton color="secondary">Small split button</CButton>
+              <CDropdownToggle color="secondary" split />
+              <CDropdownMenu>
+                <CDropdownItem href="#">Action</CDropdownItem>
+                <CDropdownItem href="#">Another action</CDropdownItem>
+                <CDropdownItem href="#">Something else here</CDropdownItem>
+                <CDropdownDivider />
+                <CDropdownItem href="#">Separated link</CDropdownItem>
+              </CDropdownMenu>
+            </CDropdown>
+          </DocsExample>
+        </CCardBody>
+      </CCard>
+    </CCol>
+    <CCol :xs="12">
+      <CCard class="mb-4">
+        <CCardHeader>
+          <strong>Vue Dropdown</strong> <small>Dropright</small>
+        </CCardHeader>
+        <CCardBody>
+          <p class="text-medium-emphasis small">
+            Trigger dropdown menus at the right of the elements by adding
+            <code>direction=&#34;dropend&#34;</code> to the
+            <code>&lt;CDropdown&gt;</code>
+            component.
+          </p>
+          <DocsExample href="components/dropdown.html#dropright">
+            <CDropdown variant="btn-group" direction="dropend">
+              <CDropdownToggle color="secondary">Dropdown</CDropdownToggle>
+              <CDropdownMenu>
+                <CDropdownItem href="#">Action</CDropdownItem>
+                <CDropdownItem href="#">Another action</CDropdownItem>
+                <CDropdownItem href="#">Something else here</CDropdownItem>
+                <CDropdownDivider />
+                <CDropdownItem href="#">Separated link</CDropdownItem>
+              </CDropdownMenu>
+            </CDropdown>
+            <CDropdown variant="btn-group" direction="dropend">
+              <CButton color="secondary">Small split button</CButton>
+              <CDropdownToggle color="secondary" split />
+              <CDropdownMenu>
+                <CDropdownItem href="#">Action</CDropdownItem>
+                <CDropdownItem href="#">Another action</CDropdownItem>
+                <CDropdownItem href="#">Something else here</CDropdownItem>
+                <CDropdownDivider />
+                <CDropdownItem href="#">Separated link</CDropdownItem>
+              </CDropdownMenu>
+            </CDropdown>
+          </DocsExample>
+        </CCardBody>
+      </CCard>
+    </CCol>
+    <CCol :xs="12">
+      <CCard class="mb-4">
+        <CCardHeader>
+          <strong>Vue Dropdown</strong> <small>Dropleft</small>
+        </CCardHeader>
+        <CCardBody>
+          <p class="text-medium-emphasis small">
+            Trigger dropdown menus at the left of the elements by adding
+            <code>direction=&#34;dropstart&#34;</code> to the
+            <code>&lt;CDropdown&gt;</code>
+            component.
+          </p>
+          <DocsExample href="components/dropdown.html#dropleft">
+            <CButtonGroup>
+              <CDropdown variant="btn-group" direction="dropstart">
+                <CDropdownToggle color="secondary" split />
+                <CDropdownMenu>
+                  <CDropdownItem href="#">Action</CDropdownItem>
+                  <CDropdownItem href="#">Another action</CDropdownItem>
+                  <CDropdownItem href="#">Something else here</CDropdownItem>
+                  <CDropdownDivider />
+                  <CDropdownItem href="#">Separated link</CDropdownItem>
+                </CDropdownMenu>
               </CDropdown>
-            </div>
-          </CCardBody>
-        </CCard>
-      </CCol>
-      <CCol col="12" md="6">
-        <CCard>
-          <CCardHeader>
-            <CIcon name="cil-justify-center"/>
-            <strong> Dropdown </strong>
-            <small><code>color</code></small>
-          </CCardHeader>
-          <CCardBody>
-            <CDropdown
-              size="sm"
-              toggler-text="Primary"
-              color="primary"
-              class="m-0 d-inline-block"
-            >
-              <CDropdownItem>First Action</CDropdownItem>
-              <CDropdownItem>Second Action</CDropdownItem>
-              <CDropdownItem>Third Action</CDropdownItem>
-            </CDropdown>
-            <CDropdown
-              size="sm"
-              toggler-text="Secondary"
-              color="secondary"
-              class="m-0 d-inline-block"
-            >
-              <CDropdownItem>First Action</CDropdownItem>
-              <CDropdownItem>Second Action</CDropdownItem>
-              <CDropdownItem>Third Action</CDropdownItem>
-            </CDropdown>
-            <CDropdown
-              size="sm"
-              toggler-text="Success"
-              color="success"
-              class="m-0 d-inline-block"
-            >
-              <CDropdownItem>First Action</CDropdownItem>
-              <CDropdownItem>Second Action</CDropdownItem>
-              <CDropdownItem>Third Action</CDropdownItem>
-            </CDropdown>
-            <CDropdown
-              size="sm"
-              toggler-text="Warning"
-              color="warning"
-              class="m-0 d-inline-block"
-            >
-              <CDropdownItem>First Action</CDropdownItem>
-              <CDropdownItem>Second Action</CDropdownItem>
-              <CDropdownItem>Third Action</CDropdownItem>
-            </CDropdown>
-            <CDropdown
-              size="sm"
-              toggler-text="Danger"
-              color="danger"
-              class="m-0 d-inline-block"
-            >
-              <CDropdownItem>First Action</CDropdownItem>
-              <CDropdownItem>Second Action</CDropdownItem>
-              <CDropdownItem>Third Action</CDropdownItem>
-            </CDropdown>
-            <CDropdown
-              size="sm"
-              toggler-text="Info"
-              color="info"
-              class="m-0 d-inline-block"
-            >
-              <CDropdownItem>First Action</CDropdownItem>
-              <CDropdownItem>Second Action</CDropdownItem>
-              <CDropdownItem>Third Action</CDropdownItem>
-            </CDropdown>
-            <CDropdown
-              size="sm"
-              toggler-text="Light"
-              color="light"
-              class="m-0 d-inline-block"
-            >
-              <CDropdownItem>First Action</CDropdownItem>
-              <CDropdownItem>Second Action</CDropdownItem>
-              <CDropdownItem>Third Action</CDropdownItem>
-            </CDropdown>
-            <CDropdown
-              size="sm"
-              toggler-text="Dark"
-              color="dark"
-              class="m-0 d-inline-block"
-            >
-              <CDropdownItem>First Action</CDropdownItem>
-              <CDropdownItem>Second Action</CDropdownItem>
-              <CDropdownItem>Third Action</CDropdownItem>
-            </CDropdown>
-            <CDropdown
-              size="sm"
-              toggler-text="Link"
-              color="link"
-              class="m-0 d-inline-block"
-            >
-              <CDropdownItem>First Action</CDropdownItem>
-              <CDropdownItem>Second Action</CDropdownItem>
-              <CDropdownItem>Third Action</CDropdownItem>
-            </CDropdown>
-          </CCardBody>
-        </CCard>
-      </CCol>
-    </CRow>
-  </div>
+              <CButton color="secondary">Small split button</CButton>
+            </CButtonGroup>
+          </DocsExample>
+        </CCardBody>
+      </CCard>
+    </CCol>
+  </CRow>
 </template>
 
 <script>
 export default {
-  name: 'Dropdowns'
+  name: 'Dropdowns',
 }
 </script>

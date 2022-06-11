@@ -1,6 +1,6 @@
 /*
 @author Thanh Nguyen <btnguyen2k@gmail.com>
-@GovueAdmin
+@GoVueAdmin
 */
 const APP_CONFIG = require('@/config.json')
 if (!APP_CONFIG.api_client.bo_api_base_url) {

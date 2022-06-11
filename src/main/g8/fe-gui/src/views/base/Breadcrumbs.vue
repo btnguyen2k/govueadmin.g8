@@ -1,24 +1,57 @@
 <template>
   <CRow>
-    <CCol col>
-      <CCard>
+    <CCol :xs="12">
+      <DocsCallout name="Breadcrumb" href="components/breadcrumb" />
+    </CCol>
+    <CCol :xs="12">
+      <CCard class="mb-4">
         <CCardHeader>
-          <CIcon name="cil-justify-center"/><strong> Bootstrap Breadcrumb</strong>
-          <div class="card-header-actions">
-            <a 
-              href="https://coreui.io/vue/docs/components/breadcrumb" 
-              class="card-header-action" 
-              rel="noreferrer noopener" 
-              target="_blank"
-            >
-              <small class="text-muted">docs</small>
-            </a>
-          </div>
+          <strong>Vue Breadcrumb</strong>
         </CCardHeader>
         <CCardBody>
-          <CBreadcrumb :items="items"/>
-          <CBreadcrumb :items="items2"/>
-          <CBreadcrumb :items="items3"/>
+          <p class="text-medium-emphasis small">
+            The breadcrumb navigation provides links back to each previous page
+            the user navigated through and shows the current location in a
+            website or an application. You don’t have to add separators, because
+            they automatically added in CSS through
+            <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/::before">
+              <code>::before</code>
+            </a>
+            and
+            <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/content">
+              <code>content</code>
+            </a>
+            .
+          </p>
+          <DocsExample href="components/breadcrumb">
+            <CBreadcrumb>
+              <CBreadcrumbItem>
+                <CLink href="#">Home</CLink>
+              </CBreadcrumbItem>
+              <CBreadcrumbItem active>Library</CBreadcrumbItem>
+            </CBreadcrumb>
+            <CBreadcrumb>
+              <CBreadcrumbItem>
+                <CLink href="#">Home</CLink>
+              </CBreadcrumbItem>
+              <CBreadcrumbItem>
+                <CLink href="#">Library</CLink>
+              </CBreadcrumbItem>
+              <CBreadcrumbItem active>Data</CBreadcrumbItem>
+            </CBreadcrumb>
+            <CBreadcrumb>
+              <CBreadcrumbItem>
+                <CLink href="#">Home</CLink>
+              </CBreadcrumbItem>
+              <CBreadcrumbItem>
+                <CLink href="#">Library</CLink>
+              </CBreadcrumbItem>
+              <CBreadcrumbItem>
+                <CLink href="#">Data</CLink>
+              </CBreadcrumbItem>
+              <CBreadcrumbItem active>Bootstrap</CBreadcrumbItem>
+            </CBreadcrumb>
+          </DocsExample>
         </CCardBody>
       </CCard>
     </CCol>
@@ -28,69 +61,5 @@
 <script>
 export default {
   name: 'Breadcrumbs',
-  data () {
-    return {
-      items: [
-        {
-          text: 'Admin',
-          href: '#'
-        }, 
-        {
-          text: 'Manage',
-          href: '#'
-        }, 
-        {
-          text: 'Library'
-        }
-      ],
-
-
-      items2: [
-        {
-          text: 'Go to dashboard',
-          to: '/dashboard'
-        }, 
-        {
-          text: 'Go to widgets',
-          to: '/Widgets'
-        }, 
-        {
-          text: 'Go to Google',
-          href: 'http://google.com'
-        },
-        {
-          text: 'Current page'
-        }
-      ],
-
-
-      items3: [
-        {
-          text: 'Added',
-          to: '#2',
-          addClasses: 'font-xl'
-        }, 
-        {
-          text: 'Custom',
-          to: '#3',
-          addClasses: 'font-xl'
-        },
-        {
-          text: 'Classes',
-          to: '#4',
-          addClasses: 'font-xl text-danger'
-        }
-      ]
-    }
-  }
 }
 </script>
-
-<style>
-  .breadcrumb-item + .font-xl.breadcrumb-item::before {
-    color: rgb(140, 195, 38);
-    content: '>>';
-    padding: 0px 10px;
-
-  }
-</style>

@@ -17,10 +17,11 @@ Demo: https://demo-govueadmin.herokuapp.com/.
   - Dashboard/Feed
     - Vote up/down on public blog posts
   - BO & DAO:
-    - [SQLite3](https://sqlite.org/index.html) implementation.
-    - [PostgreSQL](https://www.postgresql.org/) implementation.
-    - [Azure Cosmos DB](https://azure.microsoft.com/services/cosmos-db/) implementation.
     - [AWS DynamoDB](https://aws.amazon.com/dynamodb/) implementation.
+    - [Azure Cosmos DB](https://azure.microsoft.com/services/cosmos-db/) implementation.
+    - [MongoDB](https://www.mongodb.com/) implementation.
+    - [PostgreSQL](https://www.postgresql.org/) implementation.
+    - [SQLite3](https://sqlite.org/index.html) implementation.
 - Sample `Dockerfile` to package application as Docker image.
 
 

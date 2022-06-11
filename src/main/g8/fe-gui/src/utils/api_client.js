@@ -3,7 +3,7 @@ Client to make call to API server using Axios.
 
 @author Thanh Nguyen <btnguyen2k@gmail.com>
 @since template-v0.1.0
-@GovueAdmin
+@GoVueAdmin
 */
 import Axios from "axios"
 import appConfig from "./app_config"
