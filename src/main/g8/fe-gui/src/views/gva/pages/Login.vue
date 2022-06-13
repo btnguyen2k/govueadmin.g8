@@ -40,22 +40,12 @@
                   </CInputGroup>
                   <CRow>
                     <CCol :xs="5">
-                      <CButton
-                        size="sm"
-                        color="primary"
-                        class="px-4"
-                        type="submit"
-                        >{{ $t('message.login') }}</CButton
-                      >
+                      <CButton size="sm" color="primary" class="px-4" type="submit">{{ $t('message.login') }}</CButton>
                     </CCol>
                     <CCol :xs="7" class="text-right">
-                      <CButton
-                        size="sm"
-                        color="link"
-                        class="px-2"
-                        @click="doClickLoginSocial"
-                        >{{ $t('message.login_social') }}</CButton
-                      >
+                      <CButton size="sm" color="link" class="px-2" @click="doClickLoginSocial">{{
+                        $t('message.login_social')
+                      }}</CButton>
                     </CCol>
                   </CRow>
                   <CRow class="py-2">
@@ -63,22 +53,13 @@
                       <CFormLabel class="col-form-label col-form-label-sm">{{ $t('message.language') }}</CFormLabel>
                     </CCol>
                     <CCol sm="auto">
-                      <CFormSelect
-                        size="sm"
-                        v-model="$i18n.locale"
-                        :options="languageOptions"
-                      />
+                      <CFormSelect size="sm" v-model="$i18n.locale" :options="languageOptions" />
                     </CCol>
                   </CRow>
                 </CForm>
               </CCardBody>
             </CCard>
-            <CCard
-              color="primary"
-              text-color="white"
-              class="py-5 d-md-down-none"
-              body-wrapper
-            >
+            <CCard color="primary" text-color="white" class="py-5 d-md-down-none" body-wrapper>
               <CCardBody>
                 <h2>Demo</h2>
                 <p v-html="$t('_demo_msg')"></p>
@@ -98,10 +79,7 @@ import utils from '@/utils/app_utils'
 export default {
   name: 'Login',
   mounted() {
-    if (
-      this.$route.query.exterToken != undefined &&
-      this.$route.query.exterToken != ''
-    ) {
+    if (this.$route.query.exterToken != undefined && this.$route.query.exterToken != '') {
       let data = { token: this.$route.query.exterToken, mode: 'exter' }
       this._doLogin(data)
     }
@@ -165,12 +143,9 @@ export default {
         window.location.origin +
         this.$router.resolve({ name: 'Login' }).href +
         '?returnUrl=' +
-        prUrl
-          .replaceAll('#', encodeURIComponent('#'))
-          .replaceAll('=', encodeURIComponent('#')) +
+        prUrl.replaceAll('#', encodeURIComponent('#')).replaceAll('=', encodeURIComponent('#')) +
         '&exterToken=${token}'
-      let cUrl =
-        window.location.origin + this.$router.resolve({ name: 'Login' }).href
+      let cUrl = window.location.origin + this.$router.resolve({ name: 'Login' }).href
       let url =
         this.exterBaseUrl +
         '/app/xlogin?app=' +
@@ -224,6 +199,13 @@ export default {
         mode: 'form',
       }
       this._doLogin(data)
+    },
+    switchlanguage() {
+      // console.log(this.$refs.languageSelection)
+      // console.log(this.$i18n.locale)
+    },
+    hehe(el) {
+      // console.log(el.modelValue)
     },
   },
 }

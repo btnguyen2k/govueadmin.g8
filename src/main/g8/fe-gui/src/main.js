@@ -1,6 +1,7 @@
 // #GoVueAdmin-Customized
 import { createApp } from 'vue'
 import App from './App.vue'
+
 const app = createApp(App)
 
 import i18n from './i18n'
