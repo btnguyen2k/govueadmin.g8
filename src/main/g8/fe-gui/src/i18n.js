@@ -14,6 +14,8 @@ const messages = {
 
     message: {
       language: 'Language',
+      switch_language_msg:
+        'Changing the display language requires the current page to be reloaded. Are you sure you wish to change the display language?',
 
       actions: 'Actions',
       action_create: 'Create',
@@ -69,6 +71,8 @@ const messages = {
 
     message: {
       language: 'Ngôn ngữ',
+      switch_language_msg:
+        'Thay đổi ngôn ngữ hiển thị sẽ tải lại trang hiện thời. Bạn có chắc bạn muốn thay đổi ngôn ngữ hiển thị?',
 
       actions: 'Hành động',
       action_create: 'Tạo',
@@ -123,6 +127,7 @@ const _i18n = createI18n({
   messages: messages,
 })
 
+/* i18n.global is readonly, we need to clone a new instance and make it reactive */
 const i18n = { ..._i18n }
 import { reactive, watchEffect } from 'vue'
 i18n.global = reactive(i18n.global)
@@ -135,3 +140,12 @@ watchEffect(() => {
 })
 
 export default i18n
+
+export function swichLanguage(locale, refreshPage) {
+  if (locale !== oldLocale) {
+    i18n.global.locale = locale
+    if (refreshPage) {
+      window.location.reload(false)
+    }
+  }
+}

@@ -5,9 +5,7 @@
       <CAvatar :src="avatarUrl" size="md" />
     </CDropdownToggle>
     <CDropdownMenu class="pt-0">
-      <CDropdownHeader component="h6" class="bg-light fw-semibold py-2">
-        Account
-      </CDropdownHeader>
+      <CDropdownHeader component="h6" class="bg-light fw-semibold py-2"> Account </CDropdownHeader>
       <CDropdownItem @click="funcNotImplemented">
         <CIcon icon="cil-bell" /> Updates
         <CBadge color="info" class="ms-auto">{{ itemsCount }}</CBadge>
@@ -24,15 +22,9 @@
         <CIcon icon="cil-comment-square" /> Comments
         <CBadge color="warning" class="ms-auto">{{ itemsCount }}</CBadge>
       </CDropdownItem>
-      <CDropdownHeader component="h6" class="bg-light fw-semibold py-2">
-        Settings
-      </CDropdownHeader>
-      <CDropdownItem @click="funcNotImplemented">
-        <CIcon icon="cil-user" /> Profile
-      </CDropdownItem>
-      <CDropdownItem @click="funcNotImplemented">
-        <CIcon icon="cil-settings" /> Settings
-      </CDropdownItem>
+      <CDropdownHeader component="h6" class="bg-light fw-semibold py-2"> Settings </CDropdownHeader>
+      <CDropdownItem @click="funcNotImplemented"> <CIcon icon="cil-user" /> Profile </CDropdownItem>
+      <CDropdownItem @click="funcNotImplemented"> <CIcon icon="cil-settings" /> Settings </CDropdownItem>
       <CDropdownItem @click="funcNotImplemented">
         <CIcon icon="cil-dollar" /> Payments
         <CBadge color="secondary" class="ms-auto">{{ itemsCount }}</CBadge>
@@ -42,12 +34,8 @@
         <CBadge color="primary" class="ms-auto">{{ itemsCount }}</CBadge>
       </CDropdownItem>
       <CDropdownDivider />
-      <CDropdownItem @click="funcNotImplemented">
-        <CIcon icon="cil-shield-alt" /> Lock Account
-      </CDropdownItem>
-      <CDropdownItem @click="doLogout">
-        <CIcon icon="cil-lock-locked" /> Logout
-      </CDropdownItem>
+      <CDropdownItem @click="funcNotImplemented"> <CIcon icon="cil-shield-alt" /> Lock Account </CDropdownItem>
+      <CDropdownItem @click="doLogout"> <CIcon icon="cil-lock-locked" /> Logout </CDropdownItem>
     </CDropdownMenu>
   </CDropdown>
 </template>
@@ -67,10 +55,7 @@ export default {
     return {
       itemsCount: 42,
       displayName: session != null ? session.name : uid,
-      avatarUrl: 'https://www.gravatar.com/avatar/{aid}?s=40'.replace(
-        '{aid}',
-        uid.trim().toLowerCase().md5(),
-      ),
+      avatarUrl: 'https://www.gravatar.com/avatar/{aid}?s=40'.replace('{aid}', uid.trim().toLowerCase().md5()),
     }
   },
   methods: {

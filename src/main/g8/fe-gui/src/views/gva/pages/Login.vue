@@ -53,7 +53,7 @@
                       <CFormLabel class="col-form-label col-form-label-sm">{{ $t('message.language') }}</CFormLabel>
                     </CCol>
                     <CCol sm="auto">
-                      <CFormSelect size="sm" v-model="$i18n.locale" :options="languageOptions" />
+                      <CFormSelect size="sm" v-model="$root.$i18n.locale" :options="languageOptions" />
                     </CCol>
                   </CRow>
                 </CForm>
