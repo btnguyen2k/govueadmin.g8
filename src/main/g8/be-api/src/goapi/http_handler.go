@@ -1,11 +1,12 @@
 package goapi
 
 import (
-	"github.com/labstack/echo/v4"
 	"log"
-	"main/src/itineris"
 	"net/http"
 	"strings"
+
+	"github.com/labstack/echo/v4"
+	"main/src/itineris"
 )
 
 var (
@@ -26,10 +27,18 @@ func registerHttpHandler(uri, httpMethod, apiName string) {
 func _parseRequest(apiName string, c echo.Context) (*itineris.ApiContext, *itineris.ApiAuth, *itineris.ApiParams) {
 	httpMethod := c.Request().Method
 	ctx := itineris.NewApiContext().SetApiName(apiName).SetGateway("HTTP").
-		SetContextValue("method", httpMethod).
-		SetContextValue("remote_addr", c.RealIP()).
-		SetContextValue("remote_real_id", c.Request().RemoteAddr).
-		SetContextValue("url", c.Request().URL.String())
+		SetContextValue(itineris.CtxHttpMethod, httpMethod).
+		SetContextValue(itineris.CtxHttpRequestUrl, c.Request().URL.String()).
+		SetContextValue(itineris.CtxClientRealAddr, c.RealIP()).
+		SetContextValue(itineris.CtxClientAddr, c.Request().RemoteAddr)
+	for k, _ := range c.Request().Header {
+		if k != httpHeaderAppId && k != httpHeaderAccessToken {
+			k = strings.TrimSpace(strings.ToLower(k))
+			if strings.HasPrefix(k, "x-") {
+				ctx.SetContextValue(k[2:], c.Request().Header.Get(k))
+			}
+		}
+	}
 
 	auth := itineris.NewApiAuth(c.Request().Header.Get(httpHeaderAppId), c.Request().Header.Get(httpHeaderAccessToken))
 

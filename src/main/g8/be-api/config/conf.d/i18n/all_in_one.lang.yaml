@@ -1,0 +1,45 @@
+---
+# !!!multi-documents in one file is not supported yet!!!
+en:
+  _display: "English"
+  error_exter_not_enabled: "Exter login is not enabled."
+  error_exter_login_failed:
+    zero: "Exter login failed, please retry."
+    other: "Exter login failed (code {{.code}}): {{.message}}."
+  error_exter_token_validation_failed: "Exter token validation failed with error: {{.error}}."
+  error_user_creation_failed:
+    zero: "User account initialization failed, please retry."
+    other: "User account initialization failed: {{.error}}."
+  error_jwt_generation_failed: "Error generating JWT: {{.error}}."
+  error_login_failed:
+    zero: "Authentication failed."
+    other: "Authentication failed: {{.error}}."
+  error_server:
+    zero: "General server error occurred."
+    other: "General server error: {{.error}}."
+  error_no_permission: "You are not authorized to perform this action."
+  error_empty_blog_title: "Blog title is empty, please provide one."
+  error_empty_blog_content: "Blog content is empty, please provide one."
+  error_blog_not_exist: "Blog post {{.id}} does not exist."
+
+vi:
+  _display: "Tiếng Việt"
+  error_exter_not_enabled: "Chức năng đăng nhập qua Exter chưa được bật."
+  error_exter_login_failed:
+    zero: "Đăng nhập qua Exter không thành công, vui lòng thử lại."
+    other: "Đăng nhập qua Exter không thành công (max {{.code}}): {{.message}}."
+  error_exter_token_validation_failed: "Xác thực mã Exter thất bại, lỗi: {{.error}}."
+  error_user_creation_failed:
+    zero: "Khởi tạo tài khoản người dùng không thành công, vui lòng thử lại."
+    other: "Khởi tạo tài khoản người dùng không thành công: {{.error}}."
+  error_jwt_generation_failed: "Có lỗi khi tạo JWT: {{.error}}."
+  error_login_failed:
+    zero: "Đăng nhập không thành công."
+    other: "Đăng nhập không thành công: {{.error}}."
+  error_server:
+    zero: "Có lỗi xảy ra từ đầu máy chủ."
+    other: "Có lỗi xảy ra từ đầu máy chủ: {{.error}}."
+  error_no_permission: "Bạn chưa được cấp quyền thực thi tác vụ này."
+  error_empty_blog_title: "Vui lòng nhập tựa đề bài viết."
+  error_empty_blog_content: "Vui lòng nhập nội dung bài viết."
+  error_blog_not_exist: "Bài viết {{.id}} không tồn tại."

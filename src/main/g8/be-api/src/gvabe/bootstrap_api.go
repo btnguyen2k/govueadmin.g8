@@ -3,7 +3,6 @@ package gvabe
 import (
 	"crypto/x509"
 	"encoding/pem"
-	"fmt"
 	"log"
 	"reflect"
 	"regexp"
@@ -11,6 +10,7 @@ import (
 	"time"
 
 	"github.com/btnguyen2k/consu/reddo"
+	"github.com/btnguyen2k/goyai"
 
 	"github.com/btnguyen2k/henge"
 
@@ -20,11 +20,9 @@ import (
 	"main/src/itineris"
 )
 
-/*
-Setup API handlers: application register its api-handlers by calling router.SetHandler(apiName, apiHandlerFunc)
-
-    - api-handler function must has the following signature: func (itineris.ApiContext, itineris.ApiAuth, itineris.ApiParams) *itineris.ApiResult
-*/
+// Setup API handlers: application register its api-handlers by calling router.SetHandler(apiName, apiHandlerFunc)
+//   - api-handler function must have the following signature:
+//     func (itineris.ApiContext, itineris.ApiAuth, itineris.ApiParams) *itineris.ApiResult
 func initApiHandlers(router *itineris.ApiRouter) {
 	router.SetHandler("info", apiInfo)
 	router.SetHandler("login", apiLogin)
@@ -87,7 +85,7 @@ func _currentUserFromContext(ctx *itineris.ApiContext) (*SessionClaims, *user.Us
 /*------------------------------ APIs ------------------------------*/
 
 // API handler "info"
-func apiInfo(_ *itineris.ApiContext, auth *itineris.ApiAuth, _ *itineris.ApiParams) *itineris.ApiResult {
+func apiInfo(_ *itineris.ApiContext, _ *itineris.ApiAuth, _ *itineris.ApiParams) *itineris.ApiResult {
 	var publicPEM []byte
 	if pubDER, err := x509.MarshalPKIXPublicKey(rsaPubKey); err == nil {
 		pubBlock := pem.Block{
@@ -113,6 +111,7 @@ func apiInfo(_ *itineris.ApiContext, auth *itineris.ApiAuth, _ *itineris.ApiPara
 			"base_url": exterBaseUrl,
 		},
 		"rsa_public_key": string(publicPEM),
+		/*!!! demo purpose only! exposing memory usage is generally not a good idea !!!*/
 		// "memory": map[string]interface{}{
 		// 	"alloc":     m.Alloc,
 		// 	"alloc_str": strconv.FormatFloat(float64(m.Alloc)/1024.0/1024.0, 'f', 1, 64) + " MiB",
@@ -144,20 +143,33 @@ func _doLoginExter(ctx *itineris.ApiContext, params *itineris.ApiParams) *itiner
 				exterToken.Id, exterToken.Type, exterToken.AppId, exterToken.UserId, exterToken.UserName)
 		}
 	}
+
 	if exterClient == nil {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage("Exter login is not enabled")
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_exter_not_enabled",
+				&goyai.LocalizeConfig{DefaultMessage: "Exter login is not enabled"}),
+		)
 	}
 	resp, err := exterClient.VerifyLoginToken(token.(string))
 	if err != nil {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_exter_token_validation_failed",
+				&goyai.LocalizeConfig{DefaultMessage: err.Error(),
+					TemplateData: map[string]interface{}{"error": err.Error()}}),
+		)
 	}
 	if resp.Status != 200 {
-		return itineris.NewApiResult(itineris.StatusNoPermission).
-			SetMessage(fmt.Sprintf("Exter login failed (%d): %s", resp.Status, resp.Message))
+		return itineris.NewApiResult(itineris.StatusNoPermission).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_exter_login_failed",
+				&goyai.LocalizeConfig{DefaultMessage: err.Error(), PluralCount: -1,
+					TemplateData: map[string]interface{}{"code": resp.Status, "message": resp.Message}}),
+		)
 	}
 	if exterRsaPubKey == nil {
-		return itineris.NewApiResult(itineris.StatusErrorServer).
-			SetMessage(fmt.Sprintf("Exter login failed, please retry"))
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_exter_login_failed",
+				&goyai.LocalizeConfig{DefaultMessage: "Exter login failed, please retry", PluralCount: 0}),
+		)
 	}
 	exterJwt := resp.GetString("data")
 	exterToken, err := parseExterJwt(exterJwt)
@@ -170,18 +182,31 @@ func _doLoginExter(ctx *itineris.ApiContext, params *itineris.ApiParams) *itiner
 		}
 	}
 	if err != nil {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_exter_token_validation_failed",
+				&goyai.LocalizeConfig{DefaultMessage: err.Error(),
+					TemplateData: map[string]interface{}{"error": err.Error()}}),
+		)
 	}
 	if exterToken.Type != "login" {
-		return itineris.NewApiResult(itineris.StatusNoPermission).
-			SetMessage(fmt.Sprintf("Exter login failed, please retry"))
+		return itineris.NewApiResult(itineris.StatusNoPermission).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_exter_login_failed",
+				&goyai.LocalizeConfig{DefaultMessage: "Exter login failed, please retry", PluralCount: 0}),
+		)
 	}
 	user, err := createUserFromExterToken(exterToken)
 	if err != nil {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_user_creation_failed",
+				&goyai.LocalizeConfig{DefaultMessage: err.Error(), PluralCount: -1,
+					TemplateData: map[string]interface{}{"error": resp.Message}}),
+		)
 	}
 	if user == nil {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage("can not create user account, please try again")
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_user_creation_failed",
+				&goyai.LocalizeConfig{DefaultMessage: "User account initialization failed, please retry", PluralCount: 0}),
+		)
 	}
 	claims, err := genLoginClaims(ctx.GetId(), &Session{
 		ClientRef:   ctx.GetId(),
@@ -193,28 +218,43 @@ func _doLoginExter(ctx *itineris.ApiContext, params *itineris.ApiParams) *itiner
 		Data:        []byte(exterJwt),
 	})
 	if err != nil {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_jwt_generation_failed",
+				&goyai.LocalizeConfig{DefaultMessage: err.Error(),
+					TemplateData: map[string]interface{}{"error": err.Error()}}),
+		)
 	}
 	jwt, err := genJws(claims)
 	if err != nil {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_jwt_generation_failed",
+				&goyai.LocalizeConfig{DefaultMessage: err.Error(),
+					TemplateData: map[string]interface{}{"error": err.Error()}}),
+		)
 	}
 	return itineris.NewApiResult(itineris.StatusOk).SetData(jwt)
 }
 
 func _doLoginForm(ctx *itineris.ApiContext, params *itineris.ApiParams) *itineris.ApiResult {
 	username := _extractParam(params, "username", reddo.TypeString, "", nil)
+	resultLoginFailed := itineris.NewApiResult(itineris.StatusNoPermission).SetMessage(
+		i18n.Localize(ctx.GetClientLocale(), "error_login_failed",
+			&goyai.LocalizeConfig{DefaultMessage: "Authentication failed", PluralCount: 0}),
+	)
 	if username == "" {
-		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("empty username")
+		return resultLoginFailed
 	}
-	resultLoginFailed := itineris.NewApiResult(itineris.StatusNoPermission).SetMessage("login failed")
 	password := _extractParam(params, "password", reddo.TypeString, "", nil)
 	if password == "" {
 		return resultLoginFailed
 	}
 	user, err := userDaov2.Get(username.(string))
 	if err != nil {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_login_failed",
+				&goyai.LocalizeConfig{DefaultMessage: err.Error(), PluralCount: -1,
+					TemplateData: map[string]interface{}{"error": err.Error()}}),
+		)
 	}
 	if user == nil {
 		return resultLoginFailed
@@ -233,20 +273,25 @@ func _doLoginForm(ctx *itineris.ApiContext, params *itineris.ApiParams) *itineri
 		Data:        nil,
 	})
 	if err != nil {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_jwt_generation_failed",
+				&goyai.LocalizeConfig{DefaultMessage: err.Error(),
+					TemplateData: map[string]interface{}{"error": err.Error()}}),
+		)
 	}
 	jwt, err := genJws(claims)
 	if err != nil {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_jwt_generation_failed",
+				&goyai.LocalizeConfig{DefaultMessage: err.Error(),
+					TemplateData: map[string]interface{}{"error": err.Error()}}),
+		)
 	}
 	return itineris.NewApiResult(itineris.StatusOk).SetData(jwt)
 }
 
-/*
-apiLogin handles API call "login".
-
-	- Upon login successfully, this API returns the login token as JWT.
-*/
+// apiLogin handles API call "login".
+//   - Upon login successfully, this API returns the login token as JWT.
 func apiLogin(ctx *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
 	mode := _extractParam(params, "mode", reddo.TypeString, "form", nil)
 	switch strings.ToLower(mode.(string)) {
@@ -257,29 +302,41 @@ func apiLogin(ctx *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.Ap
 	}
 }
 
-/*
-apiVerifyLoginToken handles API call "verifyLoginToken".
-
-	- Upon successful, this API returns the login-token.
-*/
-func apiVerifyLoginToken(_ *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
+// apiVerifyLoginToken handles API call "verifyLoginToken".
+//   - Upon successful, this API returns the login-token.
+func apiVerifyLoginToken(ctx *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
 	// firstly extract JWT token from request and convert it into claims
 	token := _extractParam(params, "token", reddo.TypeString, "", nil)
 	if token == "" {
-		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("empty token")
+		return itineris.NewApiResult(itineris.StatusNoPermission).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_login_failed",
+				&goyai.LocalizeConfig{DefaultMessage: "Authentication failed", PluralCount: 0}),
+		)
 	}
 	claims, err := parseLoginToken(token.(string))
 	if err != nil {
-		return itineris.NewApiResult(itineris.StatusNoPermission).SetMessage(err.Error())
+		return itineris.NewApiResult(itineris.StatusNoPermission).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_login_failed",
+				&goyai.LocalizeConfig{DefaultMessage: err.Error(), PluralCount: -1,
+					TemplateData: map[string]interface{}{"error": err.Error()}}),
+		)
 	}
 	if claims.isExpired() {
-		return itineris.NewApiResult(itineris.StatusNoPermission).SetMessage(errorExpiredJwt.Error())
+		return itineris.NewApiResult(itineris.StatusNoPermission).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_login_failed",
+				&goyai.LocalizeConfig{DefaultMessage: errorExpiredJwt.Error(), PluralCount: -1,
+					TemplateData: map[string]interface{}{"error": errorExpiredJwt.Error()}}),
+		)
 	}
 
 	// lastly return the login-token encoded as JWT
 	jwt, err := genJws(claims)
 	if err != nil {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_jwt_generation_failed",
+				&goyai.LocalizeConfig{DefaultMessage: err.Error(),
+					TemplateData: map[string]interface{}{"error": err.Error()}}),
+		)
 	}
 	return itineris.NewApiResult(itineris.StatusOk).SetData(jwt)
 }
@@ -314,22 +371,31 @@ var funcPostToMapTransform = func(m map[string]interface{}) map[string]interface
 	return result
 }
 
-/*
-apiMyFeed handles API call "myFeed"
-
-@available since template-v0.2.0
-*/
+// apiMyFeed handles API call "myFeed"
+//
+// @available since template-v0.2.0
 func apiMyFeed(ctx *itineris.ApiContext, _ *itineris.ApiAuth, _ *itineris.ApiParams) *itineris.ApiResult {
 	_, user, err := _currentUserFromContext(ctx)
 	if err != nil {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_server",
+				&goyai.LocalizeConfig{DefaultMessage: err.Error(), PluralCount: -1,
+					TemplateData: map[string]interface{}{"error": err.Error()}}),
+		)
 	}
 	if user == nil {
-		return itineris.NewApiResult(itineris.StatusNoPermission).SetMessage("user not found")
+		return itineris.NewApiResult(itineris.StatusNoPermission).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_no_permission",
+				&goyai.LocalizeConfig{DefaultMessage: "Not authorized"}),
+		)
 	}
 	blogPostList, err := blogPostDaov2.GetUserFeedAll(user)
 	if err != nil {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_server",
+				&goyai.LocalizeConfig{DefaultMessage: err.Error(), PluralCount: -1,
+					TemplateData: map[string]interface{}{"error": err.Error()}}),
+		)
 	}
 	data := make([]map[string]interface{}, 0)
 	for _, p := range blogPostList {
@@ -338,22 +404,31 @@ func apiMyFeed(ctx *itineris.ApiContext, _ *itineris.ApiAuth, _ *itineris.ApiPar
 	return itineris.NewApiResult(itineris.StatusOk).SetData(data)
 }
 
-/*
-apiMyBlog handles API call "myBlog"
-
-@available since template-v0.2.0
-*/
+// apiMyBlog handles API call "myBlog"
+//
+// @available since template-v0.2.0
 func apiMyBlog(ctx *itineris.ApiContext, _ *itineris.ApiAuth, _ *itineris.ApiParams) *itineris.ApiResult {
 	_, user, err := _currentUserFromContext(ctx)
 	if err != nil {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_server",
+				&goyai.LocalizeConfig{DefaultMessage: err.Error(), PluralCount: -1,
+					TemplateData: map[string]interface{}{"error": err.Error()}}),
+		)
 	}
 	if user == nil {
-		return itineris.NewApiResult(itineris.StatusNoPermission).SetMessage("user not found")
+		return itineris.NewApiResult(itineris.StatusNoPermission).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_no_permission",
+				&goyai.LocalizeConfig{DefaultMessage: "Not authorized"}),
+		)
 	}
 	blogPostList, err := blogPostDaov2.GetUserPostsAll(user)
 	if err != nil {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_server",
+				&goyai.LocalizeConfig{DefaultMessage: err.Error(), PluralCount: -1,
+					TemplateData: map[string]interface{}{"error": err.Error()}}),
+		)
 	}
 	data := make([]map[string]interface{}, 0)
 	for _, p := range blogPostList {
@@ -362,60 +437,91 @@ func apiMyBlog(ctx *itineris.ApiContext, _ *itineris.ApiAuth, _ *itineris.ApiPar
 	return itineris.NewApiResult(itineris.StatusOk).SetData(data)
 }
 
-/*
-apiCreateBlogPost handles API call "createBlogPost"
-
-@available since template-v0.2.0
-*/
+// apiCreateBlogPost handles API call "createBlogPost"
+//
+// @available since template-v0.2.0
 func apiCreateBlogPost(ctx *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
 	_, user, err := _currentUserFromContext(ctx)
 	if err != nil {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_server",
+				&goyai.LocalizeConfig{DefaultMessage: err.Error(), PluralCount: -1,
+					TemplateData: map[string]interface{}{"error": err.Error()}}),
+		)
 	}
 	if user == nil {
-		return itineris.NewApiResult(itineris.StatusNoPermission).SetMessage("user not found")
+		return itineris.NewApiResult(itineris.StatusNoPermission).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_no_permission",
+				&goyai.LocalizeConfig{DefaultMessage: "Not authorized"}),
+		)
 	}
 	isPublic := _extractParam(params, "is_public", reddo.TypeBool, false, nil)
 	title := _extractParam(params, "title", reddo.TypeString, "", nil)
 	if title == "" {
-		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("title is empty")
+		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_empty_blog_title",
+				&goyai.LocalizeConfig{DefaultMessage: "Blog title is empty, please provide one"}),
+		)
 	}
 	content := _extractParam(params, "content", reddo.TypeString, "", nil)
 	if content == "" {
-		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("content is empty")
+		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_empty_blog_content",
+				&goyai.LocalizeConfig{DefaultMessage: "Blog content is empty, please provide one"}),
+		)
 	}
 	blogPost := blog.NewBlogPost(goapi.AppVersionNumber, user, isPublic.(bool), title.(string), content.(string))
 	ok, err := blogPostDaov2.Create(blogPost)
 	if err != nil {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_server",
+				&goyai.LocalizeConfig{DefaultMessage: err.Error(), PluralCount: -1,
+					TemplateData: map[string]interface{}{"error": err.Error()}}),
+		)
 	}
 	if !ok {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage("cannot create blog post")
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_server",
+				&goyai.LocalizeConfig{DefaultMessage: "General server error occurred", PluralCount: 0}),
+		)
 	}
 	return itineris.NewApiResult(itineris.StatusOk)
 }
 
-/*
-apiGetBlogPost handles API call "getBlogPost"
-
-@available since template-v0.2.0
-*/
+// apiGetBlogPost handles API call "getBlogPost"
+//
+// @available since template-v0.2.0
 func apiGetBlogPost(ctx *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
 	_, user, err := _currentUserFromContext(ctx)
 	if err != nil {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_server",
+				&goyai.LocalizeConfig{DefaultMessage: err.Error(), PluralCount: -1,
+					TemplateData: map[string]interface{}{"error": err.Error()}}),
+		)
 	}
-	resultNoPermission := itineris.NewApiResult(itineris.StatusNoPermission).SetMessage("current user has no permission to view this post")
+	resultNoPermission := itineris.NewApiResult(itineris.StatusNoPermission).SetMessage(
+		i18n.Localize(ctx.GetClientLocale(), "error_no_permission",
+			&goyai.LocalizeConfig{DefaultMessage: "Not authorized"}),
+	)
 	if user == nil {
 		return resultNoPermission
 	}
 	id := _extractParam(params, "id", reddo.TypeString, "", nil)
 	blogPost, err := blogPostDaov2.Get(id.(string))
 	if err != nil {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_server",
+				&goyai.LocalizeConfig{DefaultMessage: err.Error(), PluralCount: -1,
+					TemplateData: map[string]interface{}{"error": err.Error()}}),
+		)
 	}
 	if blogPost == nil {
-		return itineris.NewApiResult(itineris.StatusNotFound).SetMessage("post not found")
+		return itineris.NewApiResult(itineris.StatusNotFound).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_blog_not_exist",
+				&goyai.LocalizeConfig{DefaultMessage: "Blog post not found",
+					TemplateData: map[string]interface{}{"id": id}}),
+		)
 	}
 	if !blogPost.IsPublic() && blogPost.GetOwnerId() != user.GetId() {
 		return resultNoPermission
@@ -423,27 +529,40 @@ func apiGetBlogPost(ctx *itineris.ApiContext, _ *itineris.ApiAuth, params *itine
 	return itineris.NewApiResult(itineris.StatusOk).SetData(blogPost.ToMap(funcPostToMapTransform))
 }
 
-/*
-apiUpdateBlogPost handles API call "updateBlogPost"
-
-@available since template-v0.2.0
-*/
+// apiUpdateBlogPost handles API call "updateBlogPost"
+//
+// @available since template-v0.2.0
 func apiUpdateBlogPost(ctx *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
 	_, user, err := _currentUserFromContext(ctx)
 	if err != nil {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_server",
+				&goyai.LocalizeConfig{DefaultMessage: err.Error(), PluralCount: -1,
+					TemplateData: map[string]interface{}{"error": err.Error()}}),
+		)
 	}
-	resultNoPermission := itineris.NewApiResult(itineris.StatusNoPermission).SetMessage("current user has no permission to edit this post")
+	resultNoPermission := itineris.NewApiResult(itineris.StatusNoPermission).SetMessage(
+		i18n.Localize(ctx.GetClientLocale(), "error_no_permission",
+			&goyai.LocalizeConfig{DefaultMessage: "Not authorized"}),
+	)
 	if user == nil {
 		return resultNoPermission
 	}
 	id := _extractParam(params, "id", reddo.TypeString, "", nil)
 	blogPost, err := blogPostDaov2.Get(id.(string))
 	if err != nil {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_server",
+				&goyai.LocalizeConfig{DefaultMessage: err.Error(), PluralCount: -1,
+					TemplateData: map[string]interface{}{"error": err.Error()}}),
+		)
 	}
 	if blogPost == nil {
-		return itineris.NewApiResult(itineris.StatusNotFound).SetMessage("post not found")
+		return itineris.NewApiResult(itineris.StatusNotFound).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_blog_not_exist",
+				&goyai.LocalizeConfig{DefaultMessage: "Blog post not found",
+					TemplateData: map[string]interface{}{"id": id}}),
+		)
 	}
 	if blogPost.GetOwnerId() != user.GetId() {
 		return resultNoPermission
@@ -451,75 +570,118 @@ func apiUpdateBlogPost(ctx *itineris.ApiContext, _ *itineris.ApiAuth, params *it
 	isPublic := _extractParam(params, "is_public", reddo.TypeBool, false, nil)
 	title := _extractParam(params, "title", reddo.TypeString, "", nil)
 	if title == "" {
-		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("title is empty")
+		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_empty_blog_title",
+				&goyai.LocalizeConfig{DefaultMessage: "Blog title is empty, please provide one"}),
+		)
 	}
 	content := _extractParam(params, "content", reddo.TypeString, "", nil)
 	if content == "" {
-		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("content is empty")
+		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_empty_blog_content",
+				&goyai.LocalizeConfig{DefaultMessage: "Blog content is empty, please provide one"}),
+		)
 	}
 	blogPost.SetPublic(isPublic.(bool)).SetTitle(title.(string)).SetContent(content.(string))
 	ok, err := blogPostDaov2.Update(blogPost)
 	if err != nil {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_server",
+				&goyai.LocalizeConfig{DefaultMessage: err.Error(), PluralCount: -1,
+					TemplateData: map[string]interface{}{"error": err.Error()}}),
+		)
 	}
 	if !ok {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage("cannot update blog post")
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_server",
+				&goyai.LocalizeConfig{DefaultMessage: "General server error occurred", PluralCount: 0}),
+		)
 	}
 	return itineris.NewApiResult(itineris.StatusOk)
 }
 
-/*
-apiDeleteBlogPost handles API call "deleteBlogPost"
-
-@available since template-v0.2.0
-*/
+// apiDeleteBlogPost handles API call "deleteBlogPost"
+//
+// @available since template-v0.2.0
 func apiDeleteBlogPost(ctx *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
 	_, user, err := _currentUserFromContext(ctx)
 	if err != nil {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_server",
+				&goyai.LocalizeConfig{DefaultMessage: err.Error(), PluralCount: -1,
+					TemplateData: map[string]interface{}{"error": err.Error()}}),
+		)
 	}
-	resultNoPermission := itineris.NewApiResult(itineris.StatusNoPermission).SetMessage("current user has no permission to delete this post")
+	resultNoPermission := itineris.NewApiResult(itineris.StatusNoPermission).SetMessage(
+		i18n.Localize(ctx.GetClientLocale(), "error_no_permission",
+			&goyai.LocalizeConfig{DefaultMessage: "Not authorized"}),
+	)
 	if user == nil {
 		return resultNoPermission
 	}
 	id := _extractParam(params, "id", reddo.TypeString, "", nil)
 	blogPost, err := blogPostDaov2.Get(id.(string))
 	if err != nil {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_server",
+				&goyai.LocalizeConfig{DefaultMessage: err.Error(), PluralCount: -1,
+					TemplateData: map[string]interface{}{"error": err.Error()}}),
+		)
 	}
 	if blogPost == nil {
-		return itineris.NewApiResult(itineris.StatusNotFound).SetMessage("post not found")
+		return itineris.NewApiResult(itineris.StatusNotFound).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_blog_not_exist",
+				&goyai.LocalizeConfig{DefaultMessage: "Blog post not found",
+					TemplateData: map[string]interface{}{"id": id}}),
+		)
 	}
 	if blogPost.GetOwnerId() != user.GetId() {
 		return resultNoPermission
 	}
 	ok, err := blogPostDaov2.Delete(blogPost)
 	if err != nil {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_server",
+				&goyai.LocalizeConfig{DefaultMessage: err.Error(), PluralCount: -1,
+					TemplateData: map[string]interface{}{"error": err.Error()}}),
+		)
 	}
 	if !ok {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage("cannot delete blog post")
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_server",
+				&goyai.LocalizeConfig{DefaultMessage: "General server error occurred", PluralCount: 0}),
+		)
 	}
 	return itineris.NewApiResult(itineris.StatusOk)
 }
 
-/*
-apiGetUserVoteForPost handles API call "getUserVoteForPost"
-
-@available since template-v0.2.0
-*/
+// apiGetUserVoteForPost handles API call "getUserVoteForPost"
+//
+// @available since template-v0.2.0
 func apiGetUserVoteForPost(ctx *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
 	_, user, err := _currentUserFromContext(ctx)
 	if err != nil {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_server",
+				&goyai.LocalizeConfig{DefaultMessage: err.Error(), PluralCount: -1,
+					TemplateData: map[string]interface{}{"error": err.Error()}}),
+		)
 	}
+	resultNoPermission := itineris.NewApiResult(itineris.StatusNoPermission).SetMessage(
+		i18n.Localize(ctx.GetClientLocale(), "error_no_permission",
+			&goyai.LocalizeConfig{DefaultMessage: "Not authorized"}),
+	)
 	if user == nil {
-		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("current user not found")
+		return resultNoPermission
 	}
 	postId := _extractParam(params, "postId", reddo.TypeString, "", nil).(string)
 	vote, err := blogVoteDaov2.GetUserVoteForTarget(user, postId)
 	if err != nil {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_server",
+				&goyai.LocalizeConfig{DefaultMessage: err.Error(), PluralCount: -1,
+					TemplateData: map[string]interface{}{"error": err.Error()}}),
+		)
 	}
 	value := 0
 	if vote != nil {
@@ -528,18 +690,24 @@ func apiGetUserVoteForPost(ctx *itineris.ApiContext, _ *itineris.ApiAuth, params
 	return itineris.NewApiResult(itineris.StatusOk).SetData(value)
 }
 
-/*
-apiVoteForPost handles API call "voteForPost"
-
-@available since template-v0.2.0
-*/
+// apiVoteForPost handles API call "voteForPost"
+//
+// @available since template-v0.2.0
 func apiVoteForPost(ctx *itineris.ApiContext, _ *itineris.ApiAuth, params *itineris.ApiParams) *itineris.ApiResult {
 	_, user, err := _currentUserFromContext(ctx)
 	if err != nil {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_server",
+				&goyai.LocalizeConfig{DefaultMessage: err.Error(), PluralCount: -1,
+					TemplateData: map[string]interface{}{"error": err.Error()}}),
+		)
 	}
+	resultNoPermission := itineris.NewApiResult(itineris.StatusNoPermission).SetMessage(
+		i18n.Localize(ctx.GetClientLocale(), "error_no_permission",
+			&goyai.LocalizeConfig{DefaultMessage: "Not authorized"}),
+	)
 	if user == nil {
-		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("current user not found")
+		return resultNoPermission
 	}
 	value := _extractParam(params, "vote", reddo.TypeInt, 0, nil).(int64)
 	if value == 0 {
@@ -548,13 +716,21 @@ func apiVoteForPost(ctx *itineris.ApiContext, _ *itineris.ApiAuth, params *itine
 	postId := _extractParam(params, "postId", reddo.TypeString, "", nil).(string)
 	blogPost, err := blogPostDaov2.Get(postId)
 	if err != nil {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_server",
+				&goyai.LocalizeConfig{DefaultMessage: err.Error(), PluralCount: -1,
+					TemplateData: map[string]interface{}{"error": err.Error()}}),
+		)
 	}
 	if blogPost == nil {
-		return itineris.NewApiResult(itineris.StatusNotFound).SetMessage("post not found")
+		return itineris.NewApiResult(itineris.StatusNotFound).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_blog_not_exist",
+				&goyai.LocalizeConfig{DefaultMessage: "Blog post not found",
+					TemplateData: map[string]interface{}{"id": postId}}),
+		)
 	}
 	if !blogPost.IsPublic() && blogPost.GetOwnerId() != user.GetId() {
-		return itineris.NewApiResult(itineris.StatusNoPermission).SetMessage("current user has no permission to existingVote for this post")
+		return resultNoPermission
 	}
 	if value > 1 {
 		value = 1
@@ -563,7 +739,11 @@ func apiVoteForPost(ctx *itineris.ApiContext, _ *itineris.ApiAuth, params *itine
 	}
 	existingVote, err := blogVoteDaov2.GetUserVoteForTarget(user, postId)
 	if err != nil {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_server",
+				&goyai.LocalizeConfig{DefaultMessage: err.Error(), PluralCount: -1,
+					TemplateData: map[string]interface{}{"error": err.Error()}}),
+		)
 	}
 	log.Printf("Existing vote: %#v\n", existingVote)
 	newVote := blog.NewBlogVote(goapi.AppVersionNumber, user, blogPost.GetId(), int(value))
@@ -575,7 +755,11 @@ func apiVoteForPost(ctx *itineris.ApiContext, _ *itineris.ApiAuth, params *itine
 			blogPost.IncNumVotesDown(1)
 		}
 		if _, err := blogVoteDaov2.Create(newVote); err != nil {
-			return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+			return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+				i18n.Localize(ctx.GetClientLocale(), "error_server",
+					&goyai.LocalizeConfig{DefaultMessage: err.Error(), PluralCount: -1,
+						TemplateData: map[string]interface{}{"error": err.Error()}}),
+			)
 		}
 	} else {
 		newVote.SetId(existingVote.GetId())
@@ -603,11 +787,19 @@ func apiVoteForPost(ctx *itineris.ApiContext, _ *itineris.ApiAuth, params *itine
 		}
 		log.Printf("New vote: %#v\n", newVote)
 		if _, err := blogVoteDaov2.Update(newVote); err != nil {
-			return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+			return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+				i18n.Localize(ctx.GetClientLocale(), "error_server",
+					&goyai.LocalizeConfig{DefaultMessage: err.Error(), PluralCount: -1,
+						TemplateData: map[string]interface{}{"error": err.Error()}}),
+			)
 		}
 	}
 	if _, err := blogPostDaov2.Update(blogPost); err != nil {
-		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(err.Error())
+		return itineris.NewApiResult(itineris.StatusErrorServer).SetMessage(
+			i18n.Localize(ctx.GetClientLocale(), "error_server",
+				&goyai.LocalizeConfig{DefaultMessage: err.Error(), PluralCount: -1,
+					TemplateData: map[string]interface{}{"error": err.Error()}}),
+		)
 	}
 	return itineris.NewApiResult(itineris.StatusOk).SetData(map[string]interface{}{
 		"vote": true, "value": newVote.GetValue(), "num_votes_up": blogPost.GetNumVotesUp(), "num_votes_down": blogPost.GetNumVotesDown(),
