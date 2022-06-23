@@ -2,10 +2,8 @@
 # Sample build command:
 # docker build --force-rm --squash -t $shortname$_fe:$version$ .
 
-#FROM node:13.6-alpine3.11 AS builder
-#FROM node:12.22-alpine3.15 AS builder
 FROM node:12-alpine AS builder
-MAINTAINER $author$
+LABEL maintainer="$author$"
 RUN mkdir /build
 COPY . /build
 RUN cd /build && rm -rf .env dist node_modules package-lock.json && npm install && npm run build
