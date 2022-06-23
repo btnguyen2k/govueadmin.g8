@@ -14,33 +14,27 @@ import (
 
 	"github.com/btnguyen2k/consu/reddo"
 	"github.com/btnguyen2k/consu/semita"
+	"github.com/btnguyen2k/goyai"
 	"github.com/shirou/gopsutil/load"
 	"github.com/shirou/gopsutil/mem"
 )
 
-var DEBUG = false
-
+// global variables
 var (
+	DEBUG = false
+
 	rsaPrivKey *rsa.PrivateKey
 	rsaPubKey  *rsa.PublicKey
+
+	i18n goyai.I18n
 
 	exterAppId   string
 	exterBaseUrl string
 )
 
+// global constants
 const (
-	// sessionStatusError        = 0
-	// sessionStatusUserNotFound = 404
-	// sessionStatusInvalid      = 403
-	// sessionStatusExpired      = 410
-	// sessionStatusOk           = 200
-
 	apiResultExtraAccessToken = "_access_token_"
-
-	// loginAttrUsername  = "u"
-	// loginAttrGroupId   = "gid"
-	// loginAttrTimestamp = "t"
-	// loginAttrExpiry    = "e"
 
 	loginSessionTtl        = 3600 * 8
 	loginSessionNearExpiry = 3600 * 3
@@ -149,7 +143,7 @@ func zipAndEncrypt(data []byte) ([]byte, error) {
 var muxSytemInfo sync.Mutex
 var systemInfoArr = make([]map[string]interface{}, 0)
 
-func startUpdateSystemInfo() {
+func routineUpdateSystemInfo() {
 	for {
 		go doUpdateSystemInfo()
 		<-time.After(10 * time.Second)

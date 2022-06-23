@@ -201,9 +201,6 @@ func _createSqlTables(sqlc *prom.SqlConnect, dbtype string) {
 	if err := henge.CreateIndexSql(sqlc, blog.TableBlogPost, false, []string{blog.PostColOwnerId}); err != nil {
 		log.Printf("[WARN] creating table index %s/%s (%s): %s\n", blog.TableBlogPost, blog.PostColOwnerId, dbtype, err)
 	}
-	if err := henge.CreateIndexSql(sqlc, blog.TableBlogPost, false, []string{blog.PostColIsPublic}); err != nil {
-		log.Printf("[WARN] creating table index %s/%s (%s): %s\n", blog.TableBlogPost, blog.PostColIsPublic, dbtype, err)
-	}
 
 	// blog comment
 	if err := henge.CreateIndexSql(sqlc, blog.TableBlogComment, false, []string{blog.CommentColOwnerId}); err != nil {
@@ -341,103 +338,94 @@ func _createMongoCollections(mc *prom.MongoConnect) {
 	var idxName string
 
 	// user
-	idxName = "idx_" + user.UserColMaskUid
+	idxName = "idx_" + user.UserFieldMaskId
 	if _, err := mc.CreateCollectionIndexes(user.TableUser, []interface{}{mongo.IndexModel{
 		Keys: bson.D{
-			{user.UserColMaskUid, 1},
+			{user.UserFieldMaskId, 1},
 		},
 		Options: &options.IndexOptions{
 			Name:   &idxName,
 			Unique: &unique,
 		},
 	}}); err != nil {
-		log.Printf("[WARN] creating collection index %s/%s (%s): %s\n", user.TableUser, user.UserColMaskUid, "MongoDB", err)
+		log.Printf("[WARN] creating collection index %s/%s (%s): %s\n", user.TableUser, user.UserFieldMaskId, "MongoDB", err)
 	}
 
 	// blog post
-	idxName = "idx_" + blog.PostColOwnerId
+	idxName = "idx_" + blog.PostFieldOwnerId
 	if _, err := mc.CreateCollectionIndexes(blog.TableBlogPost, []interface{}{mongo.IndexModel{
 		Keys: bson.D{
-			{blog.PostColOwnerId, 1},
+			{blog.PostFieldOwnerId, 1},
 		},
 		Options: &options.IndexOptions{
 			Name:   &idxName,
 			Unique: &nonUnique,
 		},
 	}}); err != nil {
-		log.Printf("[WARN] creating collection index %s/%s (%s): %s\n", blog.TableBlogPost, blog.PostColOwnerId, "MongoDB", err)
-	}
-	idxName = "idx_" + blog.PostColIsPublic
-	if _, err := mc.CreateCollectionIndexes(blog.TableBlogPost, []interface{}{mongo.IndexModel{
-		Keys: bson.D{
-			{blog.PostColIsPublic, 1},
-		},
-		Options: &options.IndexOptions{
-			Name:   &idxName,
-			Unique: &nonUnique,
-		},
-	}}); err != nil {
-		log.Printf("[WARN] creating collection index %s/%s (%s): %s\n", blog.TableBlogPost, blog.PostColIsPublic, "MongoDB", err)
+		log.Printf("[WARN] creating collection index %s/%s (%s): %s\n", blog.TableBlogPost, blog.PostFieldOwnerId, "MongoDB", err)
 	}
 
 	// blog comment
-	idxName = "idx_" + blog.CommentColOwnerId
+	idxName = "idx_" + blog.CommentFieldOwnerId
 	if _, err := mc.CreateCollectionIndexes(blog.TableBlogComment, []interface{}{mongo.IndexModel{
 		Keys: bson.D{
-			{blog.CommentColOwnerId, 1},
+			{blog.CommentFieldOwnerId, 1},
 		},
 		Options: &options.IndexOptions{
 			Name:   &idxName,
 			Unique: &nonUnique,
 		},
 	}}); err != nil {
-		log.Printf("[WARN] creating collection index %s/%s (%s): %s\n", blog.TableBlogComment, blog.CommentColOwnerId, "MongoDB", err)
+		log.Printf("[WARN] creating collection index %s/%s (%s): %s\n", blog.TableBlogComment, blog.CommentFieldOwnerId, "MongoDB", err)
 	}
-	idxName = "idx_" + blog.CommentColPostId + "_" + blog.CommentColParentId
+	idxName = "idx_" + blog.CommentFieldPostId + "_" + blog.CommentFieldParentId
 	if _, err := mc.CreateCollectionIndexes(blog.TableBlogComment, []interface{}{mongo.IndexModel{
 		Keys: bson.D{
-			{blog.CommentColPostId, 1},
-			{blog.CommentColParentId, 1},
+			{blog.CommentFieldPostId, 1},
+			{blog.CommentFieldParentId, 1},
 		},
 		Options: &options.IndexOptions{
 			Name:   &idxName,
 			Unique: &nonUnique,
 		},
 	}}); err != nil {
-		log.Printf("[WARN] creating collection index %s/%s (%s): %s\n", blog.TableBlogComment, blog.CommentColPostId+":"+blog.CommentColParentId, "MongoDB", err)
+		log.Printf("[WARN] creating collection index %s/%s (%s): %s\n", blog.TableBlogComment, blog.CommentFieldPostId+":"+blog.CommentFieldParentId, "MongoDB", err)
 	}
 
 	// blog vote
-	idxName = "idx_" + blog.VoteColOwnerId + "_" + blog.VoteColTargetId
+	idxName = "idx_" + blog.VoteFieldOwnerId + "_" + blog.VoteFieldTargetId
 	if _, err := mc.CreateCollectionIndexes(blog.TableBlogVote, []interface{}{mongo.IndexModel{
 		Keys: bson.D{
-			{blog.VoteColOwnerId, 1},
-			{blog.VoteColTargetId, 1},
+			{blog.VoteFieldOwnerId, 1},
+			{blog.VoteFieldTargetId, 1},
 		},
 		Options: &options.IndexOptions{
 			Name:   &idxName,
 			Unique: &unique,
 		},
 	}}); err != nil {
-		log.Printf("[WARN] creating collection index %s/%s (%s): %s\n", blog.TableBlogVote, blog.VoteColOwnerId+":"+blog.VoteColTargetId, "MongoDB", err)
+		log.Printf("[WARN] creating collection index %s/%s (%s): %s\n", blog.TableBlogVote, blog.VoteFieldOwnerId+":"+blog.VoteFieldTargetId, "MongoDB", err)
 	}
-	idxName = "idx_" + blog.VoteColTargetId + "_" + blog.VoteColValue
+	idxName = "idx_" + blog.VoteFieldTargetId + "_" + blog.VoteFieldValue
 	if _, err := mc.CreateCollectionIndexes(blog.TableBlogVote, []interface{}{mongo.IndexModel{
 		Keys: bson.D{
-			{blog.VoteColTargetId, 1},
-			{blog.VoteColValue, 1},
+			{blog.VoteFieldTargetId, 1},
+			{blog.VoteFieldValue, 1},
 		},
 		Options: &options.IndexOptions{
 			Name:   &idxName,
 			Unique: &nonUnique,
 		},
 	}}); err != nil {
-		log.Printf("[WARN] creating collection index %s/%s (%s): %s\n", blog.TableBlogVote, blog.VoteColTargetId+":"+blog.VoteColValue, "MongoDB", err)
+		log.Printf("[WARN] creating collection index %s/%s (%s): %s\n", blog.TableBlogVote, blog.VoteFieldTargetId+":"+blog.VoteFieldValue, "MongoDB", err)
 	}
 }
 
 func initDaos() {
 	dbtype := strings.ToLower(goapi.AppConfig.GetString("gvabe.db.type"))
+	if DEBUG {
+		log.Printf("[DEUBG] db-type: %s", dbtype)
+	}
 
 	// create DB connect instance
 	sqlc := _createSqlConnect(dbtype)
@@ -503,9 +491,9 @@ func _initUsers() {
 		panic(fmt.Sprintf("error while getting user [%s]: %e", adminUserId, err))
 	}
 	if adminUser == nil {
-		log.Printf("[INFO] Admin user [%s] not found, creating one...", adminUserId)
 		adminUser = user.NewUser(goapi.AppVersionNumber, adminUserId, utils.UniqueId())
 		adminUser.SetPassword(encryptPassword(adminUserId, adminUserPwd)).SetDisplayName(adminUserName).SetAdmin(true)
+		log.Printf("[INFO] Admin user [%s] not found, creating one...(%s)", adminUserId, adminUser.GetMaskId())
 		result, err := userDaov2.Create(adminUser)
 		if err != nil {
 			panic(fmt.Sprintf("error while creating user [%s]: %e", adminUserId, err))

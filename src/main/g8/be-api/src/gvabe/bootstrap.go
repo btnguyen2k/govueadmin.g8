@@ -16,6 +16,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/btnguyen2k/goyai"
 	"main/src/goapi"
 	blogv2 "main/src/gvabe/bov2/blog"
 	userv2 "main/src/gvabe/bov2/user"
@@ -43,12 +44,11 @@ Bootstrapper usually does the following:
 - other initializing work (e.g. creating DAO, initializing database, etc)
 */
 func (b *MyBootstrapper) Bootstrap() error {
-	if os.Getenv("DEBUG") != "" {
-		DEBUG = true
-	}
-	go startUpdateSystemInfo()
+	DEBUG = os.Getenv("DEBUG") != ""
+	go routineUpdateSystemInfo()
 
 	initRsaKeys()
+	initI18n()
 	initExter()
 	initDaos()
 	initApiHandlers(goapi.ApiRouter)
@@ -71,6 +71,43 @@ func initExter() {
 	log.Printf("[INFO] Exter app-id: %s / Base Url: %s", exterAppId, exterBaseUrl)
 
 	go goFetchExterInfo(60)
+}
+
+// available since template-v0.4.0
+func initI18n() {
+	i18nConfigFileOrDir := goapi.AppConfig.GetString("gvabe.i18n.i18n_file_or_directory")
+	if i18nConfigFileOrDir == "" {
+		log.Println("[INFO] No i18n config specified at [gvabe.i18n.i18n_file_or_directory].")
+		i18n = goyai.NullI18n()
+		return
+	}
+	_, err := os.Stat(i18nConfigFileOrDir)
+	if err != nil {
+		panic(fmt.Sprintf("error loading i18n config [%s]: %e", i18nConfigFileOrDir, err))
+	}
+
+	defaultLocale := goapi.AppConfig.GetString("gvabe.i18n.default_locale")
+	i18n, err = goyai.BuildI18n(goyai.I18nOptions{
+		ConfigFileOrDir: i18nConfigFileOrDir,
+		DefaultLocale:   defaultLocale,
+		I18nFileFormat:  goyai.Auto,
+	})
+	if err != nil {
+		panic(fmt.Sprintf("error loading i18n config [%s]: %e", i18nConfigFileOrDir, err))
+	}
+
+	locales := i18n.AvailableLocales()
+	if len(locales) == 0 {
+		log.Printf("[WARN] i18n config loaded from file [%s] but no locale configuration found", i18nConfigFileOrDir)
+		return
+	}
+
+	if DEBUG {
+		if defaultLocale == "" {
+			defaultLocale = locales[0].Id
+		}
+		log.Printf("[DEBUG] i18n config loaded from [%s], available locales: %v / default: [%s]", i18nConfigFileOrDir, locales, defaultLocale)
+	}
 }
 
 // available since template-v0.2.0
@@ -123,26 +160,24 @@ func initRsaKeys() {
 	rsaPubKey = &rsaPrivKey.PublicKey
 
 	if DEBUG {
-		if DEBUG {
-			log.Printf("[DEBUG] Exter public key: {Size: %d / Exponent: %d / Modulus: %x}",
-				rsaPubKey.Size()*8, rsaPubKey.E, rsaPubKey.N)
+		log.Printf("[DEBUG] Exter public key: {Size: %d / Exponent: %d / Modulus: %x}",
+			rsaPubKey.Size()*8, rsaPubKey.E, rsaPubKey.N)
 
-			pubBlockPKCS1 := pem.Block{
-				Type:    "RSA PUBLIC KEY",
-				Headers: nil,
-				Bytes:   x509.MarshalPKCS1PublicKey(rsaPubKey),
-			}
-			rsaPubKeyPemPKCS1 := pem.EncodeToMemory(&pubBlockPKCS1)
-			log.Printf("[DEBUG] Exter public key (PKCS1): %s", string(rsaPubKeyPemPKCS1))
-
-			pubPKIX, _ := x509.MarshalPKIXPublicKey(rsaPubKey)
-			pubBlockPKIX := pem.Block{
-				Type:    "PUBLIC KEY",
-				Headers: nil,
-				Bytes:   pubPKIX,
-			}
-			rsaPubKeyPemPKIX := pem.EncodeToMemory(&pubBlockPKIX)
-			log.Printf("[DEBUG] Exter public key (PKIX): %s", string(rsaPubKeyPemPKIX))
+		pubBlockPKCS1 := pem.Block{
+			Type:    "RSA PUBLIC KEY",
+			Headers: nil,
+			Bytes:   x509.MarshalPKCS1PublicKey(rsaPubKey),
 		}
+		rsaPubKeyPemPKCS1 := pem.EncodeToMemory(&pubBlockPKCS1)
+		log.Printf("[DEBUG] Exter public key (PKCS1): %s", string(rsaPubKeyPemPKCS1))
+
+		pubPKIX, _ := x509.MarshalPKIXPublicKey(rsaPubKey)
+		pubBlockPKIX := pem.Block{
+			Type:    "PUBLIC KEY",
+			Headers: nil,
+			Bytes:   pubPKIX,
+		}
+		rsaPubKeyPemPKIX := pem.EncodeToMemory(&pubBlockPKIX)
+		log.Printf("[DEBUG] Exter public key (PKIX): %s", string(rsaPubKeyPemPKIX))
 	}
 }

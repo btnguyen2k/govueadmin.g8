@@ -9,9 +9,12 @@ Demo: https://demo-govueadmin.herokuapp.com/.
 ## Features
 
 - Create new project from template with [go-giter8](https://github.com/btnguyen2k/go-giter8).
-- Frontend (GUI) built on [CoreUI for Vue.js v3](https://coreui.io/vue/).
-- Backend (API) built on [Echo framework v4](https://echo.labstack.com).
+- Frontend (GUI) built on [CoreUI for Vue.js](https://coreui.io/vue/).
+- Backend (API) built on [Echo framework](https://echo.labstack.com).
 - Sample features:
+  - I18n support:
+    - FE using [Vue-i18n](https://kazupon.github.io/vue-i18n/).
+    - BE using [goyai](https://github.com/btnguyen2k/goyai).
   - Login page & Logout
   - Blog post management (list, create, update, delete)
   - Dashboard/Feed
@@ -56,7 +59,7 @@ Upon successful project creation, 2 sub-projects are created:
 The frontend is a VueJS-based project located under `fe-gui` directory and can be imported into ay VueJS-supported IDE.
 Feel free to use it to develop your application's frontend.
 
-> The frontend is built on [CoreUI for Vue.js](https://coreui.io/vue/).
+> The frontend is built on [CoreUI v4 for Vue.js](https://coreui.io/vue/).
 
 **Backend**
 

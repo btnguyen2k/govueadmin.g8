@@ -1,20 +1,20 @@
 /*
 Package itineris creates a framework that help building API server over HTTP and gRPC.
 
-    HTTP/gRPC are API communication protocols only. Business logic is handled by one single code repository for all communication protocols.
-    Data is interchanged (request/response) in JSON format; can be gzipped to reduce space/transmit time consumption.
+  HTTP/gRPC are API communication protocols only. Business logic is handled by one single code repository for all communication protocols.
+  Data is interchanged (request/response) in JSON format; can be gzipped to reduce space/transmit time consumption.
 
 @author Thanh Nguyen <btnguyen2k@gmail.com>
-@since template-v0.4.r1
 */
 package itineris
 
 import (
 	"encoding/json"
-	"github.com/btnguyen2k/consu/reddo"
-	"main/src/utils"
 	"reflect"
 	"time"
+
+	"github.com/btnguyen2k/consu/reddo"
+	"main/src/utils"
 )
 
 /*----------------------------------------------------------------------*/
@@ -30,16 +30,35 @@ const (
 	ctxGateway   = "gateway"
 )
 
-/**
-ApiContext encapsulates the context information of an API call.
-*/
+const (
+	// CtxHttpMethod is the context attribute that holds the http-method value (available only via HTTP gateway).
+	CtxHttpMethod = "http_method"
+
+	// CtxHttpRequestUrl is the context attribute that holds the requested url (available only via HTTP gateway).
+	CtxHttpRequestUrl = "http_request_url"
+
+	// CtxClientAddr is the context attribute that holds the client's address (usually IP address).
+	CtxClientAddr = "client_addr"
+
+	// CtxClientRealAddr is the context attribute that holds the client's address (usually IP address).
+	CtxClientRealAddr = "client_real_addr"
+
+	// CtxLang is the context attribute that holds the client's preferred localized language (one of CtxLang, CtxLanguage, CtxLocale).
+	CtxLang = "lang"
+
+	// CtxLanguage is the context attribute that holds the client's preferred localized language (one of CtxLang, CtxLanguage, CtxLocale).
+	CtxLanguage = "language"
+
+	// CtxLocale is the context attribute that holds the client's preferred localized language (one of CtxLang, CtxLanguage, CtxLocale).
+	CtxLocale = "locale"
+)
+
+// ApiContext encapsulates the context information of an API call.
 type ApiContext struct {
 	contextData map[string]interface{}
 }
 
-/*
-NewApiContext creates a new ApiContext instance.
-*/
+// NewApiContext creates a new ApiContext instance.
 func NewApiContext() *ApiContext {
 	ctx := &ApiContext{contextData: map[string]interface{}{
 		ctxId:        utils.UniqueId(),
@@ -48,9 +67,7 @@ func NewApiContext() *ApiContext {
 	return ctx
 }
 
-/*
-GetId returns the unique id associated with this API context.
-*/
+// GetId returns the unique id associated with this API context.
 func (ctx *ApiContext) GetId() string {
 	v, err := ctx.GetContextValueAsType(ctxId, reddo.TypeString)
 	if err != nil {
@@ -59,16 +76,12 @@ func (ctx *ApiContext) GetId() string {
 	return v.(string)
 }
 
-/*
-SetId associates a unique id with this API context.
-*/
+// SetId associates a unique id with this API context.
 func (ctx *ApiContext) SetId(id string) *ApiContext {
 	return ctx.SetContextValue(ctxId, id)
 }
 
-/*
-GetApiName returns the API name associated with this context.
-*/
+// GetApiName returns the API name associated with this context.
 func (ctx *ApiContext) GetApiName() string {
 	v, err := ctx.GetContextValueAsType(ctxApiName, reddo.TypeString)
 	if err != nil {
@@ -77,16 +90,12 @@ func (ctx *ApiContext) GetApiName() string {
 	return v.(string)
 }
 
-/*
-SetApiName associates the API name with this context.
-*/
+// SetApiName associates the API name with this context.
 func (ctx *ApiContext) SetApiName(apiName string) *ApiContext {
 	return ctx.SetContextValue(ctxApiName, apiName)
 }
 
-/*
-GetGateway returns gateway name associated with this API context.
-*/
+// GetGateway returns gateway name associated with this API context.
 func (ctx *ApiContext) GetGateway() string {
 	v, err := ctx.GetContextValueAsType(ctxGateway, reddo.TypeString)
 	if err != nil {
@@ -95,16 +104,12 @@ func (ctx *ApiContext) GetGateway() string {
 	return v.(string)
 }
 
-/*
-SetApiName associates a gateway name this API context.
-*/
+// SetGateway associates a gateway name this API context.
 func (ctx *ApiContext) SetGateway(gateway string) *ApiContext {
 	return ctx.SetContextValue(ctxGateway, gateway)
 }
 
-/*
-GetTimestamp returns the timestamp associated with this API context.
-*/
+// GetTimestamp returns the timestamp associated with this API context.
 func (ctx *ApiContext) GetTimestamp() time.Time {
 	v, err := ctx.GetContextValueAsType(ctxTimestamp, reddo.TypeTime)
 	if err != nil {
@@ -113,18 +118,13 @@ func (ctx *ApiContext) GetTimestamp() time.Time {
 	return v.(time.Time)
 }
 
-/*
-SetTimestamp associates a timestamp with this API context.
-*/
+// SetTimestamp associates a timestamp with this API context.
 func (ctx *ApiContext) SetTimestamp(timestamp time.Time) *ApiContext {
 	return ctx.SetContextValue(ctxTimestamp, timestamp)
 }
 
-/*
-SetContextValue sets a context value.
-
-    If value is nil, the associated context field is removed
-*/
+// SetContextValue sets a context value.
+// If value is nil, the associated context field is removed
 func (ctx *ApiContext) SetContextValue(field string, value interface{}) *ApiContext {
 	if value == nil {
 		return ctx.RemoveContextValue(field)
@@ -133,17 +133,13 @@ func (ctx *ApiContext) SetContextValue(field string, value interface{}) *ApiCont
 	return ctx
 }
 
-/*
-RemoveContextValue removes an associated context field value.
-*/
+// RemoveContextValue removes an associated context field value.
 func (ctx *ApiContext) RemoveContextValue(field string) *ApiContext {
 	delete(ctx.contextData, field)
 	return ctx
 }
 
-/*
-GetContextValue returns a context value.
-*/
+// GetContextValue returns a context value.
 func (ctx *ApiContext) GetContextValue(field string) interface{} {
 	v, ok := ctx.contextData[field]
 	if ok {
@@ -152,80 +148,94 @@ func (ctx *ApiContext) GetContextValue(field string) interface{} {
 	return nil
 }
 
-/*
-GetContextValueAsType returns a context value casted to a specified type.
-*/
+// GetContextValueAsType returns a context value cast to a specified type.
 func (ctx *ApiContext) GetContextValueAsType(field string, typ reflect.Type) (interface{}, error) {
 	return reddo.Convert(ctx.GetContextValue(field), typ)
 }
 
-/*
-GetAllContextValues returns all context values as a map.
-*/
+// GetContextValueAsString returns a context value as string.
+func (ctx *ApiContext) GetContextValueAsString(field string) string {
+	val, _ := reddo.ToString(ctx.GetContextValue(field))
+	return val
+}
+
+// GetContextValueAsInt returns a context value as integer.
+func (ctx *ApiContext) GetContextValueAsInt(field string) int64 {
+	val, _ := reddo.ToInt(ctx.GetContextValue(field))
+	return val
+}
+
+// GetContextValueAsUint returns a context value as unsigned integer.
+func (ctx *ApiContext) GetContextValueAsUint(field string) uint64 {
+	val, _ := reddo.ToUint(ctx.GetContextValue(field))
+	return val
+}
+
+// GetContextValueAsFloat returns a context value as floating number.
+func (ctx *ApiContext) GetContextValueAsFloat(field string) float64 {
+	val, _ := reddo.ToFloat(ctx.GetContextValue(field))
+	return val
+}
+
+// GetAllContextValues returns all context values as a map.
 func (ctx *ApiContext) GetAllContextValues() map[string]interface{} {
 	return ctx.contextData
 }
 
-/*
-ToJsonString serializes the ApiContext to JSON string.
-*/
+// ToJsonString serializes the ApiContext to JSON string.
 func (ctx *ApiContext) ToJsonString() string {
 	js, _ := json.Marshal(ctx.contextData)
 	return string(js)
 }
 
+// GetClientLocale returns the first non-empty value of attribute { CtxLocale, CtxLanguage, CtxLang }.
+func (ctx *ApiContext) GetClientLocale() string {
+	for _, f := range []string{CtxLocale, CtxLanguage, CtxLang} {
+		val := ctx.GetContextValueAsString(f)
+		if val != "" {
+			return val
+		}
+	}
+	return ""
+}
+
 /*----------------------------------------------------------------------*/
 
-/**
-ApiAuth encapsulates authentication information of an API call.
-*/
+// ApiAuth encapsulates authentication information of an API call.
 type ApiAuth struct {
 	appId       string
 	accessToken string
 }
 
-/*
-NewApiAuth creates a new ApiAuth instance.
-*/
+// NewApiAuth creates a new ApiAuth instance.
 func NewApiAuth(appId, accessToken string) *ApiAuth {
 	return &ApiAuth{appId: appId, accessToken: accessToken}
 }
 
-/*
-GetAppId returns the app-id associated with the ApiAuth instance.
-*/
+// GetAppId returns the app-id associated with the ApiAuth instance.
 func (auth *ApiAuth) GetAppId() string {
 	return auth.appId
 }
 
-/*
-GetAccessToken returns the access-token associated with the ApiAuth instance.
-*/
+// GetAccessToken returns the access-token associated with the ApiAuth instance.
 func (auth *ApiAuth) GetAccessToken() string {
 	return auth.accessToken
 }
 
 /*----------------------------------------------------------------------*/
 
-/**
-ApiParams encapsulates parameters to be passed to the API.
-*/
+// ApiParams encapsulates parameters to be passed to the API.
 type ApiParams struct {
 	params map[string]interface{}
 }
 
-/*
-NewApiParams creates a new ApiParams instance.
-*/
+// NewApiParams creates a new ApiParams instance.
 func NewApiParams() *ApiParams {
 	return &ApiParams{params: map[string]interface{}{}}
 }
 
-/*
-SetParam sets a parameter value.
-
-    If value is nil, the associated param is removed
-*/
+// SetParam sets a parameter value.
+//   If value is nil, the associated param is removed
 func (prm *ApiParams) SetParam(key string, value interface{}) *ApiParams {
 	if value == nil {
 		return prm.RemoveParam(key)
@@ -234,17 +244,13 @@ func (prm *ApiParams) SetParam(key string, value interface{}) *ApiParams {
 	return prm
 }
 
-/*
-RemoveParam removes a parameter value.
-*/
+// RemoveParam removes a parameter value.
 func (prm *ApiParams) RemoveParam(key string) *ApiParams {
 	delete(prm.params, key)
 	return prm
 }
 
-/*
-GetParam returns a parameter value.
-*/
+// GetParam returns a parameter value.
 func (prm *ApiParams) GetParam(key string) interface{} {
 	v, ok := prm.params[key]
 	if ok {
@@ -253,16 +259,12 @@ func (prm *ApiParams) GetParam(key string) interface{} {
 	return nil
 }
 
-/*
-GetParamAsType returns a parameter value casted to a specified type.
-*/
+// GetParamAsType returns a parameter value casted to a specified type.
 func (prm *ApiParams) GetParamAsType(key string, typ reflect.Type) (interface{}, error) {
 	return reddo.Convert(prm.GetParam(key), typ)
 }
 
-/*
-GetAllParams returns all parameters as a map.
-*/
+// GetAllParams returns all parameters as a map.
 func (prm *ApiParams) GetAllParams() map[string]interface{} {
 	return prm.params
 }
