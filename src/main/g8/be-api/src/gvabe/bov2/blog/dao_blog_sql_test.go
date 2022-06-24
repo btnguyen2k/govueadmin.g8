@@ -241,11 +241,6 @@ func TestCommentDaoSql_CreateGet(t *testing.T) {
 		if dao == nil {
 			t.Fatalf("%s failed: nil", name)
 		}
-		if sqlc.GetDbFlavor() == prom.FlavorSqlite {
-			henge.TimeLayout = "2006-01-02 15:04:05Z07:00"
-		} else {
-			henge.TimeLayout = time.RFC3339
-		}
 		doTestCommentDaoCreateGet(t, name, dao)
 		sqlc.Close()
 	}
@@ -271,11 +266,6 @@ func TestCommentDaoSql_CreateUpdateGet(t *testing.T) {
 		dao := initBlogCommentDaoSql(sqlc)
 		if dao == nil {
 			t.Fatalf("%s failed: nil", name)
-		}
-		if sqlc.GetDbFlavor() == prom.FlavorSqlite {
-			henge.TimeLayout = "2006-01-02 15:04:05Z07:00"
-		} else {
-			henge.TimeLayout = time.RFC3339
 		}
 		doTestCommentDaoCreateUpdateGet(t, name, dao)
 		sqlc.Close()
@@ -399,11 +389,6 @@ func TestPostDaoSql_CreateGet(t *testing.T) {
 		if dao == nil {
 			t.Fatalf("%s failed: nil", name)
 		}
-		if sqlc.GetDbFlavor() == prom.FlavorSqlite {
-			henge.TimeLayout = "2006-01-02 15:04:05Z07:00"
-		} else {
-			henge.TimeLayout = time.RFC3339
-		}
 		doTestPostDaoCreateGet(t, name, dao)
 		sqlc.Close()
 	}
@@ -429,11 +414,6 @@ func TestPostDaoSql_CreateUpdateGet(t *testing.T) {
 		dao := initBlogPostDaoSql(sqlc)
 		if dao == nil {
 			t.Fatalf("%s failed: nil", name)
-		}
-		if sqlc.GetDbFlavor() == prom.FlavorSqlite {
-			henge.TimeLayout = "2006-01-02 15:04:05Z07:00"
-		} else {
-			henge.TimeLayout = time.RFC3339
 		}
 		doTestPostDaoCreateUpdateGet(t, name, dao)
 		sqlc.Close()
@@ -603,11 +583,6 @@ func TestVoteDaoSql_CreateGet(t *testing.T) {
 		if dao == nil {
 			t.Fatalf("%s failed: nil", name)
 		}
-		if sqlc.GetDbFlavor() == prom.FlavorSqlite {
-			henge.TimeLayout = "2006-01-02 15:04:05Z07:00"
-		} else {
-			henge.TimeLayout = time.RFC3339
-		}
 		doTestVoteDaoCreateGet(t, name, dao)
 		sqlc.Close()
 	}
@@ -633,11 +608,6 @@ func TestVoteDaoSql_CreateUpdateGet(t *testing.T) {
 		dao := initBlogVoteDaoSql(sqlc)
 		if dao == nil {
 			t.Fatalf("%s failed: nil", name)
-		}
-		if sqlc.GetDbFlavor() == prom.FlavorSqlite {
-			henge.TimeLayout = "2006-01-02 15:04:05Z07:00"
-		} else {
-			henge.TimeLayout = time.RFC3339
 		}
 		doTestVoteDaoCreateUpdateGet(t, name, dao)
 		sqlc.Close()

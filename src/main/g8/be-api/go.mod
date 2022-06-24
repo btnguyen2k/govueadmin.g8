@@ -10,7 +10,7 @@ require (
 	github.com/btnguyen2k/gocosmos v0.1.6
 	github.com/btnguyen2k/godal v0.5.2
 	github.com/btnguyen2k/goyai v0.1.0
-	github.com/btnguyen2k/henge v0.5.6
+	github.com/btnguyen2k/henge v0.5.7
 	github.com/btnguyen2k/prom v0.2.15
 	github.com/denisenkom/go-mssqldb v0.12.2
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
