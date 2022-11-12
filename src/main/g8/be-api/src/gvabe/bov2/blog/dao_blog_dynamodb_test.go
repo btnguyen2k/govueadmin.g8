@@ -1,8 +1,7 @@
 package blog
 
 import (
-	"errors"
-	"math/rand"
+	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -27,37 +26,7 @@ const (
 	testDynamodbTableVote    = "test_vote"
 )
 
-func _dynamodbWaitForTableStatus(adc *prom.AwsDynamodbConnect, table, status string, timeout time.Duration) error {
-	t := time.Now()
-	for tblStatus, err := adc.GetTableStatus(nil, table); ; {
-		if err != nil {
-			return err
-		}
-		if strings.ToUpper(tblStatus) == status {
-			return nil
-		}
-		if time.Now().Sub(t).Milliseconds() > timeout.Milliseconds() {
-			return errors.New("")
-		}
-	}
-}
-
-func dynamodbInitTable(adc *prom.AwsDynamodbConnect, table string, spec *henge.DynamodbTablesSpec) error {
-	rand.Seed(time.Now().UnixNano())
-	adc.DeleteTable(nil, table)
-	if err := _dynamodbWaitForTableStatus(adc, table, "", 10*time.Second); err != nil {
-		return err
-	}
-	if spec.CreateUidxTable {
-		adc.DeleteTable(nil, table+henge.AwsDynamodbUidxTableSuffix)
-		if err := _dynamodbWaitForTableStatus(adc, table+henge.AwsDynamodbUidxTableSuffix, "", 10*time.Second); err != nil {
-			return err
-		}
-	}
-	return henge.InitDynamodbTables(adc, table, spec)
-}
-
-func newDynamodbConnect(t *testing.T, testName string) (*prom.AwsDynamodbConnect, error) {
+func _createAwsDynamodbConnect(t *testing.T, testName string) *prom.AwsDynamodbConnect {
 	awsRegion := strings.ReplaceAll(os.Getenv("AWS_REGION"), `"`, "")
 	awsAccessKeyId := strings.ReplaceAll(os.Getenv("AWS_ACCESS_KEY_ID"), `"`, "")
 	awsSecretAccessKey := strings.ReplaceAll(os.Getenv("AWS_SECRET_ACCESS_KEY"), `"`, "")
@@ -74,7 +43,38 @@ func newDynamodbConnect(t *testing.T, testName string) (*prom.AwsDynamodbConnect
 			cfg.DisableSSL = aws.Bool(true)
 		}
 	}
-	return prom.NewAwsDynamodbConnect(cfg, nil, nil, 10000)
+	adc, err := prom.NewAwsDynamodbConnect(cfg, nil, nil, 10000)
+	if err != nil {
+		t.Fatalf("%s/%s failed: %s", testName, "NewAwsDynamodbConnect", err)
+	}
+	return adc
+}
+
+func _adbDeleteTableAndWait(adc *prom.AwsDynamodbConnect, tableName string) error {
+	if err := adc.DeleteTable(nil, tableName); err != nil {
+		return err
+	}
+	for ok, err := adc.HasTable(nil, tableName); (err == nil && ok) || err != nil; {
+		if err != nil {
+			fmt.Printf("\tError: %s\n", err)
+		}
+		fmt.Printf("\tTable %s exists, waiting for deletion...\n", tableName)
+		time.Sleep(1 * time.Second)
+	}
+
+	uidxTableName := tableName + henge.AwsDynamodbUidxTableSuffix
+	if err := adc.DeleteTable(nil, uidxTableName); err != nil {
+		return err
+	}
+	for ok, err := adc.HasTable(nil, uidxTableName); (err == nil && ok) || err != nil; {
+		if err != nil {
+			fmt.Printf("\tError: %s\n", err)
+		}
+		fmt.Printf("\tTable %s exists, waiting for deletion...\n", uidxTableName)
+		time.Sleep(1 * time.Second)
+	}
+
+	return nil
 }
 
 func initBlogCommentDaoDynamodb(adc *prom.AwsDynamodbConnect) BlogCommentDao {
@@ -90,445 +90,206 @@ func initBlogVoteDaoDynamodb(adc *prom.AwsDynamodbConnect) BlogVoteDao {
 }
 
 /*----------------------------------------------------------------------*/
+var setupTestDynamodb = func(t *testing.T, testName string) {
+	testAdc = _createAwsDynamodbConnect(t, testName)
+
+	_adbDeleteTableAndWait(testAdc, testDynamodbTableComment)
+	if err := InitBlogCommentTableDynamodb(testAdc, testDynamodbTableComment); err != nil {
+		t.Fatalf("%s failed: error [%s]", testName+"/InitBlogCommentTableDynamodb", err)
+	}
+	testDaoComment = initBlogCommentDaoDynamodb(testAdc)
+
+	_adbDeleteTableAndWait(testAdc, testDynamodbTablePost)
+	if err := InitBlogPostTableDynamodb(testAdc, testDynamodbTablePost); err != nil {
+		t.Fatalf("%s failed: error [%s]", testName+"/InitBlogPostTableDynamodb", err)
+	}
+	testDaoPost = initBlogPostDaoDynamodb(testAdc)
+
+	_adbDeleteTableAndWait(testAdc, testDynamodbTableVote)
+	if err := InitBlogVoteTableDynamodb(testAdc, testDynamodbTableVote); err != nil {
+		t.Fatalf("%s failed: error [%s]", testName+"/InitBlogVoteTableDynamodb", err)
+	}
+	testDaoVote = initBlogVoteDaoDynamodb(testAdc)
+}
+
+var teardownTestDynamodb = func(t *testing.T, testName string) {
+	if testAdc != nil {
+		defer func() { testAdc = nil }()
+		_adbDeleteTableAndWait(testAdc, testDynamodbTableComment)
+		_adbDeleteTableAndWait(testAdc, testDynamodbTablePost)
+		_adbDeleteTableAndWait(testAdc, testDynamodbTableVote)
+	}
+}
+
+/*----------------------------------------------------------------------*/
 
 func TestNewCommentDaoDynamodb(t *testing.T) {
-	name := "TestNewCommentDaoDynamodb"
-	adc, err := newDynamodbConnect(t, name)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name, err)
-	} else if adc == nil {
-		t.Fatalf("%s failed: nil", name)
-	}
-	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1}
-	err = dynamodbInitTable(adc, testDynamodbTableComment, spec)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name+"/dynamodbInitTable", err)
+	testName := "TestNewCommentDaoDynamodb"
+	adc := _createAwsDynamodbConnect(t, testName)
+	defer adc.Close()
+	if err := InitBlogCommentTableDynamodb(adc, testDynamodbTableComment); err != nil {
+		t.Fatalf("%s failed: error [%s]", testName+"/InitBlogCommentTableDynamodb", err)
 	}
 	dao := initBlogCommentDaoDynamodb(adc)
 	if dao == nil {
-		t.Fatalf("%s failed: nil", name+"/initBlogCommentDaoDynamodb")
+		t.Fatalf("%s failed: nil", testName+"/initBlogCommentDaoDynamodb")
 	}
-	defer adc.Close()
 }
 
 func TestCommentDaoDynamodb_CreateGet(t *testing.T) {
-	name := "TestCommentDaoDynamodb_CreateGet"
-	adc, err := newDynamodbConnect(t, name)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name, err)
-	} else if adc == nil {
-		t.Fatalf("%s failed: nil", name)
-	}
-	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1}
-	err = dynamodbInitTable(adc, testDynamodbTableComment, spec)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name+"/dynamodbInitTable", err)
-	}
-	dao := initBlogCommentDaoDynamodb(adc)
-	if dao == nil {
-		t.Fatalf("%s failed: nil", name+"/initBlogCommentDaoDynamodb")
-	}
-	defer adc.Close()
-	doTestCommentDaoCreateGet(t, name, dao)
+	testName := "TestCommentDaoDynamodb_CreateGet"
+	teardownTest := setupTest(t, testName, setupTestDynamodb, teardownTestDynamodb)
+	defer teardownTest(t)
+	doTestCommentDaoCreateGet(t, testName, testDaoComment)
 }
 
 func TestCommentDaoDynamodb_CreateUpdateGet(t *testing.T) {
-	name := "TestCommentDaoDynamodb_CreateUpdateGet"
-	adc, err := newDynamodbConnect(t, name)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name, err)
-	} else if adc == nil {
-		t.Fatalf("%s failed: nil", name)
-	}
-	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1}
-	err = dynamodbInitTable(adc, testDynamodbTableComment, spec)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name+"/dynamodbInitTable", err)
-	}
-	dao := initBlogCommentDaoDynamodb(adc)
-	if dao == nil {
-		t.Fatalf("%s failed: nil", name+"/initBlogCommentDaoDynamodb")
-	}
-	defer adc.Close()
-	doTestCommentDaoCreateUpdateGet(t, name, dao)
+	testName := "TestCommentDaoDynamodb_CreateUpdateGet"
+	teardownTest := setupTest(t, testName, setupTestDynamodb, teardownTestDynamodb)
+	defer teardownTest(t)
+	doTestCommentDaoCreateUpdateGet(t, testName, testDaoComment)
 }
 
 func TestCommentDaoDynamodb_CreateDelete(t *testing.T) {
-	name := "TestCommentDaoDynamodb_CreateDelete"
-	adc, err := newDynamodbConnect(t, name)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name, err)
-	} else if adc == nil {
-		t.Fatalf("%s failed: nil", name)
-	}
-	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1}
-	err = dynamodbInitTable(adc, testDynamodbTableComment, spec)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name+"/dynamodbInitTable", err)
-	}
-	dao := initBlogCommentDaoDynamodb(adc)
-	if dao == nil {
-		t.Fatalf("%s failed: nil", name+"/initBlogCommentDaoDynamodb")
-	}
-	defer adc.Close()
-	doTestCommentDaoCreateDelete(t, name, dao)
+	testName := "TestCommentDaoDynamodb_CreateDelete"
+	teardownTest := setupTest(t, testName, setupTestDynamodb, teardownTestDynamodb)
+	defer teardownTest(t)
+	doTestCommentDaoCreateDelete(t, testName, testDaoComment)
 }
 
 func TestCommentDaoDynamodb_GetAll(t *testing.T) {
-	name := "TestCommentDaoDynamodb_GetAll"
-	adc, err := newDynamodbConnect(t, name)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name, err)
-	} else if adc == nil {
-		t.Fatalf("%s failed: nil", name)
-	}
-	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1}
-	err = dynamodbInitTable(adc, testDynamodbTableComment, spec)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name+"/dynamodbInitTable", err)
-	}
-	dao := initBlogCommentDaoDynamodb(adc)
-	if dao == nil {
-		t.Fatalf("%s failed: nil", name+"/initBlogCommentDaoDynamodb")
-	}
-	defer adc.Close()
-	doTestCommentDaoGetAll(t, name, dao)
+	testName := "TestCommentDaoDynamodb_GetAll"
+	teardownTest := setupTest(t, testName, setupTestDynamodb, teardownTestDynamodb)
+	defer teardownTest(t)
+	doTestCommentDaoGetAll(t, testName, testDaoComment)
 }
 
 func TestCommentDaoDynamodb_GetN(t *testing.T) {
-	name := "TestCommentDaoDynamodb_GetN"
-	adc, err := newDynamodbConnect(t, name)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name, err)
-	} else if adc == nil {
-		t.Fatalf("%s failed: nil", name)
-	}
-	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1}
-	err = dynamodbInitTable(adc, testDynamodbTableComment, spec)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name+"/dynamodbInitTable", err)
-	}
-	dao := initBlogCommentDaoDynamodb(adc)
-	if dao == nil {
-		t.Fatalf("%s failed: nil", name+"/initBlogCommentDaoDynamodb")
-	}
-	defer adc.Close()
-	doTestCommentDaoGetN(t, name, dao)
+	testName := "TestCommentDaoDynamodb_GetN"
+	teardownTest := setupTest(t, testName, setupTestDynamodb, teardownTestDynamodb)
+	defer teardownTest(t)
+	doTestCommentDaoGetN(t, testName, testDaoComment)
 }
 
 /*----------------------------------------------------------------------*/
 
 func TestNewPostDaoDynamodb(t *testing.T) {
-	name := "TestNewPostDaoDynamodb"
-	adc, err := newDynamodbConnect(t, name)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name, err)
-	} else if adc == nil {
-		t.Fatalf("%s failed: nil", name)
-	}
-	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1}
-	err = dynamodbInitTable(adc, testDynamodbTablePost, spec)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name+"/dynamodbInitTable", err)
+	testName := "TestNewPostDaoDynamodb"
+	adc := _createAwsDynamodbConnect(t, testName)
+	defer adc.Close()
+	if err := InitBlogPostTableDynamodb(adc, testDynamodbTablePost); err != nil {
+		t.Fatalf("%s failed: error [%s]", testName+"/InitBlogPostTableDynamodb", err)
 	}
 	dao := initBlogPostDaoDynamodb(adc)
 	if dao == nil {
-		t.Fatalf("%s failed: nil", name+"/initBlogPostDaoDynamodb")
+		t.Fatalf("%s failed: nil", testName+"/initBlogPostDaoDynamodb")
 	}
-	defer adc.Close()
 }
 
 func TestPostDaoDynamodb_CreateGet(t *testing.T) {
-	name := "TestPostDaoDynamodb_CreateGet"
-	adc, err := newDynamodbConnect(t, name)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name, err)
-	} else if adc == nil {
-		t.Fatalf("%s failed: nil", name)
-	}
-	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1}
-	err = dynamodbInitTable(adc, testDynamodbTablePost, spec)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name+"/dynamodbInitTable", err)
-	}
-	dao := initBlogPostDaoDynamodb(adc)
-	if dao == nil {
-		t.Fatalf("%s failed: nil", name+"/initBlogPostDaoDynamodb")
-	}
-	defer adc.Close()
-	doTestPostDaoCreateGet(t, name, dao)
+	testName := "TestPostDaoDynamodb_CreateGet"
+	teardownTest := setupTest(t, testName, setupTestDynamodb, teardownTestDynamodb)
+	defer teardownTest(t)
+	doTestPostDaoCreateGet(t, testName, testDaoPost)
 }
 
 func TestPostDaoDynamodb_CreateUpdateGet(t *testing.T) {
-	name := "TestPostDaoDynamodb_CreateUpdateGet"
-	adc, err := newDynamodbConnect(t, name)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name, err)
-	} else if adc == nil {
-		t.Fatalf("%s failed: nil", name)
-	}
-	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1}
-	err = dynamodbInitTable(adc, testDynamodbTablePost, spec)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name+"/dynamodbInitTable", err)
-	}
-	dao := initBlogPostDaoDynamodb(adc)
-	if dao == nil {
-		t.Fatalf("%s failed: nil", name+"/initBlogPostDaoDynamodb")
-	}
-	defer adc.Close()
-	doTestPostDaoCreateUpdateGet(t, name, dao)
+	testName := "TestPostDaoDynamodb_CreateUpdateGet"
+	teardownTest := setupTest(t, testName, setupTestDynamodb, teardownTestDynamodb)
+	defer teardownTest(t)
+	doTestPostDaoCreateUpdateGet(t, testName, testDaoPost)
 }
 
 func TestPostDaoDynamodb_CreateDelete(t *testing.T) {
-	name := "TestPostDaoDynamodb_CreateDelete"
-	adc, err := newDynamodbConnect(t, name)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name, err)
-	} else if adc == nil {
-		t.Fatalf("%s failed: nil", name)
-	}
-	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1}
-	err = dynamodbInitTable(adc, testDynamodbTablePost, spec)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name+"/dynamodbInitTable", err)
-	}
-	dao := initBlogPostDaoDynamodb(adc)
-	if dao == nil {
-		t.Fatalf("%s failed: nil", name+"/initBlogPostDaoDynamodb")
-	}
-	defer adc.Close()
-	doTestPostDaoCreateDelete(t, name, dao)
+	testName := "TestPostDaoDynamodb_CreateDelete"
+	teardownTest := setupTest(t, testName, setupTestDynamodb, teardownTestDynamodb)
+	defer teardownTest(t)
+	doTestPostDaoCreateDelete(t, testName, testDaoPost)
 }
 
 func TestPostDaoDynamodb_GetUserPostsAll(t *testing.T) {
-	name := "TestPostDaoDynamodb_GetUserPostsAll"
-	adc, err := newDynamodbConnect(t, name)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name, err)
-	} else if adc == nil {
-		t.Fatalf("%s failed: nil", name)
-	}
-	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1}
-	err = dynamodbInitTable(adc, testDynamodbTablePost, spec)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name+"/dynamodbInitTable", err)
-	}
-	dao := initBlogPostDaoDynamodb(adc)
-	if dao == nil {
-		t.Fatalf("%s failed: nil", name+"/initBlogPostDaoDynamodb")
-	}
-	defer adc.Close()
-	doTestPostDaoGetUserPostsAll(t, name, dao)
+	testName := "TestPostDaoDynamodb_GetUserPostsAll"
+	teardownTest := setupTest(t, testName, setupTestDynamodb, teardownTestDynamodb)
+	defer teardownTest(t)
+	doTestPostDaoGetUserPostsAll(t, testName, testDaoPost)
 }
 
 func TestPostDaoDynamodb_GetUserPostsN(t *testing.T) {
-	name := "TestPostDaoDynamodb_GetUserPostsN"
-	adc, err := newDynamodbConnect(t, name)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name, err)
-	} else if adc == nil {
-		t.Fatalf("%s failed: nil", name)
-	}
-	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1}
-	err = dynamodbInitTable(adc, testDynamodbTablePost, spec)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name+"/dynamodbInitTable", err)
-	}
-	dao := initBlogPostDaoDynamodb(adc)
-	if dao == nil {
-		t.Fatalf("%s failed: nil", name+"/initBlogPostDaoDynamodb")
-	}
-	defer adc.Close()
-	doTestPostDaoGetUserPostsN(t, name, dao)
+	testName := "TestPostDaoDynamodb_GetUserPostsN"
+	teardownTest := setupTest(t, testName, setupTestDynamodb, teardownTestDynamodb)
+	defer teardownTest(t)
+	doTestPostDaoGetUserPostsN(t, testName, testDaoPost)
 }
 
 func TestPostDaoDynamodb_GetUserFeedAll(t *testing.T) {
-	name := "TestPostDaoDynamodb_GetUserFeedAll"
-	adc, err := newDynamodbConnect(t, name)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name, err)
-	} else if adc == nil {
-		t.Fatalf("%s failed: nil", name)
-	}
-	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1}
-	err = dynamodbInitTable(adc, testDynamodbTablePost, spec)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name+"/dynamodbInitTable", err)
-	}
-	dao := initBlogPostDaoDynamodb(adc)
-	if dao == nil {
-		t.Fatalf("%s failed: nil", name+"/initBlogPostDaoDynamodb")
-	}
-	defer adc.Close()
-	doTestPostDaoGetUserFeedAll(t, name, dao)
+	testName := "TestPostDaoDynamodb_GetUserFeedAll"
+	teardownTest := setupTest(t, testName, setupTestDynamodb, teardownTestDynamodb)
+	defer teardownTest(t)
+	// fmt.Println(teardownTest != nil)
+	doTestPostDaoGetUserFeedAll(t, testName, testDaoPost)
 }
 
 func TestPostDaoDynamodb_GetUserFeedN(t *testing.T) {
-	name := "TestPostDaoDynamodb_GetUserFeedN"
-	adc, err := newDynamodbConnect(t, name)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name, err)
-	} else if adc == nil {
-		t.Fatalf("%s failed: nil", name)
-	}
-	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1}
-	err = dynamodbInitTable(adc, testDynamodbTablePost, spec)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name+"/dynamodbInitTable", err)
-	}
-	dao := initBlogPostDaoDynamodb(adc)
-	if dao == nil {
-		t.Fatalf("%s failed: nil", name+"/initBlogPostDaoDynamodb")
-	}
-	defer adc.Close()
-	doTestPostDaoGetUserFeedN(t, name, dao)
+	testName := "TestPostDaoDynamodb_GetUserFeedN"
+	teardownTest := setupTest(t, testName, setupTestDynamodb, teardownTestDynamodb)
+	defer teardownTest(t)
+	doTestPostDaoGetUserFeedN(t, testName, testDaoPost)
 }
 
 /*----------------------------------------------------------------------*/
 
 func TestNewVoteDaoDynamodb(t *testing.T) {
 	name := "TestNewVoteDaoDynamodb"
-	adc, err := newDynamodbConnect(t, name)
+	adc := _createAwsDynamodbConnect(t, name)
+	defer adc.Close()
+	err := InitBlogVoteTableDynamodb(adc, testDynamodbTableVote)
 	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name, err)
-	} else if adc == nil {
-		t.Fatalf("%s failed: nil", name)
-	}
-	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, CreateUidxTable: true, UidxTableRcu: 2, UidxTableWcu: 1}
-	err = dynamodbInitTable(adc, testDynamodbTableVote, spec)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name+"/dynamodbInitTable", err)
+		t.Fatalf("%s failed: error [%s]", name+"/InitBlogVoteTableDynamodb", err)
 	}
 	dao := initBlogVoteDaoDynamodb(adc)
 	if dao == nil {
 		t.Fatalf("%s failed: nil", name+"/initBlogVoteDaoDynamodb")
 	}
-	defer adc.Close()
 }
 
 func TestVoteDaoDynamodb_CreateGet(t *testing.T) {
-	name := "TestVoteDaoDynamodb_CreateGet"
-	adc, err := newDynamodbConnect(t, name)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name, err)
-	} else if adc == nil {
-		t.Fatalf("%s failed: nil", name)
-	}
-	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, CreateUidxTable: true, UidxTableRcu: 2, UidxTableWcu: 1}
-	err = dynamodbInitTable(adc, testDynamodbTableVote, spec)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name+"/dynamodbInitTable", err)
-	}
-	dao := initBlogVoteDaoDynamodb(adc)
-	if dao == nil {
-		t.Fatalf("%s failed: nil", name+"/initBlogVoteDaoDynamodb")
-	}
-	defer adc.Close()
-	doTestVoteDaoCreateGet(t, name, dao)
+	testName := "TestVoteDaoDynamodb_CreateGet"
+	teardownTest := setupTest(t, testName, setupTestDynamodb, teardownTestDynamodb)
+	defer teardownTest(t)
+	doTestVoteDaoCreateGet(t, testName, testDaoVote)
 }
 
 func TestVoteDaoDynamodb_CreateUpdateGet(t *testing.T) {
-	name := "TestVoteDaoDynamodb_CreateUpdateGet"
-	adc, err := newDynamodbConnect(t, name)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name, err)
-	} else if adc == nil {
-		t.Fatalf("%s failed: nil", name)
-	}
-	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, CreateUidxTable: true, UidxTableRcu: 2, UidxTableWcu: 1}
-	err = dynamodbInitTable(adc, testDynamodbTableVote, spec)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name+"/dynamodbInitTable", err)
-	}
-	dao := initBlogVoteDaoDynamodb(adc)
-	if dao == nil {
-		t.Fatalf("%s failed: nil", name+"/initBlogVoteDaoDynamodb")
-	}
-	defer adc.Close()
-	doTestVoteDaoCreateUpdateGet(t, name, dao)
+	testName := "TestVoteDaoDynamodb_CreateUpdateGet"
+	teardownTest := setupTest(t, testName, setupTestDynamodb, teardownTestDynamodb)
+	defer teardownTest(t)
+	doTestVoteDaoCreateUpdateGet(t, testName, testDaoVote)
 }
 
 func TestVoteDaoDynamodb_CreateDelete(t *testing.T) {
-	name := "TestVoteDaoDynamodb_CreateDelete"
-	adc, err := newDynamodbConnect(t, name)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name, err)
-	} else if adc == nil {
-		t.Fatalf("%s failed: nil", name)
-	}
-	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, CreateUidxTable: true, UidxTableRcu: 2, UidxTableWcu: 1}
-	err = dynamodbInitTable(adc, testDynamodbTableVote, spec)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name+"/dynamodbInitTable", err)
-	}
-	dao := initBlogVoteDaoDynamodb(adc)
-	if dao == nil {
-		t.Fatalf("%s failed: nil", name+"/initBlogVoteDaoDynamodb")
-	}
-	defer adc.Close()
-	doTestVoteDaoCreateDelete(t, name, dao)
+	testName := "TestVoteDaoDynamodb_CreateDelete"
+	teardownTest := setupTest(t, testName, setupTestDynamodb, teardownTestDynamodb)
+	defer teardownTest(t)
+	doTestVoteDaoCreateDelete(t, testName, testDaoVote)
 }
 
 func TestVoteDaoDynamodb_GetAll(t *testing.T) {
-	name := "TestVoteDaoDynamodb_GetAll"
-	adc, err := newDynamodbConnect(t, name)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name, err)
-	} else if adc == nil {
-		t.Fatalf("%s failed: nil", name)
-	}
-	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, CreateUidxTable: true, UidxTableRcu: 2, UidxTableWcu: 1}
-	err = dynamodbInitTable(adc, testDynamodbTableVote, spec)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name+"/dynamodbInitTable", err)
-	}
-	dao := initBlogVoteDaoDynamodb(adc)
-	if dao == nil {
-		t.Fatalf("%s failed: nil", name+"/initBlogVoteDaoDynamodb")
-	}
-	defer adc.Close()
-	doTestVoteDaoGetAll(t, name, dao)
+	testName := "TestVoteDaoDynamodb_GetAll"
+	teardownTest := setupTest(t, testName, setupTestDynamodb, teardownTestDynamodb)
+	defer teardownTest(t)
+	doTestVoteDaoGetAll(t, testName, testDaoVote)
 }
 
 func TestVoteDaoDynamodb_GetN(t *testing.T) {
-	name := "TestVoteDaoDynamodb_GetN"
-	adc, err := newDynamodbConnect(t, name)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name, err)
-	} else if adc == nil {
-		t.Fatalf("%s failed: nil", name)
-	}
-	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, CreateUidxTable: true, UidxTableRcu: 2, UidxTableWcu: 1}
-	err = dynamodbInitTable(adc, testDynamodbTableVote, spec)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name+"/dynamodbInitTable", err)
-	}
-	dao := initBlogVoteDaoDynamodb(adc)
-	if dao == nil {
-		t.Fatalf("%s failed: nil", name+"/initBlogVoteDaoDynamodb")
-	}
-	defer adc.Close()
-	doTestVoteDaoGetN(t, name, dao)
+	testName := "TestVoteDaoDynamodb_GetN"
+	teardownTest := setupTest(t, testName, setupTestDynamodb, teardownTestDynamodb)
+	defer teardownTest(t)
+	doTestVoteDaoGetN(t, testName, testDaoVote)
 }
 
 func TestVoteDaoDynamodb_GetUserVoteForTarget(t *testing.T) {
-	name := "TestVoteDaoDynamodb_GetUserVoteForTarget"
-	adc, err := newDynamodbConnect(t, name)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name, err)
-	} else if adc == nil {
-		t.Fatalf("%s failed: nil", name)
-	}
-	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, CreateUidxTable: true, UidxTableRcu: 2, UidxTableWcu: 1}
-	err = dynamodbInitTable(adc, testDynamodbTableVote, spec)
-	if err != nil {
-		t.Fatalf("%s failed: error [%s]", name+"/dynamodbInitTable", err)
-	}
-	dao := initBlogVoteDaoDynamodb(adc)
-	if dao == nil {
-		t.Fatalf("%s failed: nil", name+"/initBlogVoteDaoDynamodb")
-	}
-	defer adc.Close()
-	doTestVoteDaoGetUserVoteForTarget(t, name, dao)
+	testName := "TestVoteDaoDynamodb_GetUserVoteForTarget"
+	teardownTest := setupTest(t, testName, setupTestDynamodb, teardownTestDynamodb)
+	defer teardownTest(t)
+	doTestVoteDaoGetUserVoteForTarget(t, testName, testDaoVote)
 }

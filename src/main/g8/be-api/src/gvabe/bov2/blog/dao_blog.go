@@ -175,12 +175,12 @@ func (dao *BaseBlogPostDaoImpl) GetUserPostsN(user *user.User, fromOffset, maxNu
 	return result, nil
 }
 
-// GetUserPostsAll implements BlogPostDao.GetAll
+// GetUserPostsAll implements BlogPostDao.GetUserPostsAll
 func (dao *BaseBlogPostDaoImpl) GetUserPostsAll(user *user.User) ([]*BlogPost, error) {
 	return dao.GetUserPostsN(user, 0, 0)
 }
 
-// GetUserFeedN implements BlogPostDao.GetUserPostsN
+// GetUserFeedN implements BlogPostDao.GetUserFeedN
 func (dao *BaseBlogPostDaoImpl) GetUserFeedN(user *user.User, fromOffset, maxNumRows int) ([]*BlogPost, error) {
 	filter := (&godal.FilterOptOr{}).
 		Add(&godal.FilterOptFieldOpValue{FieldName: PostFieldOwnerId, Operator: godal.FilterOpEqual, Value: user.GetId()}).

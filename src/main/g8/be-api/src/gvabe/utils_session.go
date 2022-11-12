@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 
 	"main/src/utils"
 )
@@ -53,7 +53,6 @@ func (s *SessionClaims) isGoingExpired(numSec int64) bool {
 }
 
 /*----------------------------------------------------------------------*/
-
 
 // available since template-v0.2.0
 func parseJwt(jwtStr string, pubKey *rsa.PublicKey) (map[string]interface{}, error) {
