@@ -19,7 +19,7 @@ require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang/protobuf v1.5.2
 	github.com/jackc/pgx/v4 v4.16.1
-	github.com/labstack/echo/v4 v4.7.2
+	github.com/labstack/echo/v4 v4.9.0
 	github.com/mattn/go-sqlite3 v1.14.13
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
