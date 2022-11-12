@@ -28,7 +28,7 @@ RUN cd /build \
     && sed -i s/#{appVersion}/"$APP_VERSION"/g src/config.json \
     && npm install && npm run build
 
-FROM golang:1.14-alpine AS builder_be
+FROM golang:1.17-alpine AS builder_be
 RUN apk add git build-base jq sed
 RUN mkdir /build
 COPY . /build

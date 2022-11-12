@@ -235,21 +235,19 @@ func _dynamodbWaitforGSI(adc *prom.AwsDynamodbConnect, table, gsi string, timeou
 }
 
 func _createDynamodbTables(adc *prom.AwsDynamodbConnect) {
+	if err := blog.InitBlogCommentTableDynamodb(adc, blog.TableBlogComment); err != nil {
+		panic(err)
+	}
+	if err := blog.InitBlogPostTableDynamodb(adc, blog.TableBlogPost); err != nil {
+		panic(err)
+	}
+	if err := blog.InitBlogVoteTableDynamodb(adc, blog.TableBlogVote); err != nil {
+		panic(err)
+	}
+
 	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, CreateUidxTable: true, UidxTableRcu: 2, UidxTableWcu: 1}
 	if err := henge.InitDynamodbTables(adc, user.TableUser, spec); err != nil {
 		log.Printf("[WARN] creating tableName %s (%s): %s\n", user.TableUser, "DynamoDB", err)
-	}
-	spec = &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1}
-	if err := henge.InitDynamodbTables(adc, blog.TableBlogPost, spec); err != nil {
-		log.Printf("[WARN] creating tableName %s (%s): %s\n", blog.TableBlogPost, "DynamoDB", err)
-	}
-	spec = &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1}
-	if err := henge.InitDynamodbTables(adc, blog.TableBlogComment, spec); err != nil {
-		log.Printf("[WARN] creating tableName %s (%s): %s\n", blog.TableBlogComment, "DynamoDB", err)
-	}
-	spec = &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, CreateUidxTable: true, UidxTableRcu: 2, UidxTableWcu: 1}
-	if err := henge.InitDynamodbTables(adc, blog.TableBlogVote, spec); err != nil {
-		log.Printf("[WARN] creating tableName %s (%s): %s\n", blog.TableBlogVote, "DynamoDB", err)
 	}
 
 	var tableName, gsiName, colName string
@@ -259,60 +257,6 @@ func _createDynamodbTables(adc *prom.AwsDynamodbConnect) {
 	if err := adc.CreateGlobalSecondaryIndex(nil, tableName, gsiName, 2, 1,
 		[]prom.AwsDynamodbNameAndType{{Name: colName, Type: prom.AwsAttrTypeString}},
 		[]prom.AwsDynamodbNameAndType{{Name: colName, Type: prom.AwsKeyTypePartition}}); err != nil {
-		log.Printf("[WARN] creating GSI %s/%s (%s): %s\n", tableName, colName, "DynamoDB", err)
-	} else if err := _dynamodbWaitforGSI(adc, tableName, gsiName, 10*time.Second); err != nil {
-		log.Printf("[WARN] creating GSI %s/%s (%s): %s\n", tableName, colName, "DynamoDB", err)
-	}
-
-	// blog post
-	tableName, colName, gsiName = blog.TableBlogPost, blog.PostFieldOwnerId, "gsi_"+colName
-	if err := adc.CreateGlobalSecondaryIndex(nil, tableName, gsiName, 2, 1,
-		[]prom.AwsDynamodbNameAndType{{Name: colName, Type: prom.AwsAttrTypeString}},
-		[]prom.AwsDynamodbNameAndType{{Name: colName, Type: prom.AwsKeyTypePartition}}); err != nil {
-		log.Printf("[WARN] creating GSI %s/%s (%s): %s\n", tableName, colName, "DynamoDB", err)
-	} else if err := _dynamodbWaitforGSI(adc, tableName, gsiName, 10*time.Second); err != nil {
-		log.Printf("[WARN] creating GSI %s/%s (%s): %s\n", tableName, colName, "DynamoDB", err)
-	}
-	tableName, colName, gsiName = blog.TableBlogPost, blog.PostFieldIsPublic, "gsi_"+colName
-	if err := adc.CreateGlobalSecondaryIndex(nil, tableName, gsiName, 2, 1,
-		[]prom.AwsDynamodbNameAndType{{Name: colName, Type: prom.AwsAttrTypeNumber}},
-		[]prom.AwsDynamodbNameAndType{{Name: colName, Type: prom.AwsKeyTypePartition}}); err != nil {
-		log.Printf("[WARN] creating GSI %s/%s (%s): %s\n", tableName, colName, "DynamoDB", err)
-	} else if err := _dynamodbWaitforGSI(adc, tableName, gsiName, 10*time.Second); err != nil {
-		log.Printf("[WARN] creating GSI %s/%s (%s): %s\n", tableName, colName, "DynamoDB", err)
-	}
-
-	// blog comment
-	tableName, colName, gsiName = blog.TableBlogComment, blog.CommentFieldOwnerId, "gsi_"+colName
-	if err := adc.CreateGlobalSecondaryIndex(nil, tableName, gsiName, 2, 1,
-		[]prom.AwsDynamodbNameAndType{{Name: colName, Type: prom.AwsAttrTypeString}},
-		[]prom.AwsDynamodbNameAndType{{Name: colName, Type: prom.AwsKeyTypePartition}}); err != nil {
-		log.Printf("[WARN] creating GSI %s/%s (%s): %s\n", tableName, colName, "DynamoDB", err)
-	} else if err := _dynamodbWaitforGSI(adc, tableName, gsiName, 10*time.Second); err != nil {
-		log.Printf("[WARN] creating GSI %s/%s (%s): %s\n", tableName, colName, "DynamoDB", err)
-	}
-	tableName, colName, gsiName = blog.TableBlogComment, blog.CommentFieldPostId+"_"+blog.CommentFieldParentId, "gsi_"+colName
-	if err := adc.CreateGlobalSecondaryIndex(nil, tableName, gsiName, 2, 1,
-		[]prom.AwsDynamodbNameAndType{{Name: blog.CommentFieldPostId, Type: prom.AwsAttrTypeString}, {Name: blog.CommentFieldParentId, Type: prom.AwsAttrTypeString}},
-		[]prom.AwsDynamodbNameAndType{{Name: blog.CommentFieldPostId, Type: prom.AwsKeyTypePartition}, {Name: blog.CommentFieldParentId, Type: prom.AwsKeyTypeSort}}); err != nil {
-		log.Printf("[WARN] creating GSI %s/%s (%s): %s\n", tableName, colName, "DynamoDB", err)
-	} else if err := _dynamodbWaitforGSI(adc, tableName, gsiName, 10*time.Second); err != nil {
-		log.Printf("[WARN] creating GSI %s/%s (%s): %s\n", tableName, colName, "DynamoDB", err)
-	}
-
-	// blog vote
-	tableName, colName, gsiName = blog.TableBlogVote, blog.VoteFieldOwnerId+"_"+blog.VoteFieldTargetId, "gsi_"+colName
-	if err := adc.CreateGlobalSecondaryIndex(nil, tableName, gsiName, 2, 1,
-		[]prom.AwsDynamodbNameAndType{{Name: blog.VoteFieldOwnerId, Type: prom.AwsAttrTypeString}, {Name: blog.VoteFieldTargetId, Type: prom.AwsAttrTypeString}},
-		[]prom.AwsDynamodbNameAndType{{Name: blog.VoteFieldOwnerId, Type: prom.AwsKeyTypePartition}, {Name: blog.VoteFieldTargetId, Type: prom.AwsKeyTypeSort}}); err != nil {
-		log.Printf("[WARN] creating GSI %s/%s (%s): %s\n", tableName, colName, "DynamoDB", err)
-	} else if err := _dynamodbWaitforGSI(adc, tableName, gsiName, 10*time.Second); err != nil {
-		log.Printf("[WARN] creating GSI %s/%s (%s): %s\n", tableName, colName, "DynamoDB", err)
-	}
-	tableName, colName, gsiName = blog.TableBlogVote, blog.VoteFieldTargetId+"_"+blog.VoteFieldValue, "gsi_"+colName
-	if err := adc.CreateGlobalSecondaryIndex(nil, tableName, gsiName, 2, 1,
-		[]prom.AwsDynamodbNameAndType{{Name: blog.VoteFieldTargetId, Type: prom.AwsAttrTypeString}, {Name: blog.VoteFieldValue, Type: prom.AwsAttrTypeNumber}},
-		[]prom.AwsDynamodbNameAndType{{Name: blog.VoteFieldTargetId, Type: prom.AwsKeyTypePartition}, {Name: blog.VoteFieldValue, Type: prom.AwsKeyTypeSort}}); err != nil {
 		log.Printf("[WARN] creating GSI %s/%s (%s): %s\n", tableName, colName, "DynamoDB", err)
 	} else if err := _dynamodbWaitforGSI(adc, tableName, gsiName, 10*time.Second); err != nil {
 		log.Printf("[WARN] creating GSI %s/%s (%s): %s\n", tableName, colName, "DynamoDB", err)

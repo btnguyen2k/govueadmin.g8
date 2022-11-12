@@ -185,11 +185,6 @@ func TestUserDaoSql_CreateGet(t *testing.T) {
 		if dao == nil {
 			t.Fatalf("%s failed: nil", name)
 		}
-		if sqlc.GetDbFlavor() == prom.FlavorSqlite {
-			henge.TimeLayout = "2006-01-02 15:04:05Z07:00"
-		} else {
-			henge.TimeLayout = time.RFC3339
-		}
 		doTestUserDaoCreateGet(t, name, dao)
 		sqlc.Close()
 	}

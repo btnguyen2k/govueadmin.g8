@@ -3,10 +3,12 @@ package blog
 import (
 	"fmt"
 	"math/rand"
+	"reflect"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
+	"unsafe"
 
 	"github.com/btnguyen2k/consu/reddo"
 	"main/src/gvabe/bov2/user"
@@ -43,7 +45,6 @@ func initSampleRowsComment(t *testing.T, testName string, dao BlogCommentDao) {
 
 func doTestCommentDaoCreateGet(t *testing.T, name string, dao BlogCommentDao) {
 	_tagVersion := uint64(1337)
-	_id := utils.UniqueId()
 	_userId := "admin@local"
 	_userMaskId := "admin"
 	_user := user.NewUser(_tagVersion, _userId, _userMaskId)
@@ -53,6 +54,7 @@ func doTestCommentDaoCreateGet(t *testing.T, name string, dao BlogCommentDao) {
 	_post := NewBlogPost(_tagVersion, _user, _postIsPublic, _postTitle, _postContent)
 	_commentContent := "Blog comment content"
 	comment0 := NewBlogComment(_tagVersion, _user, _post, nil, _commentContent)
+	_id := utils.UniqueId()
 	comment0.SetId(_id)
 	_numLikes := float64(123)
 	comment0.SetDataAttr("props.tag", "1357")
@@ -228,7 +230,8 @@ var userPostCount map[string]int
 var userFeedCount map[string]int
 
 func initSampleRowsPost(t *testing.T, testName string, dao BlogPostDao) {
-	rand.Seed(time.Now().UnixNano())
+	now := time.Now()
+	rand.Seed(now.UnixNano())
 	userList = make([]*user.User, 0)
 	userPostCount = make(map[string]int)
 	userFeedCount = make(map[string]int)
@@ -247,7 +250,7 @@ func initSampleRowsPost(t *testing.T, testName string, dao BlogPostDao) {
 		_id := istr
 		_user := userList[rand.Intn(len(userList))]
 		userPostCount[_user.GetId()]++
-		_postIsPublic := rand.Intn(1024)%2 == 0
+		_postIsPublic := rand.Intn(1024)%3 == 0
 		if _postIsPublic {
 			for k, _ := range userFeedCount {
 				userFeedCount[k]++
@@ -259,9 +262,15 @@ func initSampleRowsPost(t *testing.T, testName string, dao BlogPostDao) {
 		_postContent := "Blog post content"
 		p := NewBlogPost(_tagVersion, _user, _postIsPublic, _postTitle, _postContent)
 		p.SetId(_id)
-		_numLikes := float64(123)
+		{
+			rf := reflect.ValueOf(p.UniversalBo).Elem().FieldByName("timeCreated")
+			rf = reflect.NewAt(rf.Type(), unsafe.Pointer(rf.UnsafeAddr())).Elem()
+			now = now.Add(time.Duration(rand.Int63n(1024)) * time.Second)
+			rf.Set(reflect.ValueOf(now))
+		}
+		_numLikes := float64(rand.Intn(1024))
 		p.SetDataAttr("props.tag", "1357")
-		p.SetDataAttr("props.active", true)
+		p.SetDataAttr("props.active", rand.Intn(1024)%3 == 0)
 		p.SetDataAttr("num_likes", _numLikes)
 		if ok, err := dao.Create(p); err != nil || !ok {
 			t.Fatalf("%s failed: %#v / %s", testName+"/Create", ok, err)
@@ -458,9 +467,16 @@ func doTestPostDaoCreateDelete(t *testing.T, name string, dao BlogPostDao) {
 
 func doTestPostDaoGetUserPostsAll(t *testing.T, name string, dao BlogPostDao) {
 	initSampleRowsPost(t, name, dao)
-	postList, err := dao.GetUserPostsAll(userList[0])
-	if err != nil || len(postList) != userPostCount[userList[0].GetId()] {
-		t.Fatalf("%s failed: expected %#v but received %#v (error %s)", name+"/GetUserPostsAll", userPostCount[userList[0].GetId()], len(postList), err)
+	for _, u := range userList {
+		postList, err := dao.GetUserPostsAll(u)
+		if err != nil || len(postList) != userPostCount[u.GetId()] {
+			t.Fatalf("%s failed: expected %#v but received %#v (error %s)", name+"/GetUserPostsAll", userPostCount[u.GetId()], len(postList), err)
+		}
+		for i, n := 1, len(postList); i < n; i++ {
+			if !postList[i-1].GetTimeCreated().After(postList[i].GetTimeCreated()) {
+				t.Fatalf("%s failed: not in correct order {%s:%s} -> {%s:%s}", name, postList[i-1].GetId(), postList[i-1].GetTimeCreated(), postList[i].GetId(), postList[i].GetTimeCreated())
+			}
+		}
 	}
 }
 
@@ -482,9 +498,16 @@ func doTestPostDaoGetUserPostsN(t *testing.T, name string, dao BlogPostDao) {
 
 func doTestPostDaoGetUserFeedAll(t *testing.T, name string, dao BlogPostDao) {
 	initSampleRowsPost(t, name, dao)
-	postList, err := dao.GetUserFeedAll(userList[0])
-	if err != nil || len(postList) != userFeedCount[userList[0].GetId()] {
-		t.Fatalf("%s failed: expected %#v but received %#v (error %s)", name+"/GetUserFeedAll", userFeedCount[userList[0].GetId()], len(postList), err)
+	for _, u := range userList {
+		postList, err := dao.GetUserFeedAll(u)
+		if err != nil || len(postList) != userFeedCount[u.GetId()] {
+			t.Fatalf("%s failed: expected %#v but received %#v (error %s)", name+"/GetUserFeedAll", userFeedCount[u.GetId()], len(postList), err)
+		}
+		for i, n := 1, len(postList); i < n; i++ {
+			if !postList[i-1].GetTimeCreated().After(postList[i].GetTimeCreated()) {
+				t.Fatalf("%s failed: not in correct order {%s:%s} -> {%s:%s}", name, postList[i-1].GetId(), postList[i-1].GetTimeCreated(), postList[i].GetId(), postList[i].GetTimeCreated())
+			}
+		}
 	}
 }
 
