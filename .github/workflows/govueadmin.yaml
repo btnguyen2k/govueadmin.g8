@@ -192,7 +192,7 @@ jobs:
         dir
         cd $env:BE_ROOT
         dir
-        go test -v -count 1 -p 1 -cover -coverprofile="coverage_cosmosdb_sql.txt" $env:BE_GO_TEST_PATH
+        go test -v -count 1 -p 1 -cover -coverprofile="coverage_cosmosdb_sql.txt" '$env:BE_GO_TEST_PATH'
     - name: Codecov
       uses: codecov/codecov-action@v3
       with:
