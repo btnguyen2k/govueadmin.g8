@@ -1,13 +1,14 @@
 package goapi
 
 import (
-	hoconf "github.com/go-akka/configuration"
-	"github.com/go-akka/configuration/hocon"
 	"io/ioutil"
 	"log"
 	"os"
 	"path"
 	"path/filepath"
+
+	hoconf "github.com/go-akka/configuration"
+	"github.com/go-akka/configuration/hocon"
 )
 
 func loadAppConfig(file string) *hoconf.Config {

@@ -2,7 +2,7 @@ package user
 
 import (
 	"github.com/btnguyen2k/henge"
-	"github.com/btnguyen2k/prom"
+	promsql "github.com/btnguyen2k/prom/sql"
 )
 
 // NewUserDaoCosmosdb is helper method to create Azure Cosmos DB-implementation of UserDao
@@ -10,7 +10,7 @@ import (
 // Note: txModeOnWrite is not currently used!
 //
 // Available since template-v0.3.0
-func NewUserDaoCosmosdb(sqlc *prom.SqlConnect, tableName string, txModeOnWrite bool) UserDao {
+func NewUserDaoCosmosdb(sqlc *promsql.SqlConnect, tableName string, txModeOnWrite bool) UserDao {
 	dao := &BaseUserDaoImpl{}
 	spec := &henge.CosmosdbDaoSpec{
 		PkName:        henge.CosmosdbColId,

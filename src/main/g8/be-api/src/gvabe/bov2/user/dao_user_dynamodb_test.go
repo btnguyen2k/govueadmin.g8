@@ -11,14 +11,14 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/btnguyen2k/henge"
-	"github.com/btnguyen2k/prom"
+	promdynamodb "github.com/btnguyen2k/prom/dynamodb"
 )
 
 const (
 	testDynamodbTable = "test_user"
 )
 
-func _dynamodbWaitForTableStatus(adc *prom.AwsDynamodbConnect, table, status string, timeout time.Duration) error {
+func _dynamodbWaitForTableStatus(adc *promdynamodb.AwsDynamodbConnect, table, status string, timeout time.Duration) error {
 	t := time.Now()
 	for tblStatus, err := adc.GetTableStatus(nil, table); ; {
 		if err != nil {
@@ -33,7 +33,7 @@ func _dynamodbWaitForTableStatus(adc *prom.AwsDynamodbConnect, table, status str
 	}
 }
 
-func dynamodbInitTable(adc *prom.AwsDynamodbConnect, table string, spec *henge.DynamodbTablesSpec) error {
+func dynamodbInitTable(adc *promdynamodb.AwsDynamodbConnect, table string, spec *henge.DynamodbTablesSpec) error {
 	rand.Seed(time.Now().UnixNano())
 	adc.DeleteTable(nil, table)
 	if err := _dynamodbWaitForTableStatus(adc, table, "", 10*time.Second); err != nil {
@@ -48,7 +48,7 @@ func dynamodbInitTable(adc *prom.AwsDynamodbConnect, table string, spec *henge.D
 	return henge.InitDynamodbTables(adc, table, spec)
 }
 
-func newDynamodbConnect(t *testing.T, testName string) (*prom.AwsDynamodbConnect, error) {
+func newDynamodbConnect(t *testing.T, testName string) (*promdynamodb.AwsDynamodbConnect, error) {
 	awsRegion := strings.ReplaceAll(os.Getenv("AWS_REGION"), `"`, "")
 	awsAccessKeyId := strings.ReplaceAll(os.Getenv("AWS_ACCESS_KEY_ID"), `"`, "")
 	awsSecretAccessKey := strings.ReplaceAll(os.Getenv("AWS_SECRET_ACCESS_KEY"), `"`, "")
@@ -65,10 +65,10 @@ func newDynamodbConnect(t *testing.T, testName string) (*prom.AwsDynamodbConnect
 			cfg.DisableSSL = aws.Bool(true)
 		}
 	}
-	return prom.NewAwsDynamodbConnect(cfg, nil, nil, 10000)
+	return promdynamodb.NewAwsDynamodbConnect(cfg, nil, nil, 10000)
 }
 
-func initDaoDynamodb(adc *prom.AwsDynamodbConnect) UserDao {
+func initDaoDynamodb(adc *promdynamodb.AwsDynamodbConnect) UserDao {
 	return NewUserDaoDynamodb(adc, testDynamodbTable)
 }
 

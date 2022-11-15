@@ -70,9 +70,7 @@ func _parseRequest(apiName string, c echo.Context) (*itineris.ApiContext, *itine
 	return ctx, auth, params
 }
 
-/*
-Handle API request via HTTP.
-*/
+// Handle API request via HTTP.
 func apiHttpHandler(c echo.Context) error {
 	uriPattern := c.Path()
 	if _, ok := httpRoutingMap[uriPattern]; !ok {

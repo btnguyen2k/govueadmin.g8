@@ -36,13 +36,11 @@ type MyBootstrapper struct {
 
 var Bootstrapper = &MyBootstrapper{name: "gvabe"}
 
-/*
-Bootstrap implements goapi.IBootstrapper.Bootstrap
-
-Bootstrapper usually does the following:
-- register api-handlers with the global ApiRouter
-- other initializing work (e.g. creating DAO, initializing database, etc)
-*/
+// Bootstrap implements goapi.IBootstrapper.Bootstrap
+//
+// Bootstrapper usually does the following:
+// - register api-handlers with the global ApiRouter
+// - other initializing work (e.g. creating DAO, initializing database, etc)
 func (b *MyBootstrapper) Bootstrap() error {
 	DEBUG = os.Getenv("DEBUG") != ""
 	go routineUpdateSystemInfo()

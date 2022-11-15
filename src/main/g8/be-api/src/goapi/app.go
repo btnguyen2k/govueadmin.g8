@@ -3,20 +3,21 @@ package goapi
 import (
 	"encoding/json"
 	"fmt"
-	hocon "github.com/go-akka/configuration"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
-	"google.golang.org/grpc"
 	"io/ioutil"
 	"log"
-	pb "main/grpc"
-	"main/src/itineris"
-	"main/src/utils"
 	"net"
 	"net/http"
 	"os"
 	"regexp"
 	"time"
+
+	hocon "github.com/go-akka/configuration"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
+	"google.golang.org/grpc"
+	pb "main/grpc"
+	"main/src/itineris"
+	"main/src/utils"
 )
 
 const (
@@ -26,13 +27,11 @@ const (
 var (
 	AppVersion       string
 	AppVersionNumber uint64
-	AppConfig *hocon.Config
-	ApiRouter *itineris.ApiRouter
+	AppConfig        *hocon.Config
+	ApiRouter        *itineris.ApiRouter
 )
 
-/*
-Start bootstraps the application.
-*/
+// Start bootstraps the application.
 func Start(bootstrappers ...IBootstrapper) {
 	var err error
 
@@ -79,9 +78,7 @@ func initAppConfig() *hocon.Config {
 	return loadAppConfig(configFile)
 }
 
-/*
-@since template-v0.4.r2
-*/
+// @since template-v0.4.r2
 func initGrpcServer() {
 	listenPort := AppConfig.GetInt32("api.grpc.listen_port", 0)
 	if listenPort <= 0 {
