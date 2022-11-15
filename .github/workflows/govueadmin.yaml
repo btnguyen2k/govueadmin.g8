@@ -88,37 +88,37 @@ jobs:
         flags: mongo_replicaset
         name: mongo_replicaset
 
-  # testWithMySQL:
-  #   name: Test with MySQL
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - name: Set up Go env
-  #     uses: actions/setup-go@v2
-  #     with:
-  #       go-version: "1.17"
-  #   - name: Check out code
-  #     uses: actions/checkout@v2
-  #   - name: Start MySQL server
-  #     run: docker run -d --name mysql -e MYSQL_ROOT_PASSWORD=test -e MYSQL_DATABASE=test -e MYSQL_USER=test -e MYSQL_PASSWORD=test -p 3306:3306 mysql:8
-  #   - name: Test (parseTime=false)
-  #     run: |
-  #       export TIMEZONE="Asia/Ho_Chi_Minh"
-  #       export MYSQL_DRIVER="mysql"
-  #       export MYSQL_URL="test:test@tcp(localhost:3306)/test?charset=utf8mb4,utf8&parseTime=false&loc=\${loc}"
-  #       cd ./src/main/g8
-  #       go test -v -count 1 -p 1 -cover -coverprofile=coverage_mysql.txt ./src/myapp/
-  #   - name: Test (parseTime=true)
-  #     run: |
-  #       export TIMEZONE="Asia/Ho_Chi_Minh"
-  #       export MYSQL_DRIVER="mysql"
-  #       export MYSQL_URL="test:test@tcp(localhost:3306)/test?charset=utf8mb4,utf8&parseTime=true&loc=\${loc}"
-  #       cd ./src/main/g8
-  #       go test -v -count 1 -p 1 -cover -coverprofile=coverage_mysql_parsetime.txt ./src/myapp/
-  #   - name: Codecov
-  #     uses: codecov/codecov-action@v3
-  #     with:
-  #       flags: myapp_mysql
-  #       name: myapp_mysql
+  testWithMySQL:
+    name: Test with MySQL
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Go env
+      uses: actions/setup-go@v2
+      with:
+        go-version: "1.17"
+    - name: Check out code
+      uses: actions/checkout@v2
+    - name: Start MySQL server
+      run: docker run -d --name mysql -e MYSQL_ROOT_PASSWORD=test -e MYSQL_DATABASE=test -e MYSQL_USER=test -e MYSQL_PASSWORD=test -p 3306:3306 mysql:8
+    - name: Test (parseTime=false)
+      run: |
+        export TIMEZONE="Asia/Ho_Chi_Minh"
+        export MYSQL_DRIVER="mysql"
+        export MYSQL_URL="test:test@tcp(localhost:3306)/test?charset=utf8mb4,utf8&parseTime=false&loc=\${loc}"
+        cd $BE_ROOT
+        go test -v -count 1 -p 1 -cover -coverprofile=coverage_mysql.txt $BE_GO_TEST_PATH
+    - name: Test (parseTime=true)
+      run: |
+        export TIMEZONE="Asia/Ho_Chi_Minh"
+        export MYSQL_DRIVER="mysql"
+        export MYSQL_URL="test:test@tcp(localhost:3306)/test?charset=utf8mb4,utf8&parseTime=true&loc=\${loc}"
+        cd $BE_ROOT
+        go test -v -count 1 -p 1 -cover -coverprofile=coverage_mysql_parsetime.txt $BE_GO_TEST_PATH
+    - name: Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        flags: mysql
+        name: mysql
 
   # testWithPostgreSQL:
   #   name: Test with PostgreSQL

@@ -35,16 +35,21 @@ func sqlInitTableComment(sqlc *promsql.SqlConnect, table string) error {
 		}
 	}
 	sqlc.GetDB().Exec(fmt.Sprintf("DROP TABLE %s", table))
+	extraCols := map[string]string{
+		CommentColParentId: "VARCHAR(32)",
+		CommentColPostId:   "VARCHAR(32)",
+		CommentColOwnerId:  "VARCHAR(32)",
+	}
 	switch sqlc.GetDbFlavor() {
 	case promsql.FlavorCosmosDb:
 		spec := &henge.CosmosdbCollectionSpec{Pk: henge.CosmosdbColId}
 		err = henge.InitCosmosdbCollection(sqlc, table, spec)
-	case promsql.FlavorPgSql, promsql.FlavorSqlite:
-		err = henge.InitPgsqlTable(sqlc, table, map[string]string{
-			CommentColParentId: "VARCHAR(32)",
-			CommentColPostId:   "VARCHAR(32)",
-			CommentColOwnerId:  "VARCHAR(32)",
-		})
+	case promsql.FlavorSqlite:
+		err = henge.InitSqliteTable(sqlc, table, extraCols)
+	case promsql.FlavorMySql:
+		err = henge.InitMysqlTable(sqlc, table, extraCols)
+	case promsql.FlavorPgSql:
+		err = henge.InitPgsqlTable(sqlc, table, extraCols)
 	}
 	return err
 }
@@ -59,12 +64,17 @@ func sqlInitTablePost(sqlc *promsql.SqlConnect, table string) error {
 		}
 	}
 	sqlc.GetDB().Exec(fmt.Sprintf("DROP TABLE %s", table))
+	extraCols := map[string]string{PostColOwnerId: "VARCHAR(32)", PostColIsPublic: "INT"}
 	switch sqlc.GetDbFlavor() {
 	case promsql.FlavorCosmosDb:
 		spec := &henge.CosmosdbCollectionSpec{Pk: henge.CosmosdbColId}
 		err = henge.InitCosmosdbCollection(sqlc, table, spec)
-	case promsql.FlavorPgSql, promsql.FlavorSqlite:
-		err = henge.InitPgsqlTable(sqlc, table, map[string]string{PostColOwnerId: "VARCHAR(32)", PostColIsPublic: "INT"})
+	case promsql.FlavorSqlite:
+		err = henge.InitSqliteTable(sqlc, table, extraCols)
+	case promsql.FlavorMySql:
+		err = henge.InitMysqlTable(sqlc, table, extraCols)
+	case promsql.FlavorPgSql:
+		err = henge.InitPgsqlTable(sqlc, table, extraCols)
 	}
 	return err
 }
@@ -79,12 +89,17 @@ func sqlInitTableVote(sqlc *promsql.SqlConnect, table string) error {
 		}
 	}
 	sqlc.GetDB().Exec(fmt.Sprintf("DROP TABLE %s", table))
+	extraCols := map[string]string{VoteColOwnerId: "VARCHAR(32)", VoteColTargetId: "VARCHAR(32)", VoteColValue: "INT"}
 	switch sqlc.GetDbFlavor() {
 	case promsql.FlavorCosmosDb:
 		spec := &henge.CosmosdbCollectionSpec{Pk: henge.CosmosdbColId}
 		err = henge.InitCosmosdbCollection(sqlc, table, spec)
-	case promsql.FlavorPgSql, promsql.FlavorSqlite:
-		err = henge.InitPgsqlTable(sqlc, table, map[string]string{VoteColOwnerId: "VARCHAR(32)", VoteColTargetId: "VARCHAR(32)", VoteColValue: "INT"})
+	case  promsql.FlavorSqlite:
+		err = henge.InitSqliteTable(sqlc, table, extraCols)
+	case  promsql.FlavorMySql:
+		err = henge.InitMysqlTable(sqlc, table, extraCols)
+	case promsql.FlavorPgSql:
+		err = henge.InitPgsqlTable(sqlc, table, extraCols)
 	}
 	return err
 }
