@@ -36,30 +36,30 @@ jobs:
         flags: myapp_mongo_standalone
         name: myapp_mongo_standalone
 
-  # testWithMongoReplicaSet:
-  #   name: Test with MongoDB (ReplicaSet)
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - name: Set up Go env
-  #     uses: actions/setup-go@v2
-  #     with:
-  #       go-version: "1.17"
-  #   - name: Check out code
-  #     uses: actions/checkout@v2
-  #   - name: Start MongoDB Standalone server
-  #     run: docker run -d --name mongodb-replset -e MONGODB_REPLICA_SET_MODE=primary -e MONGODB_REPLICA_SET_KEY=myreplset -e MONGODB_ADVERTISED_HOSTNAME=localhost -e MONGODB_PRIMARY_PORT_NUMBER=27017 -e MONGODB_ROOT_PASSWORD=test -e MONGODB_DATABASE=test -p 27017:27017 bitnami/mongodb:4.2
-  #   - name: Test
-  #     run: |
-  #       export TIMEZONE="Asia/Ho_Chi_Minh"
-  #       export MONGO_DB="test"
-  #       export MONGO_URL="mongodb://root:test@localhost:27017/?authSource=admin&replicaSet=replicaset"
-  #       cd ./src/main/g8
-  #       go test -v -count 1 -p 1 -cover -coverprofile=coverage_mongo_replicaset.txt ./src/myapp/
-  #   - name: Codecov
-  #     uses: codecov/codecov-action@v3
-  #     with:
-  #       flags: myapp_mongo_replicaset
-  #       name: myapp_mongo_replicaset
+  testWithMongoReplicaSet:
+    name: Test with MongoDB (ReplicaSet)
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Go env
+      uses: actions/setup-go@v2
+      with:
+        go-version: "1.17"
+    - name: Check out code
+      uses: actions/checkout@v2
+    - name: Start MongoDB Standalone server
+      run: docker run -d --name mongodb-replset -e MONGODB_REPLICA_SET_MODE=primary -e MONGODB_REPLICA_SET_KEY=myreplset -e MONGODB_ADVERTISED_HOSTNAME=localhost -e MONGODB_PRIMARY_PORT_NUMBER=27017 -e MONGODB_ROOT_PASSWORD=test -e MONGODB_DATABASE=test -p 27017:27017 bitnami/mongodb:4.2
+    - name: Test
+      run: |
+        export TIMEZONE="Asia/Ho_Chi_Minh"
+        export MONGO_DB="test"
+        export MONGO_URL="mongodb://root:test@localhost:27017/?authSource=admin&replicaSet=replicaset"
+        cd $BE_ROOT
+        go test -v -count 1 -p 1 -cover -coverprofile=coverage_mongo_replicaset.txt $BE_GO_TEST_PATH
+    - name: Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        flags: myapp_mongo_replicaset
+        name: myapp_mongo_replicaset
 
   # testWithMySQL:
   #   name: Test with MySQL
