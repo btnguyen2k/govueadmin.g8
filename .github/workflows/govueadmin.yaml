@@ -189,7 +189,9 @@ jobs:
         $env:COSMOSDB_DRIVER='gocosmos'
         $env:COSMOSDB_URL='AccountEndpoint=https://127.0.0.1:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==;Db=godal'
         $env:TIMEZONE='Asia/Ho_Chi_Minh'
+        dir
         cd $env:BE_ROOT
+        dir
         go test -v -count 1 -p 1 -cover -coverprofile="coverage_cosmosdb_sql.txt" $env:BE_GO_TEST_PATH
     - name: Codecov
       uses: codecov/codecov-action@v3
