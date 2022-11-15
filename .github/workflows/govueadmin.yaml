@@ -169,6 +169,34 @@ jobs:
         flags: sqlite
         name: sqlite
 
+  testWithCosmosDbSql:
+    name: Test with Azure Cosmos DB (SQL API)
+    runs-on: windows-latest
+    steps:
+    - name: Set up Go env
+      uses: actions/setup-go@v2
+      with:
+        go-version: "1.17"
+    - name: Check out code
+      uses: actions/checkout@v2
+    - name: Test
+      run: |
+        choco install azure-cosmosdb-emulator
+        & "C:\Program Files\Azure Cosmos DB Emulator\Microsoft.Azure.Cosmos.Emulator.exe"
+        Start-Sleep -s 120
+        try { Invoke-RestMethod -Method GET https://127.0.0.1:8081/ } catch {}
+        netstat -nt
+        $env:COSMOSDB_DRIVER='gocosmos'
+        $env:COSMOSDB_URL='AccountEndpoint=https://127.0.0.1:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==;Db=godal'
+        $env:TIMEZONE='Asia/Ho_Chi_Minh'
+        cd $env:BE_ROOT
+        go test -v -count 1 -p 1 -cover -coverprofile="coverage_cosmosdb_sql.txt" $env:BE_GO_TEST_PATH
+    - name: Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        flags: cosmosdb_sql
+        name: cosmosdb_sql
+
   # testG8AndDockerBuild:
   #   name: Test with go-giter8 and Docker build
   #   runs-on: ubuntu-latest
