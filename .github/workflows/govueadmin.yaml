@@ -7,6 +7,7 @@ on:
     branches: [ master ]
 
 env:
+  BE_ROOT: './src/main/g8/be-api'
   BE_GO_TEST_PATH: './src/gvabe/bov2/user ./src/gvabe/bov2/blog'
 
 jobs:
@@ -27,7 +28,7 @@ jobs:
         export TIMEZONE="Asia/Ho_Chi_Minh"
         export MONGO_DB="test"
         export MONGO_URL="mongodb://test:test@localhost:27017/?authSource=admin"
-        cd ./src/main/g8
+        cd $BE_ROOT
         go test -v -count 1 -p 1 -cover -coverprofile=coverage_mongo_standalone.txt $BE_GO_TEST_PATH
     - name: Codecov
       uses: codecov/codecov-action@v3
