@@ -120,30 +120,30 @@ jobs:
         flags: mysql
         name: mysql
 
-  # testWithPostgreSQL:
-  #   name: Test with PostgreSQL
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - name: Set up Go env
-  #     uses: actions/setup-go@v2
-  #     with:
-  #       go-version: "1.17"
-  #   - name: Check out code
-  #     uses: actions/checkout@v2
-  #   - name: Start PostgreSQL server
-  #     run: docker run -d --name postgres -e POSTGRES_DB=test -e POSTGRES_USER=test -e POSTGRES_PASSWORD=test -p 5432:5432 postgres:11
-  #   - name: Test
-  #     run: |
-  #       export TIMEZONE="Asia/Ho_Chi_Minh"
-  #       export PGSQL_DRIVER="pgx"
-  #       export PGSQL_URL="postgres://test:test@localhost:5432/test?sslmode=disable&client_encoding=UTF-8&application_name=godal"
-  #       cd ./src/main/g8
-  #       go test -v -count 1 -p 1 -cover -coverprofile=coverage_pgsql.txt ./src/myapp/
-  #   - name: Codecov
-  #     uses: codecov/codecov-action@v3
-  #     with:
-  #       flags: myapp_pgsql
-  #       name: myapp_pgsql
+  testWithPostgreSQL:
+    name: Test with PostgreSQL
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Go env
+      uses: actions/setup-go@v2
+      with:
+        go-version: "1.17"
+    - name: Check out code
+      uses: actions/checkout@v2
+    - name: Start PostgreSQL server
+      run: docker run -d --name postgres -e POSTGRES_DB=test -e POSTGRES_USER=test -e POSTGRES_PASSWORD=test -p 5432:5432 postgres:11
+    - name: Test
+      run: |
+        export TIMEZONE="Asia/Ho_Chi_Minh"
+        export PGSQL_DRIVER="pgx"
+        export PGSQL_URL="postgres://test:test@localhost:5432/test?sslmode=disable&client_encoding=UTF-8&application_name=godal"
+        cd $BE_ROOT
+        go test -v -count 1 -p 1 -cover -coverprofile=coverage_pgsql.txt $BE_GO_TEST_PATH
+    - name: Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        flags: pgsql
+        name: pgsql
 
   # testWithSqlite:
   #   name: Test with SQLite
