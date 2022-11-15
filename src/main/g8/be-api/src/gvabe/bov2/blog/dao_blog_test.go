@@ -3,14 +3,13 @@ package blog
 import (
 	"fmt"
 	"math/rand"
-	"reflect"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
-	"unsafe"
 
 	"github.com/btnguyen2k/consu/reddo"
+	"github.com/btnguyen2k/henge"
 	"main/src/gvabe/bov2/user"
 	"main/src/utils"
 )
@@ -230,8 +229,7 @@ var userPostCount map[string]int
 var userFeedCount map[string]int
 
 func initSampleRowsPost(t *testing.T, testName string, dao BlogPostDao) {
-	now := time.Now()
-	rand.Seed(now.UnixNano())
+	rand.Seed(time.Now().UnixNano())
 	userList = make([]*user.User, 0)
 	userPostCount = make(map[string]int)
 	userFeedCount = make(map[string]int)
@@ -261,13 +259,14 @@ func initSampleRowsPost(t *testing.T, testName string, dao BlogPostDao) {
 		_postTitle := "Blog post title"
 		_postContent := "Blog post content"
 		p := NewBlogPost(_tagVersion, _user, _postIsPublic, _postTitle, _postContent)
+		p.SetExtraAttr(henge.FieldTimeCreated,time.Now().Add(time.Duration(i)*time.Second))
 		p.SetId(_id)
-		{
-			rf := reflect.ValueOf(p.UniversalBo).Elem().FieldByName("timeCreated")
-			rf = reflect.NewAt(rf.Type(), unsafe.Pointer(rf.UnsafeAddr())).Elem()
-			now = now.Add(time.Duration(rand.Int63n(1024)) * time.Second)
-			rf.Set(reflect.ValueOf(now))
-		}
+		// {
+		// 	rf := reflect.ValueOf(p.UniversalBo).Elem().FieldByName("timeCreated")
+		// 	rf = reflect.NewAt(rf.Type(), unsafe.Pointer(rf.UnsafeAddr())).Elem()
+		// 	now = now.Add(time.Duration(rand.Int63n(1024)) * time.Second)
+		// 	rf.Set(reflect.ValueOf(now))
+		// }
 		_numLikes := float64(rand.Intn(1024))
 		p.SetDataAttr("props.tag", "1357")
 		p.SetDataAttr("props.active", rand.Intn(1024)%3 == 0)
