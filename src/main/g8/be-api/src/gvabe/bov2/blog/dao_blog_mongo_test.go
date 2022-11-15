@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/btnguyen2k/henge"
-	"github.com/btnguyen2k/prom"
+	prommongo "github.com/btnguyen2k/prom/mongo"
 
 	_ "github.com/btnguyen2k/gocosmos"
 	_ "github.com/denisenkom/go-mssqldb"
@@ -24,35 +24,35 @@ const (
 	testMongoCollectionVote    = "test_vote"
 )
 
-func mongoInitCollection(mc *prom.MongoConnect, collection string) error {
+func mongoInitCollection(mc *prommongo.MongoConnect, collection string) error {
 	rand.Seed(time.Now().UnixNano())
 	mc.GetCollection(collection).Drop(nil)
 	return henge.InitMongoCollection(mc, collection)
 }
 
-func newMongoConnect(t *testing.T, testName string, db, url string) (*prom.MongoConnect, error) {
+func newMongoConnect(t *testing.T, testName string, db, url string) (*prommongo.MongoConnect, error) {
 	db = strings.Trim(db, "\"")
 	url = strings.Trim(url, "\"")
 	if db == "" || url == "" {
 		t.Skipf("%s skipped", testName)
 	}
 
-	return prom.NewMongoConnect(url, db, 10000)
+	return prommongo.NewMongoConnect(url, db, 10000)
 }
 
-func initBlogCommentDaoMongo(mc *prom.MongoConnect) BlogCommentDao {
+func initBlogCommentDaoMongo(mc *prommongo.MongoConnect) BlogCommentDao {
 	url := mc.GetUrl()
 	txModeOnWrite := strings.Index(url, "replicaSet=") >= 0
 	return NewBlogCommentDaoMongo(mc, testMongoCollectionComment, txModeOnWrite)
 }
 
-func initBlogPostDaoMongo(mc *prom.MongoConnect) BlogPostDao {
+func initBlogPostDaoMongo(mc *prommongo.MongoConnect) BlogPostDao {
 	url := mc.GetUrl()
 	txModeOnWrite := strings.Index(url, "replicaSet=") >= 0
 	return NewBlogPostDaoMongo(mc, testMongoCollectionPost, txModeOnWrite)
 }
 
-func initBlogVoteDaoMongo(mc *prom.MongoConnect) BlogVoteDao {
+func initBlogVoteDaoMongo(mc *prommongo.MongoConnect) BlogVoteDao {
 	url := mc.GetUrl()
 	txModeOnWrite := strings.Index(url, "replicaSet=") >= 0
 	return NewBlogVoteDaoMongo(mc, testMongoCollectionVote, txModeOnWrite)

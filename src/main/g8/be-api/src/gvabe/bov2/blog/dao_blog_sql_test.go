@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/btnguyen2k/henge"
-	"github.com/btnguyen2k/prom"
+	promsql "github.com/btnguyen2k/prom/sql"
 
 	_ "github.com/denisenkom/go-mssqldb"
 	_ "github.com/go-sql-driver/mysql"
@@ -25,10 +25,10 @@ const (
 	testSqlTableVote    = "test_vote"
 )
 
-func sqlInitTableComment(sqlc *prom.SqlConnect, table string) error {
+func sqlInitTableComment(sqlc *promsql.SqlConnect, table string) error {
 	rand.Seed(time.Now().UnixNano())
 	var err error
-	if sqlc.GetDbFlavor() == prom.FlavorCosmosDb {
+	if sqlc.GetDbFlavor() == promsql.FlavorCosmosDb {
 		_, err = sqlc.GetDB().Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s WITH MAXRU=10000", cosmosdbDbName))
 		if err != nil {
 			return err
@@ -36,10 +36,10 @@ func sqlInitTableComment(sqlc *prom.SqlConnect, table string) error {
 	}
 	sqlc.GetDB().Exec(fmt.Sprintf("DROP TABLE %s", table))
 	switch sqlc.GetDbFlavor() {
-	case prom.FlavorCosmosDb:
+	case promsql.FlavorCosmosDb:
 		spec := &henge.CosmosdbCollectionSpec{Pk: henge.CosmosdbColId}
 		err = henge.InitCosmosdbCollection(sqlc, table, spec)
-	case prom.FlavorPgSql, prom.FlavorSqlite:
+	case promsql.FlavorPgSql, promsql.FlavorSqlite:
 		err = henge.InitPgsqlTable(sqlc, table, map[string]string{
 			CommentColParentId: "VARCHAR(32)",
 			CommentColPostId:   "VARCHAR(32)",
@@ -49,10 +49,10 @@ func sqlInitTableComment(sqlc *prom.SqlConnect, table string) error {
 	return err
 }
 
-func sqlInitTablePost(sqlc *prom.SqlConnect, table string) error {
+func sqlInitTablePost(sqlc *promsql.SqlConnect, table string) error {
 	rand.Seed(time.Now().UnixNano())
 	var err error
-	if sqlc.GetDbFlavor() == prom.FlavorCosmosDb {
+	if sqlc.GetDbFlavor() == promsql.FlavorCosmosDb {
 		_, err = sqlc.GetDB().Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s WITH MAXRU=10000", cosmosdbDbName))
 		if err != nil {
 			return err
@@ -60,19 +60,19 @@ func sqlInitTablePost(sqlc *prom.SqlConnect, table string) error {
 	}
 	sqlc.GetDB().Exec(fmt.Sprintf("DROP TABLE %s", table))
 	switch sqlc.GetDbFlavor() {
-	case prom.FlavorCosmosDb:
+	case promsql.FlavorCosmosDb:
 		spec := &henge.CosmosdbCollectionSpec{Pk: henge.CosmosdbColId}
 		err = henge.InitCosmosdbCollection(sqlc, table, spec)
-	case prom.FlavorPgSql, prom.FlavorSqlite:
+	case promsql.FlavorPgSql, promsql.FlavorSqlite:
 		err = henge.InitPgsqlTable(sqlc, table, map[string]string{PostColOwnerId: "VARCHAR(32)", PostColIsPublic: "INT"})
 	}
 	return err
 }
 
-func sqlInitTableVote(sqlc *prom.SqlConnect, table string) error {
+func sqlInitTableVote(sqlc *promsql.SqlConnect, table string) error {
 	rand.Seed(time.Now().UnixNano())
 	var err error
-	if sqlc.GetDbFlavor() == prom.FlavorCosmosDb {
+	if sqlc.GetDbFlavor() == promsql.FlavorCosmosDb {
 		_, err = sqlc.GetDB().Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s WITH MAXRU=10000", cosmosdbDbName))
 		if err != nil {
 			return err
@@ -80,16 +80,16 @@ func sqlInitTableVote(sqlc *prom.SqlConnect, table string) error {
 	}
 	sqlc.GetDB().Exec(fmt.Sprintf("DROP TABLE %s", table))
 	switch sqlc.GetDbFlavor() {
-	case prom.FlavorCosmosDb:
+	case promsql.FlavorCosmosDb:
 		spec := &henge.CosmosdbCollectionSpec{Pk: henge.CosmosdbColId}
 		err = henge.InitCosmosdbCollection(sqlc, table, spec)
-	case prom.FlavorPgSql, prom.FlavorSqlite:
+	case promsql.FlavorPgSql, promsql.FlavorSqlite:
 		err = henge.InitPgsqlTable(sqlc, table, map[string]string{VoteColOwnerId: "VARCHAR(32)", VoteColTargetId: "VARCHAR(32)", VoteColValue: "INT"})
 	}
 	return err
 }
 
-func newSqlConnect(t *testing.T, testName string, driver, url, timezone string, flavor prom.DbFlavor) (*prom.SqlConnect, error) {
+func newSqlConnect(t *testing.T, testName string, driver, url, timezone string, flavor promsql.DbFlavor) (*promsql.SqlConnect, error) {
 	driver = strings.Trim(driver, "\"")
 	url = strings.Trim(url, "\"")
 	if driver == "" || url == "" {
@@ -100,7 +100,7 @@ func newSqlConnect(t *testing.T, testName string, driver, url, timezone string, 
 	url = strings.ReplaceAll(url, "${loc}", urlTimezone)
 	url = strings.ReplaceAll(url, "${tz}", urlTimezone)
 	url = strings.ReplaceAll(url, "${timezone}", urlTimezone)
-	sqlc, err := prom.NewSqlConnectWithFlavor(driver, url, 10000, nil, flavor)
+	sqlc, err := promsql.NewSqlConnectWithFlavor(driver, url, 10000, nil, flavor)
 	if err == nil && sqlc != nil {
 		loc, _ := time.LoadLocation(timezone)
 		sqlc.SetLocation(loc)
@@ -108,22 +108,22 @@ func newSqlConnect(t *testing.T, testName string, driver, url, timezone string, 
 	return sqlc, err
 }
 
-func initBlogCommentDaoSql(sqlc *prom.SqlConnect) BlogCommentDao {
-	if sqlc.GetDbFlavor() == prom.FlavorCosmosDb {
+func initBlogCommentDaoSql(sqlc *promsql.SqlConnect) BlogCommentDao {
+	if sqlc.GetDbFlavor() == promsql.FlavorCosmosDb {
 		return NewBlogCommentDaoCosmosdb(sqlc, testSqlTableComment, true)
 	}
 	return NewBlogCommentDaoSql(sqlc, testSqlTableComment, true)
 }
 
-func initBlogPostDaoSql(sqlc *prom.SqlConnect) BlogPostDao {
-	if sqlc.GetDbFlavor() == prom.FlavorCosmosDb {
+func initBlogPostDaoSql(sqlc *promsql.SqlConnect) BlogPostDao {
+	if sqlc.GetDbFlavor() == promsql.FlavorCosmosDb {
 		return NewBlogPostDaoCosmosdb(sqlc, testSqlTablePost, true)
 	}
 	return NewBlogPostDaoSql(sqlc, testSqlTablePost, true)
 }
 
-func initBlogVoteDaoSql(sqlc *prom.SqlConnect) BlogVoteDao {
-	if sqlc.GetDbFlavor() == prom.FlavorCosmosDb {
+func initBlogVoteDaoSql(sqlc *promsql.SqlConnect) BlogVoteDao {
+	if sqlc.GetDbFlavor() == promsql.FlavorCosmosDb {
 		return NewBlogVoteDaoCosmosdb(sqlc, testSqlTableVote, true)
 	}
 	return NewBlogVoteDaoSql(sqlc, testSqlTableVote, true)
@@ -173,20 +173,20 @@ func sqlGetUrlFromEnv() map[string]sqlDriverAndUrl {
 	return urlMap
 }
 
-func initSqlConnect(t *testing.T, testName string, dbtype string, info sqlDriverAndUrl) (*prom.SqlConnect, error) {
+func initSqlConnect(t *testing.T, testName string, dbtype string, info sqlDriverAndUrl) (*promsql.SqlConnect, error) {
 	switch dbtype {
 	case "sqlite", "sqlite3":
-		return newSqlConnect(t, testName, info.driver, info.url, testTimeZone, prom.FlavorSqlite)
+		return newSqlConnect(t, testName, info.driver, info.url, testTimeZone, promsql.FlavorSqlite)
 	case "mssql":
-		return newSqlConnect(t, testName, info.driver, info.url, testTimeZone, prom.FlavorMsSql)
+		return newSqlConnect(t, testName, info.driver, info.url, testTimeZone, promsql.FlavorMsSql)
 	case "mysql":
-		return newSqlConnect(t, testName, info.driver, info.url, testTimeZone, prom.FlavorMySql)
+		return newSqlConnect(t, testName, info.driver, info.url, testTimeZone, promsql.FlavorMySql)
 	case "oracle":
-		return newSqlConnect(t, testName, info.driver, info.url, testTimeZone, prom.FlavorOracle)
+		return newSqlConnect(t, testName, info.driver, info.url, testTimeZone, promsql.FlavorOracle)
 	case "pgsql", "postgresql":
-		return newSqlConnect(t, testName, info.driver, info.url, testTimeZone, prom.FlavorPgSql)
+		return newSqlConnect(t, testName, info.driver, info.url, testTimeZone, promsql.FlavorPgSql)
 	case "cosmos", "cosmosdb":
-		return newSqlConnect(t, testName, info.driver, info.url, testTimeZone, prom.FlavorCosmosDb)
+		return newSqlConnect(t, testName, info.driver, info.url, testTimeZone, promsql.FlavorCosmosDb)
 	default:
 		t.Fatalf("%s failed: unknown database type [%s]", testName, dbtype)
 	}
