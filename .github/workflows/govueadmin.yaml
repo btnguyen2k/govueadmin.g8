@@ -7,6 +7,7 @@ on:
     branches: [ master ]
 
 env:
+  FE_ROOT: './src/main/g8/fe-gui'
   BE_ROOT: './src/main/g8/be-api'
   BE_GO_TEST_PATH: './src/gvabe/bov2/user ./src/gvabe/bov2/blog'
 
@@ -205,6 +206,10 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: "1.17"
+    - name: Set up NodeJS env
+      uses: actions/setup-node@v3
+      with:
+        go-version: "12"
     - name: Install go-giter8
       run: |
         # minimum go-giter8 v0.5.1 for "quiet" mode
@@ -215,6 +220,12 @@ jobs:
       run: |
         mkdir -p $GITHUB_WORKSPACE/../temp
         cd $GITHUB_WORKSPACE/../temp && g8 new --no-inputs file://$GITHUB_WORKSPACE
+    - name: Build FE
+      run: |
+        cd $GITHUB_WORKSPACE/../temp/govueadmincp-seed/fe-gui && npm install && npm build
+    - name: Build BE
+      run: |
+        cd $GITHUB_WORKSPACE/../temp/govueadmincp-seed/be-api && go build -tags netgo -a
     - name: Build Docker image
       run: |
         cd $GITHUB_WORKSPACE/../temp/govueadmincp-seed && docker build -t test .
