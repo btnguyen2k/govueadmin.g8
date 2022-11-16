@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -28,12 +29,6 @@ const (
 func sqlInitTableComment(sqlc *promsql.SqlConnect, table string) error {
 	rand.Seed(time.Now().UnixNano())
 	var err error
-	if sqlc.GetDbFlavor() == promsql.FlavorCosmosDb {
-		_, err = sqlc.GetDB().Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s WITH MAXRU=10000", cosmosdbDbName))
-		if err != nil {
-			return err
-		}
-	}
 	sqlc.GetDB().Exec(fmt.Sprintf("DROP TABLE %s", table))
 	extraCols := map[string]string{
 		CommentColParentId: "VARCHAR(32)",
@@ -57,12 +52,6 @@ func sqlInitTableComment(sqlc *promsql.SqlConnect, table string) error {
 func sqlInitTablePost(sqlc *promsql.SqlConnect, table string) error {
 	rand.Seed(time.Now().UnixNano())
 	var err error
-	if sqlc.GetDbFlavor() == promsql.FlavorCosmosDb {
-		_, err = sqlc.GetDB().Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s WITH MAXRU=10000", cosmosdbDbName))
-		if err != nil {
-			return err
-		}
-	}
 	sqlc.GetDB().Exec(fmt.Sprintf("DROP TABLE %s", table))
 	extraCols := map[string]string{PostColOwnerId: "VARCHAR(32)", PostColIsPublic: "INT"}
 	switch sqlc.GetDbFlavor() {
@@ -82,12 +71,6 @@ func sqlInitTablePost(sqlc *promsql.SqlConnect, table string) error {
 func sqlInitTableVote(sqlc *promsql.SqlConnect, table string) error {
 	rand.Seed(time.Now().UnixNano())
 	var err error
-	if sqlc.GetDbFlavor() == promsql.FlavorCosmosDb {
-		_, err = sqlc.GetDB().Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s WITH MAXRU=10000", cosmosdbDbName))
-		if err != nil {
-			return err
-		}
-	}
 	sqlc.GetDB().Exec(fmt.Sprintf("DROP TABLE %s", table))
 	extraCols := map[string]string{VoteColOwnerId: "VARCHAR(32)", VoteColTargetId: "VARCHAR(32)", VoteColValue: "INT"}
 	switch sqlc.GetDbFlavor() {
@@ -111,6 +94,17 @@ func newSqlConnect(t *testing.T, testName string, driver, url, timezone string, 
 		t.Skipf("%s skipped", testName)
 	}
 
+	cosmosdb := cosmosdbDbName
+	if flavor == promsql.FlavorCosmosDb {
+		dbre := regexp.MustCompile(`(?i);db=(\w+)`)
+		findResult := dbre.FindAllStringSubmatch(url, -1)
+		if findResult == nil {
+			url += ";Db=" + cosmosdb
+		} else {
+			cosmosdb = findResult[0][1]
+		}
+	}
+
 	urlTimezone := strings.ReplaceAll(timezone, "/", "%2f")
 	url = strings.ReplaceAll(url, "${loc}", urlTimezone)
 	url = strings.ReplaceAll(url, "${tz}", urlTimezone)
@@ -120,6 +114,11 @@ func newSqlConnect(t *testing.T, testName string, driver, url, timezone string, 
 		loc, _ := time.LoadLocation(timezone)
 		sqlc.SetLocation(loc)
 	}
+
+	if flavor == promsql.FlavorCosmosDb {
+		sqlc.GetDB().Exec("CREATE DATABASE IF NOT EXISTS " + cosmosdb + " WITH maxru=10000")
+	}
+
 	return sqlc, err
 }
 
