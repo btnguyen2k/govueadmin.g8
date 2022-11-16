@@ -187,7 +187,7 @@ jobs:
         try { Invoke-RestMethod -Method GET https://127.0.0.1:8081/ } catch {}
         netstat -nt
         $env:COSMOSDB_DRIVER='gocosmos'
-        $env:COSMOSDB_URL='AccountEndpoint=https://127.0.0.1:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==;Db=godal'
+        $env:COSMOSDB_URL='AccountEndpoint=https://127.0.0.1:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw=='
         $env:TIMEZONE='Asia/Ho_Chi_Minh'
         cd $env:BE_ROOT
         go test -v -count 1 -p 1 -cover -coverprofile="coverage_cosmosdb_sql.txt" ./src/gvabe/bov2/user ./src/gvabe/bov2/blog
