@@ -222,7 +222,7 @@ jobs:
         cd $GITHUB_WORKSPACE/../temp && g8 new --no-inputs file://$GITHUB_WORKSPACE
     - name: Build FE
       run: |
-        cd $GITHUB_WORKSPACE/../temp/govueadmincp-seed/fe-gui && npm install && npm build
+        cd $GITHUB_WORKSPACE/../temp/govueadmincp-seed/fe-gui && npm install && npm run build && npm test
     - name: Build BE
       run: |
         cd $GITHUB_WORKSPACE/../temp/govueadmincp-seed/be-api && go build -tags netgo -a
