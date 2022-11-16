@@ -197,25 +197,24 @@ jobs:
         flags: cosmosdb_sql
         name: cosmosdb_sql
 
-  # testG8AndDockerBuild:
-  #   name: Test with go-giter8 and Docker build
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - name: Set up Go env
-  #     uses: actions/setup-go@v2
-  #     with:
-  #       go-version: "1.17"
-  #   - name: Install go-giter8
-  #     run: |
-  #       # minimum go-giter8 v0.5.1 for "quiet" mode
-  #       go install github.com/btnguyen2k/go-giter8/g8@v0.5.1
-  #   - name: Check out code
-  #     uses: actions/checkout@v2
-  #   - name: Generate project via g8
-  #     run: |
-  #       mkdir -p $GITHUB_WORKSPACE/../temp
-  #       cd $GITHUB_WORKSPACE/../temp && g8 new --no-inputs file://$GITHUB_WORKSPACE
-  #       cd $GITHUB_WORKSPACE/../temp && ls -l
-  #   - name: Build Docker image
-  #     run: |
-  #       cd $GITHUB_WORKSPACE/../temp/goadmincp-seed && docker build -t test .
+  testG8AndDockerBuild:
+    name: Test with go-giter8 and Docker build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Go env
+      uses: actions/setup-go@v2
+      with:
+        go-version: "1.17"
+    - name: Install go-giter8
+      run: |
+        # minimum go-giter8 v0.5.1 for "quiet" mode
+        go install github.com/btnguyen2k/go-giter8/g8@v0.5.1
+    - name: Check out code
+      uses: actions/checkout@v2
+    - name: Generate project via g8
+      run: |
+        mkdir -p $GITHUB_WORKSPACE/../temp
+        cd $GITHUB_WORKSPACE/../temp && g8 new --no-inputs file://$GITHUB_WORKSPACE
+    - name: Build Docker image
+      run: |
+        cd $GITHUB_WORKSPACE/../temp/govueadmincp-seed && docker build -t test .
