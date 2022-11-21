@@ -6,11 +6,12 @@ const messages = {
   en: {
     _name: 'English',
     _flag: 'cif-gb',
+    _demo: 'Demo only',
     _demo_msg:
-      'This is instance is for demo purpose only. ' +
-      "Login with default account <strong>admin{'@'}local/s3cr3t</strong>." +
-      '<br/>Or you can login with your <u>social account</u> via "Login with social account" link ' +
-      '(your social account credential <u>will not</u> be stored on the server).',
+      '<em>This instance is for demo purpose only.</em><br/>' +
+      "Log in with default account <strong>admin{'@'}local</strong>/<strong>s3cr3t</strong>.<br/>" +
+      'Or you can log in with your <em>social network account</em> via <u>Log in with social account</u> link ' +
+      '(you will log in on the social network website, we do <em>not</em> store your social network account credentials).',
 
     message: {
       language: 'Language',
@@ -28,7 +29,7 @@ const messages = {
 
       login: 'Login',
       login_info: 'Please sign in to continue',
-      login_social: 'Login with social account',
+      login_social: 'Log in with social account',
       username: 'Username',
       password: 'Password',
       error_parse_login_token: 'Error parsing login-token',
@@ -64,10 +65,12 @@ const messages = {
   vi: {
     _name: 'Tiếng Việt',
     _flag: 'cif-vn',
+    _demo: 'Phiên bản demo',
     _demo_msg:
-      'Bản triển khai này dành do mục đích thử nghiệm. ' +
-      "Đăng nhập với tài khoản <strong>admin{'@'}local/s3cr3t</strong>." +
-      'Hoặc đăng nhập với <i>tài khoản mxh</i> (nhấn vào đường dẫn "Đăng nhập với tài khoản mxh").',
+      '<em>Bản triển khai này chỉ dành do mục đích thử nghiệm.</em><br/>' +
+      "Đăng nhập với tài khoản <strong>admin{'@'}local</strong>/<strong>s3cr3t</strong>.<br/>" +
+      'Hoặc đăng nhập với <em>tài khoản mxh</em> theo đường dẫn <u>Đăng nhập với tài khoản mxh</u> ' +
+      '(bạn sẽ được chuyển sang trang web mxh để đăng nhập, chúng tôi <em>không</em> lưu thông tin đăng nhập mxh của bạn).',
 
     message: {
       language: 'Ngôn ngữ',

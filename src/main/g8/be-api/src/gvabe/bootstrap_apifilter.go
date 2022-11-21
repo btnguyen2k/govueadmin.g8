@@ -21,7 +21,7 @@ func initApiFilters(apiRouter *itineris.ApiRouter) {
 	appName := goapi.AppConfig.GetString("app.name")
 	appVersion := goapi.AppConfig.GetString("app.version")
 
-	if DEBUG {
+	if DEBUG_MODE {
 		// apiFilter = itineris.NewAddPerfInfoFilter(goapi.ApiRouter, apiFilter)
 		apiFilter = itineris.NewLoggingFilter(
 			goapi.ApiRouter,
@@ -33,7 +33,7 @@ func initApiFilters(apiRouter *itineris.ApiRouter) {
 		BaseApiFilter: &itineris.BaseApiFilter{ApiRouter: apiRouter, NextFilter: apiFilter},
 	}).Init()
 
-	// if DEBUG {
+	// if DEBUG_MODE {
 	// 	// Request logger should be the last one to capture full request/response
 	// 	apiFilter = itineris.NewLoggingFilter(
 	// 		goapi.ApiRouter,

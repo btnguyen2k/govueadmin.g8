@@ -21,7 +21,8 @@ import (
 
 // global variables
 var (
-	DEBUG = false
+	DEBUG_MODE = false
+	DEMO_MODE  = false
 
 	rsaPrivKey *rsa.PrivateKey
 	rsaPubKey  *rsa.PublicKey

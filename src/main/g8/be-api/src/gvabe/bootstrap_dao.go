@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -31,16 +32,14 @@ import (
 func _createDynamodbConnect(dbtype string) *promdynamodb.AwsDynamodbConnect {
 	var adc *promdynamodb.AwsDynamodbConnect = nil
 	var err error
-	switch dbtype {
+	switch strings.ToLower(dbtype) {
 	case "dynamo", "dynamodb", "awsdynamo", "awsdynamodb":
 		region := goapi.AppConfig.GetString("gvabe.db.dynamodb.region")
-		region = strings.ReplaceAll(region, `"`, "")
 		cfg := &aws.Config{
 			Region:      aws.String(region),
 			Credentials: credentials.NewEnvCredentials(),
 		}
 		endpoint := goapi.AppConfig.GetString("gvabe.db.dynamodb.endpoint")
-		endpoint = strings.ReplaceAll(endpoint, `"`, "")
 		if endpoint != "" {
 			cfg.Endpoint = aws.String(endpoint)
 			if strings.HasPrefix(strings.ToLower(endpoint), "http://") {
@@ -56,23 +55,37 @@ func _createDynamodbConnect(dbtype string) *promdynamodb.AwsDynamodbConnect {
 }
 
 func _createSqlConnect(dbtype string) *promsql.SqlConnect {
-	timezone := goapi.AppConfig.GetString("timezone")
-	var sqlc *promsql.SqlConnect = nil
-	var err error
-	switch dbtype {
-	case "sqlite":
+	var driver, url string
+	var flavor promsql.DbFlavor
+	switch strings.ToLower(dbtype) {
+	case "sqlite", "sqlite3":
 		dir := goapi.AppConfig.GetString("gvabe.db.sqlite.directory")
 		dbname := goapi.AppConfig.GetString("gvabe.db.sqlite.dbname")
-		sqlc, err = henge.NewSqliteConnection(dir, dbname, timezone, "sqlite3", 10000, nil)
+		err := os.MkdirAll(dir, 0711)
+		if err != nil {
+			panic(err)
+		}
+		flavor, driver, url = promsql.FlavorSqlite, "sqlite3", dir+"/"+dbname+".db"
 	case "pg", "pgsql", "postgres", "postgresql":
-		url := goapi.AppConfig.GetString("gvabe.db.pgsql.url")
-		sqlc, err = henge.NewPgsqlConnection(url, timezone, "pgx", 10000, nil)
+		flavor, driver, url = promsql.FlavorPgSql, "pgx", goapi.AppConfig.GetString("gvabe.db.pgsql.url")
+	case "mysql":
+		flavor, driver, url = promsql.FlavorMySql, "mysql", goapi.AppConfig.GetString("gvabe.db.mysql.url")
 	case "cosmos", "cosmosdb":
-		url := goapi.AppConfig.GetString("gvabe.db.cosmosdb.url")
-		sqlc, err = henge.NewCosmosdbConnection(url, timezone, "gocosmos", 10000, nil)
+		flavor, driver, url = promsql.FlavorCosmosDb, "gocosmos", goapi.AppConfig.GetString("gvabe.db.cosmosdb.url")
 	}
+
+	timezone := goapi.AppConfig.GetString("timezone")
+	urlTimezone := strings.ReplaceAll(timezone, "/", "%2f")
+	url = strings.ReplaceAll(url, "${loc}", urlTimezone)
+	url = strings.ReplaceAll(url, "${tz}", urlTimezone)
+	url = strings.ReplaceAll(url, "${timezone}", urlTimezone)
+	sqlc, err := promsql.NewSqlConnectWithFlavor(driver, url, 10000, nil, flavor)
 	if err != nil {
 		panic(err)
+	}
+	if sqlc != nil {
+		loc, _ := time.LoadLocation(timezone)
+		sqlc.SetLocation(loc)
 	}
 	return sqlc
 }
@@ -80,7 +93,7 @@ func _createSqlConnect(dbtype string) *promsql.SqlConnect {
 func _createMongoConnect(dbtype string) *prommongo.MongoConnect {
 	var mc *prommongo.MongoConnect = nil
 	var err error
-	switch dbtype {
+	switch strings.ToLower(dbtype) {
 	case "mongo", "mongodb":
 		db := goapi.AppConfig.GetString("gvabe.db.mongodb.db")
 		url := goapi.AppConfig.GetString("gvabe.db.mongodb.url")
@@ -102,8 +115,8 @@ func _createUserDaoDynamodb(adc *promdynamodb.AwsDynamodbConnect) user.UserDao {
 	return user.NewUserDaoDynamodb(adc, user.TableUser)
 }
 func _createUserDaoMongo(mc *prommongo.MongoConnect) user.UserDao {
-	url := mc.GetUrl()
-	return user.NewUserDaoMongo(mc, user.TableUser, strings.Index(url, "replicaSet=") >= 0)
+	url := strings.ToLower(mc.GetUrl())
+	return user.NewUserDaoMongo(mc, user.TableUser, strings.Index(url, "replicaset=") >= 0)
 }
 
 func _createBlogPostDaoSql(sqlc *promsql.SqlConnect) blog.BlogPostDao {
@@ -116,8 +129,8 @@ func _createBlogPostDaoDynamodb(adc *promdynamodb.AwsDynamodbConnect) blog.BlogP
 	return blog.NewBlogPostDaoDynamodb(adc, blog.TableBlogPost)
 }
 func _createBlogPostDaoMongo(mc *prommongo.MongoConnect) blog.BlogPostDao {
-	url := mc.GetUrl()
-	return blog.NewBlogPostDaoMongo(mc, blog.TableBlogPost, strings.Index(url, "replicaSet=") >= 0)
+	url := strings.ToLower(mc.GetUrl())
+	return blog.NewBlogPostDaoMongo(mc, blog.TableBlogPost, strings.Index(url, "replicaset=") >= 0)
 }
 
 func _createBlogCommentDaoSql(sqlc *promsql.SqlConnect) blog.BlogCommentDao {
@@ -130,8 +143,8 @@ func _createBlogCommentDaoDynamodb(adc *promdynamodb.AwsDynamodbConnect) blog.Bl
 	return blog.NewBlogCommentDaoDynamodb(adc, blog.TableBlogComment)
 }
 func _createBlogCommentDaoMongo(mc *prommongo.MongoConnect) blog.BlogCommentDao {
-	url := mc.GetUrl()
-	return blog.NewBlogCommentDaoMongo(mc, blog.TableBlogComment, strings.Index(url, "replicaSet=") >= 0)
+	url := strings.ToLower(mc.GetUrl())
+	return blog.NewBlogCommentDaoMongo(mc, blog.TableBlogComment, strings.Index(url, "replicaset=") >= 0)
 }
 
 func _createBlogVoteDaoSql(sqlc *promsql.SqlConnect) blog.BlogVoteDao {
@@ -144,11 +157,18 @@ func _createBlogVoteDaoDynamodb(adc *promdynamodb.AwsDynamodbConnect) blog.BlogV
 	return blog.NewBlogVoteDaoDynamodb(adc, blog.TableBlogVote)
 }
 func _createBlogVoteDaoMongo(mc *prommongo.MongoConnect) blog.BlogVoteDao {
-	url := mc.GetUrl()
-	return blog.NewBlogVoteDaoMongo(mc, blog.TableBlogVote, strings.Index(url, "replicaSet=") >= 0)
+	url := strings.ToLower(mc.GetUrl())
+	return blog.NewBlogVoteDaoMongo(mc, blog.TableBlogVote, strings.Index(url, "replicaset=") >= 0)
 }
 
 var _sqliteTableSchema = map[string]map[string]string{
+	user.TableUser:        {user.UserColMaskUid: "VARCHAR(32)"},
+	blog.TableBlogPost:    {blog.PostColOwnerId: "VARCHAR(32)", blog.PostColIsPublic: "INT"},
+	blog.TableBlogComment: {blog.CommentColOwnerId: "VARCHAR(32)", blog.CommentColPostId: "VARCHAR(32)", blog.CommentColParentId: "VARCHAR(32)"},
+	blog.TableBlogVote:    {blog.VoteColOwnerId: "VARCHAR(32)", blog.VoteColTargetId: "VARCHAR(32)", blog.VoteColValue: "INT"},
+}
+
+var _mysqlTableSchema = map[string]map[string]string{
 	user.TableUser:        {user.UserColMaskUid: "VARCHAR(32)"},
 	blog.TableBlogPost:    {blog.PostColOwnerId: "VARCHAR(32)", blog.PostColIsPublic: "INT"},
 	blog.TableBlogComment: {blog.CommentColOwnerId: "VARCHAR(32)", blog.CommentColPostId: "VARCHAR(32)", blog.CommentColParentId: "VARCHAR(32)"},
@@ -179,7 +199,13 @@ func _createSqlTables(sqlc *promsql.SqlConnect, dbtype string) {
 		}
 	case promsql.FlavorPgSql:
 		for tbl, schema := range _pgsqlTableSchema {
-			if err := henge.InitSqliteTable(sqlc, tbl, schema); err != nil {
+			if err := henge.InitPgsqlTable(sqlc, tbl, schema); err != nil {
+				log.Printf("[WARN] creating table %s (%s): %s\n", tbl, dbtype, err)
+			}
+		}
+	case promsql.FlavorMySql:
+		for tbl, schema := range _mysqlTableSchema {
+			if err := henge.InitMysqlTable(sqlc, tbl, schema); err != nil {
 				log.Printf("[WARN] creating table %s (%s): %s\n", tbl, dbtype, err)
 			}
 		}
@@ -370,7 +396,7 @@ func _createMongoCollections(mc *prommongo.MongoConnect) {
 
 func initDaos() {
 	dbtype := strings.ToLower(goapi.AppConfig.GetString("gvabe.db.type"))
-	if DEBUG {
+	if DEBUG_MODE {
 		log.Printf("[DEUBG] db-type: %s", dbtype)
 	}
 
@@ -421,17 +447,9 @@ func _initUsers() {
 	adminUserId := goapi.AppConfig.GetString("gvabe.init.admin_user_id")
 	adminUserPwd := goapi.AppConfig.GetString("gvabe.init.admin_user_pwd")
 	adminUserName := goapi.AppConfig.GetString("gvabe.init.admin_user_name")
-	if adminUserId == "" {
-		log.Printf("[WARN] Admin user-id not found at config [gvabe.init.admin_user_id], will not create admin account")
+	if adminUserId == "" || adminUserPwd == "" || adminUserName == "" {
+		log.Printf("[WARN] Admin user-id/password/display-name not found at config [gvabe.init.admin_user_id/admin_user_pwd/admin_user_name], will not create admin account")
 		return
-	}
-	if adminUserPwd == "" {
-		log.Printf("[INFO] Admin password not found at config [gvabe.init.admin_user_pwd], use default value")
-		adminUserPwd = "s3cr3t"
-	}
-	if adminUserName == "" {
-		log.Printf("[INFO] Admin display-name not found at config [gvabe.init.admin_user_name], use default value")
-		adminUserName = adminUserId
 	}
 	adminUser, err := userDaov2.Get(adminUserId)
 	if err != nil {

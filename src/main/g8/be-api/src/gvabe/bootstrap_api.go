@@ -6,6 +6,8 @@ import (
 	"log"
 	"reflect"
 	"regexp"
+	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -98,7 +100,6 @@ func apiInfo(_ *itineris.ApiContext, _ *itineris.ApiAuth, _ *itineris.ApiParams)
 		publicPEM = []byte(err.Error())
 	}
 
-	// var m runtime.MemStats
 	result := map[string]interface{}{
 		"app": map[string]interface{}{
 			"name":        goapi.AppConfig.GetString("app.name"),
@@ -111,14 +112,26 @@ func apiInfo(_ *itineris.ApiContext, _ *itineris.ApiAuth, _ *itineris.ApiParams)
 			"base_url": exterBaseUrl,
 		},
 		"rsa_public_key": string(publicPEM),
+		"debug_mode":     DEBUG_MODE,
+		"demo_mode":      DEMO_MODE,
+	}
+	if DEMO_MODE {
+		result["demo"] = map[string]interface{}{
+			"user_id":   goapi.AppConfig.GetString("gvabe.init.admin_user_id"),
+			"user_pwd":  goapi.AppConfig.GetString("gvabe.init.admin_user_pwd"),
+			"user_name": goapi.AppConfig.GetString("gvabe.init.admin_user_name"),
+		}
+	}
+	if DEBUG_MODE || DEMO_MODE {
 		/*!!! demo purpose only! exposing memory usage is generally not a good idea !!!*/
-		// "memory": map[string]interface{}{
-		// 	"alloc":     m.Alloc,
-		// 	"alloc_str": strconv.FormatFloat(float64(m.Alloc)/1024.0/1024.0, 'f', 1, 64) + " MiB",
-		// 	"sys":       m.Sys,
-		// 	"sys_str":   strconv.FormatFloat(float64(m.Sys)/1024.0/1024.0, 'f', 1, 64) + " MiB",
-		// 	"gc":        m.NumGC,
-		// },
+		var m runtime.MemStats
+		result["memory"] = map[string]interface{}{
+			"alloc":     m.Alloc,
+			"alloc_str": strconv.FormatFloat(float64(m.Alloc)/1024.0/1024.0, 'f', 1, 64) + " MiB",
+			"sys":       m.Sys,
+			"sys_str":   strconv.FormatFloat(float64(m.Sys)/1024.0/1024.0, 'f', 1, 64) + " MiB",
+			"gc":        m.NumGC,
+		}
 	}
 	return itineris.NewApiResult(itineris.StatusOk).SetData(result)
 }
@@ -134,12 +147,12 @@ func _doLoginExter(ctx *itineris.ApiContext, params *itineris.ApiParams) *itiner
 	if token == "" {
 		return itineris.NewApiResult(itineris.StatusErrorClient).SetMessage("empty token")
 	}
-	if DEBUG && exterRsaPubKey != nil {
+	if DEBUG_MODE && exterRsaPubKey != nil {
 		exterToken, err := parseExterJwt(token.(string))
 		if err != nil {
-			log.Printf("[DEBUG] Error parsing submitted JWT: %e", err)
+			log.Printf("[DEBUG_MODE] Error parsing submitted JWT: %e", err)
 		} else {
-			log.Printf("[DEBUG] Submitted JWT: {Id: %s / Type: %s / AppId: %s / UserId: %s / UserName: %s}",
+			log.Printf("[DEBUG_MODE] Submitted JWT: {Id: %s / Type: %s / AppId: %s / UserId: %s / UserName: %s}",
 				exterToken.Id, exterToken.Type, exterToken.AppId, exterToken.UserId, exterToken.UserName)
 		}
 	}
@@ -173,11 +186,11 @@ func _doLoginExter(ctx *itineris.ApiContext, params *itineris.ApiParams) *itiner
 	}
 	exterJwt := resp.GetString("data")
 	exterToken, err := parseExterJwt(exterJwt)
-	if DEBUG {
+	if DEBUG_MODE {
 		if err != nil {
-			log.Printf("[DEBUG] Error parsing returned JWT: %e", err)
+			log.Printf("[DEBUG_MODE] Error parsing returned JWT: %e", err)
 		} else {
-			log.Printf("[DEBUG] Submitted JWT: {Id: %s / Type: %s / AppId: %s / UserId: %s / UserName: %s}",
+			log.Printf("[DEBUG_MODE] Submitted JWT: {Id: %s / Type: %s / AppId: %s / UserId: %s / UserName: %s}",
 				exterToken.Id, exterToken.Type, exterToken.AppId, exterToken.UserId, exterToken.UserName)
 		}
 	}
