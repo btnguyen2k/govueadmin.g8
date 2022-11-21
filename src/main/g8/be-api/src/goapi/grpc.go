@@ -6,8 +6,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/golang/protobuf/ptypes/empty"
 	"io"
+
+	"github.com/golang/protobuf/ptypes/empty"
 	"main/grpc"
 	"main/src/itineris"
 )

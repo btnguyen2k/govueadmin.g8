@@ -6,14 +6,14 @@ import (
 
 	"github.com/btnguyen2k/godal"
 	"github.com/btnguyen2k/henge"
-	"github.com/btnguyen2k/prom"
+	promdynamodb "github.com/btnguyen2k/prom/dynamodb"
 	"main/src/gvabe/bov2/user"
 )
 
 // InitBlogCommentTableDynamodb is helper method to initialize AWS DynamoDB table to store blog comments.
 //
 // Available since template-v0.4.0
-func InitBlogCommentTableDynamodb(adc *prom.AwsDynamodbConnect, tableName string) error {
+func InitBlogCommentTableDynamodb(adc *promdynamodb.AwsDynamodbConnect, tableName string) error {
 	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1}
 	if err := henge.InitDynamodbTables(adc, tableName, spec); err != nil {
 		log.Printf("[WARN] error creating table %s (%s): %s\n", tableName, "DynamoDB", err)
@@ -52,7 +52,7 @@ func InitBlogCommentTableDynamodb(adc *prom.AwsDynamodbConnect, tableName string
 // NewBlogCommentDaoDynamodb is helper method to create AWS DynamoDB-implementation of BlogCommentDao.
 //
 // Available since template-v0.3.0
-func NewBlogCommentDaoDynamodb(adc *prom.AwsDynamodbConnect, tableName string) BlogCommentDao {
+func NewBlogCommentDaoDynamodb(adc *promdynamodb.AwsDynamodbConnect, tableName string) BlogCommentDao {
 	dao := &BaseBlogCommentDaoImpl{}
 	spec := &henge.DynamodbDaoSpec{}
 	dao.UniversalDao = henge.NewUniversalDaoDynamodb(adc, tableName, spec)
@@ -64,7 +64,7 @@ func NewBlogCommentDaoDynamodb(adc *prom.AwsDynamodbConnect, tableName string) B
 // InitBlogPostTableDynamodb is helper method to initialize AWS DynamoDB table to store blog posts.
 //
 // Available since template-v0.4.0
-func InitBlogPostTableDynamodb(adc *prom.AwsDynamodbConnect, tableName string) error {
+func InitBlogPostTableDynamodb(adc *promdynamodb.AwsDynamodbConnect, tableName string) error {
 	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1}
 	if err := henge.InitDynamodbTables(adc, tableName, spec); err != nil {
 		log.Printf("[WARN] creating table %s (%s): %s\n", tableName, "DynamoDB", err)
@@ -115,7 +115,7 @@ func InitBlogPostTableDynamodb(adc *prom.AwsDynamodbConnect, tableName string) e
 // NewBlogPostDaoDynamodb is helper method to create AWS DynamoDB-implementation of BlogPostDao.
 //
 // Available since template-v0.3.0
-func NewBlogPostDaoDynamodb(adc *prom.AwsDynamodbConnect, tableName string) BlogPostDao {
+func NewBlogPostDaoDynamodb(adc *promdynamodb.AwsDynamodbConnect, tableName string) BlogPostDao {
 	dao := &DynamodbBlogPostDaoImpl{&BaseBlogPostDaoImpl{}}
 	spec := &henge.DynamodbDaoSpec{}
 	udaoDynamodb := henge.NewUniversalDaoDynamodb(adc, tableName, spec)
@@ -186,7 +186,7 @@ func (dao *DynamodbBlogPostDaoImpl) GetUserPostsAll(user *user.User) ([]*BlogPos
 // InitBlogVoteTableDynamodb is helper method to initialize AWS DynamoDB table to store blog votes.
 //
 // Available since template-v0.4.0
-func InitBlogVoteTableDynamodb(adc *prom.AwsDynamodbConnect, tableName string) error {
+func InitBlogVoteTableDynamodb(adc *promdynamodb.AwsDynamodbConnect, tableName string) error {
 	spec := &henge.DynamodbTablesSpec{MainTableRcu: 2, MainTableWcu: 1, CreateUidxTable: true, UidxTableRcu: 2, UidxTableWcu: 1}
 	if err := henge.InitDynamodbTables(adc, tableName, spec); err != nil {
 		log.Printf("[WARN] creating table %s (%s): %s\n", tableName, "DynamoDB", err)
@@ -225,7 +225,7 @@ func InitBlogVoteTableDynamodb(adc *prom.AwsDynamodbConnect, tableName string) e
 // NewBlogVoteDaoDynamodb is helper method to create AWS DynamoDB-implementation of BlogVoteDao.
 //
 // Available since template-v0.3.0
-func NewBlogVoteDaoDynamodb(adc *prom.AwsDynamodbConnect, tableName string) BlogVoteDao {
+func NewBlogVoteDaoDynamodb(adc *promdynamodb.AwsDynamodbConnect, tableName string) BlogVoteDao {
 	dao := &BaseBlogVoteDaoImpl{}
 	spec := &henge.DynamodbDaoSpec{UidxAttrs: [][]string{{VoteFieldOwnerId, VoteFieldTargetId}}}
 	dao.UniversalDao = henge.NewUniversalDaoDynamodb(adc, tableName, spec)

@@ -1,0 +1,231 @@
+name: govueadmin
+
+on:
+  push:
+    branches-ignore: [ 'azure-pipelines' ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  FE_ROOT: './src/main/g8/fe-gui'
+  BE_ROOT: './src/main/g8/be-api'
+  BE_GO_TEST_PATH: './src/gvabe/bov2/user ./src/gvabe/bov2/blog'
+
+jobs:
+  testWithDynamoDb:
+    name: Test with AWS DynamoDB
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Go env
+      uses: actions/setup-go@v2
+      with:
+        go-version: "1.17"
+    - name: Check out code
+      uses: actions/checkout@v2
+    - name: Start AWS DynamoDB server
+      run: docker run -d --name dynamodb -p 8000:8000 amazon/dynamodb-local -jar DynamoDBLocal.jar -inMemory -sharedDb
+    - name: Test
+      run: |
+        export TIMEZONE="Asia/Ho_Chi_Minh"
+        export AWS_REGION="us-west-2"
+        export AWS_ACCESS_KEY_ID="DUMMY"
+        export AWS_SECRET_ACCESS_KEY="DUMMY"
+        export AWS_DYNAMODB_ENDPOINT="http://localhost:8000"
+        cd $BE_ROOT
+        go test -v -count 1 -p 1 -cover -coverprofile=coverage_dynamodb.txt $BE_GO_TEST_PATH
+    - name: Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        flags: dynamodb
+        name: dynamodb
+
+  testWithMongoStandalone:
+    name: Test with MongoDB (Standalone)
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Go env
+      uses: actions/setup-go@v2
+      with:
+        go-version: "1.17"
+    - name: Check out code
+      uses: actions/checkout@v2
+    - name: Start MongoDB Standalone server
+      run: docker run -d --name mongodb -e MONGO_INITDB_ROOT_USERNAME=test -e MONGO_INITDB_ROOT_PASSWORD=test -e MONGO_INITDB_DATABASE=test -p 27017:27017 mongo:4.2
+    - name: Test
+      run: |
+        export TIMEZONE="Asia/Ho_Chi_Minh"
+        export MONGO_DB="test"
+        export MONGO_URL="mongodb://test:test@localhost:27017/?authSource=admin"
+        cd $BE_ROOT
+        go test -v -count 1 -p 1 -cover -coverprofile=coverage_mongo_standalone.txt $BE_GO_TEST_PATH
+    - name: Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        flags: mongo_standalone
+        name: mongo_standalone
+
+  testWithMongoReplicaSet:
+    name: Test with MongoDB (ReplicaSet)
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Go env
+      uses: actions/setup-go@v2
+      with:
+        go-version: "1.17"
+    - name: Check out code
+      uses: actions/checkout@v2
+    - name: Start MongoDB Standalone server
+      run: docker run -d --name mongodb-replset -e MONGODB_REPLICA_SET_MODE=primary -e MONGODB_REPLICA_SET_KEY=myreplset -e MONGODB_ADVERTISED_HOSTNAME=localhost -e MONGODB_PRIMARY_PORT_NUMBER=27017 -e MONGODB_ROOT_PASSWORD=test -e MONGODB_DATABASE=test -p 27017:27017 bitnami/mongodb:4.2
+    - name: Test
+      run: |
+        export TIMEZONE="Asia/Ho_Chi_Minh"
+        export MONGO_DB="test"
+        export MONGO_URL="mongodb://root:test@localhost:27017/?authSource=admin&replicaSet=replicaset"
+        cd $BE_ROOT
+        go test -v -count 1 -p 1 -cover -coverprofile=coverage_mongo_replicaset.txt $BE_GO_TEST_PATH
+    - name: Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        flags: mongo_replicaset
+        name: mongo_replicaset
+
+  testWithMySQL:
+    name: Test with MySQL
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Go env
+      uses: actions/setup-go@v2
+      with:
+        go-version: "1.17"
+    - name: Check out code
+      uses: actions/checkout@v2
+    - name: Start MySQL server
+      run: docker run -d --name mysql -e MYSQL_ROOT_PASSWORD=test -e MYSQL_DATABASE=test -e MYSQL_USER=test -e MYSQL_PASSWORD=test -p 3306:3306 mysql:8
+    - name: Test (parseTime=false)
+      run: |
+        export TIMEZONE="Asia/Ho_Chi_Minh"
+        export MYSQL_DRIVER="mysql"
+        export MYSQL_URL="test:test@tcp(localhost:3306)/test?charset=utf8mb4,utf8&parseTime=false&loc=\${loc}"
+        cd $BE_ROOT
+        go test -v -count 1 -p 1 -cover -coverprofile=coverage_mysql.txt $BE_GO_TEST_PATH
+    - name: Test (parseTime=true)
+      run: |
+        export TIMEZONE="Asia/Ho_Chi_Minh"
+        export MYSQL_DRIVER="mysql"
+        export MYSQL_URL="test:test@tcp(localhost:3306)/test?charset=utf8mb4,utf8&parseTime=true&loc=\${loc}"
+        cd $BE_ROOT
+        go test -v -count 1 -p 1 -cover -coverprofile=coverage_mysql_parsetime.txt $BE_GO_TEST_PATH
+    - name: Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        flags: mysql
+        name: mysql
+
+  testWithPostgreSQL:
+    name: Test with PostgreSQL
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Go env
+      uses: actions/setup-go@v2
+      with:
+        go-version: "1.17"
+    - name: Check out code
+      uses: actions/checkout@v2
+    - name: Start PostgreSQL server
+      run: docker run -d --name postgres -e POSTGRES_DB=test -e POSTGRES_USER=test -e POSTGRES_PASSWORD=test -p 5432:5432 postgres:11
+    - name: Test
+      run: |
+        export TIMEZONE="Asia/Ho_Chi_Minh"
+        export PGSQL_DRIVER="pgx"
+        export PGSQL_URL="postgres://test:test@localhost:5432/test?sslmode=disable&client_encoding=UTF-8&application_name=godal"
+        cd $BE_ROOT
+        go test -v -count 1 -p 1 -cover -coverprofile=coverage_pgsql.txt $BE_GO_TEST_PATH
+    - name: Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        flags: pgsql
+        name: pgsql
+
+  testWithSqlite:
+    name: Test with SQLite
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Go env
+      uses: actions/setup-go@v2
+      with:
+        go-version: "1.17"
+    - name: Check out code
+      uses: actions/checkout@v2
+    - name: Test
+      run: |
+        export TIMEZONE="Asia/Ho_Chi_Minh"
+        cd $BE_ROOT
+        mkdir -p ./temp
+        export SQLITE_DRIVER="sqlite3"
+        export SQLITE_URL="$(pwd)/temp/temp.db"
+        go test -v -count 1 -p 1 -cover -coverprofile=coverage_sqlite.txt $BE_GO_TEST_PATH
+    - name: Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        flags: sqlite
+        name: sqlite
+
+  testWithCosmosDbSql:
+    name: Test with Azure Cosmos DB (SQL API)
+    runs-on: windows-latest
+    steps:
+    - name: Set up Go env
+      uses: actions/setup-go@v2
+      with:
+        go-version: "1.17"
+    - name: Check out code
+      uses: actions/checkout@v2
+    - name: Test
+      run: |
+        choco install azure-cosmosdb-emulator
+        & "C:\Program Files\Azure Cosmos DB Emulator\Microsoft.Azure.Cosmos.Emulator.exe"
+        Start-Sleep -s 120
+        try { Invoke-RestMethod -Method GET https://127.0.0.1:8081/ } catch {}
+        netstat -nt
+        $env:COSMOSDB_DRIVER='gocosmos'
+        $env:COSMOSDB_URL='AccountEndpoint=https://127.0.0.1:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw=='
+        $env:TIMEZONE='Asia/Ho_Chi_Minh'
+        cd $env:BE_ROOT
+        go test -v -count 1 -p 1 -cover -coverprofile="coverage_cosmosdb_sql.txt" ./src/gvabe/bov2/user ./src/gvabe/bov2/blog
+    - name: Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        flags: cosmosdb_sql
+        name: cosmosdb_sql
+
+  testG8AndDockerBuild:
+    name: Test with go-giter8 and Docker build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Go env
+      uses: actions/setup-go@v2
+      with:
+        go-version: "1.17"
+    - name: Set up NodeJS env
+      uses: actions/setup-node@v3
+      with:
+        go-version: "12"
+    - name: Install go-giter8
+      run: |
+        # minimum go-giter8 v0.5.1 for "quiet" mode
+        go install github.com/btnguyen2k/go-giter8/g8@v0.5.1
+    - name: Check out code
+      uses: actions/checkout@v2
+    - name: Generate project via g8
+      run: |
+        mkdir -p $GITHUB_WORKSPACE/../temp
+        cd $GITHUB_WORKSPACE/../temp && g8 new --no-inputs file://$GITHUB_WORKSPACE
+    - name: Build FE
+      run: |
+        cd $GITHUB_WORKSPACE/../temp/govueadmincp-seed/fe-gui && npm install && npm run build
+    - name: Build BE
+      run: |
+        cd $GITHUB_WORKSPACE/../temp/govueadmincp-seed/be-api && go build -tags netgo -a
+    - name: Build Docker image
+      run: |
+        cd $GITHUB_WORKSPACE/../temp/govueadmincp-seed && docker build -t test .

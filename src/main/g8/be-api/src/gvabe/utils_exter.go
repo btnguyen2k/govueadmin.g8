@@ -133,7 +133,7 @@ func goFetchExterInfo(sleepSeconds int) {
 				log.Printf("[ERROR] goFetchExterInfo - Cannot extract Exter RSA public key: %e / %v", err, resp.raw)
 			} else {
 				exterRsaPubKey = pubKey
-				log.Printf("[DEBUG] Exter public key: {Size: %d / Exponent: %d / Modulus: %x}",
+				log.Printf("[DEBUG_MODE] Exter public key: {Size: %d / Exponent: %d / Modulus: %x}",
 					exterRsaPubKey.Size()*8, exterRsaPubKey.E, exterRsaPubKey.N)
 			}
 		} else {

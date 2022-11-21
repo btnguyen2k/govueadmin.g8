@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/btnguyen2k/henge"
-	"github.com/btnguyen2k/prom"
+	promdynamodb "github.com/btnguyen2k/prom/dynamodb"
 
 	_ "github.com/btnguyen2k/gocosmos"
 	_ "github.com/denisenkom/go-mssqldb"
@@ -26,7 +26,7 @@ const (
 	testDynamodbTableVote    = "test_vote"
 )
 
-func _createAwsDynamodbConnect(t *testing.T, testName string) *prom.AwsDynamodbConnect {
+func _createAwsDynamodbConnect(t *testing.T, testName string) *promdynamodb.AwsDynamodbConnect {
 	awsRegion := strings.ReplaceAll(os.Getenv("AWS_REGION"), `"`, "")
 	awsAccessKeyId := strings.ReplaceAll(os.Getenv("AWS_ACCESS_KEY_ID"), `"`, "")
 	awsSecretAccessKey := strings.ReplaceAll(os.Getenv("AWS_SECRET_ACCESS_KEY"), `"`, "")
@@ -43,14 +43,14 @@ func _createAwsDynamodbConnect(t *testing.T, testName string) *prom.AwsDynamodbC
 			cfg.DisableSSL = aws.Bool(true)
 		}
 	}
-	adc, err := prom.NewAwsDynamodbConnect(cfg, nil, nil, 10000)
+	adc, err := promdynamodb.NewAwsDynamodbConnect(cfg, nil, nil, 10000)
 	if err != nil {
 		t.Fatalf("%s/%s failed: %s", testName, "NewAwsDynamodbConnect", err)
 	}
 	return adc
 }
 
-func _adbDeleteTableAndWait(adc *prom.AwsDynamodbConnect, tableName string) error {
+func _adbDeleteTableAndWait(adc *promdynamodb.AwsDynamodbConnect, tableName string) error {
 	if err := adc.DeleteTable(nil, tableName); err != nil {
 		return err
 	}
@@ -77,15 +77,15 @@ func _adbDeleteTableAndWait(adc *prom.AwsDynamodbConnect, tableName string) erro
 	return nil
 }
 
-func initBlogCommentDaoDynamodb(adc *prom.AwsDynamodbConnect) BlogCommentDao {
+func initBlogCommentDaoDynamodb(adc *promdynamodb.AwsDynamodbConnect) BlogCommentDao {
 	return NewBlogCommentDaoDynamodb(adc, testDynamodbTableComment)
 }
 
-func initBlogPostDaoDynamodb(adc *prom.AwsDynamodbConnect) BlogPostDao {
+func initBlogPostDaoDynamodb(adc *promdynamodb.AwsDynamodbConnect) BlogPostDao {
 	return NewBlogPostDaoDynamodb(adc, testDynamodbTablePost)
 }
 
-func initBlogVoteDaoDynamodb(adc *prom.AwsDynamodbConnect) BlogVoteDao {
+func initBlogVoteDaoDynamodb(adc *promdynamodb.AwsDynamodbConnect) BlogVoteDao {
 	return NewBlogVoteDaoDynamodb(adc, testDynamodbTableVote)
 }
 

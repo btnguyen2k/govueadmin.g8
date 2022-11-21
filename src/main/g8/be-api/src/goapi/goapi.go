@@ -1,5 +1,5 @@
 /*
-Package goapi provides a base skeleton to bootstrap the micro-service application.
+Package goapi provides a base skeleton to bootstrap the microservice application.
 The actual application's implementation should be placed under its own package name.
 
 @author Thanh Nguyen <btnguyen2k@gmail.com>

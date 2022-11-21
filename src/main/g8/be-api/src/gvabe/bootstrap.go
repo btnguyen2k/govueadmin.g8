@@ -16,6 +16,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/btnguyen2k/consu/reddo"
 	"github.com/btnguyen2k/goyai"
 	"main/src/goapi"
 	blogv2 "main/src/gvabe/bov2/blog"
@@ -36,15 +37,14 @@ type MyBootstrapper struct {
 
 var Bootstrapper = &MyBootstrapper{name: "gvabe"}
 
-/*
-Bootstrap implements goapi.IBootstrapper.Bootstrap
-
-Bootstrapper usually does the following:
-- register api-handlers with the global ApiRouter
-- other initializing work (e.g. creating DAO, initializing database, etc)
-*/
+// Bootstrap implements goapi.IBootstrapper.Bootstrap
+//
+// Bootstrapper usually does the following:
+// - register api-handlers with the global ApiRouter
+// - other initializing work (e.g. creating DAO, initializing database, etc)
 func (b *MyBootstrapper) Bootstrap() error {
-	DEBUG = os.Getenv("DEBUG") != ""
+	DEBUG_MODE,_ = reddo.ToBool(os.Getenv("DEBUG"))
+	DEMO_MODE,_ = reddo.ToBool(os.Getenv("DEMO"))
 	go routineUpdateSystemInfo()
 
 	initRsaKeys()
@@ -102,11 +102,11 @@ func initI18n() {
 		return
 	}
 
-	if DEBUG {
+	if DEBUG_MODE {
 		if defaultLocale == "" {
 			defaultLocale = locales[0].Id
 		}
-		log.Printf("[DEBUG] i18n config loaded from [%s], available locales: %v / default: [%s]", i18nConfigFileOrDir, locales, defaultLocale)
+		log.Printf("[DEBUG_MODE] i18n config loaded from [%s], available locales: %v / default: [%s]", i18nConfigFileOrDir, locales, defaultLocale)
 	}
 }
 
@@ -159,8 +159,8 @@ func initRsaKeys() {
 
 	rsaPubKey = &rsaPrivKey.PublicKey
 
-	if DEBUG {
-		log.Printf("[DEBUG] Exter public key: {Size: %d / Exponent: %d / Modulus: %x}",
+	if DEBUG_MODE {
+		log.Printf("[DEBUG_MODE] Exter public key: {Size: %d / Exponent: %d / Modulus: %x}",
 			rsaPubKey.Size()*8, rsaPubKey.E, rsaPubKey.N)
 
 		pubBlockPKCS1 := pem.Block{
@@ -169,7 +169,7 @@ func initRsaKeys() {
 			Bytes:   x509.MarshalPKCS1PublicKey(rsaPubKey),
 		}
 		rsaPubKeyPemPKCS1 := pem.EncodeToMemory(&pubBlockPKCS1)
-		log.Printf("[DEBUG] Exter public key (PKCS1): %s", string(rsaPubKeyPemPKCS1))
+		log.Printf("[DEBUG_MODE] Exter public key (PKCS1): %s", string(rsaPubKeyPemPKCS1))
 
 		pubPKIX, _ := x509.MarshalPKIXPublicKey(rsaPubKey)
 		pubBlockPKIX := pem.Block{
@@ -178,6 +178,6 @@ func initRsaKeys() {
 			Bytes:   pubPKIX,
 		}
 		rsaPubKeyPemPKIX := pem.EncodeToMemory(&pubBlockPKIX)
-		log.Printf("[DEBUG] Exter public key (PKIX): %s", string(rsaPubKeyPemPKIX))
+		log.Printf("[DEBUG_MODE] Exter public key (PKIX): %s", string(rsaPubKeyPemPKIX))
 	}
 }

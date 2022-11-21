@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/btnguyen2k/henge"
-	"github.com/btnguyen2k/prom"
+	promsql "github.com/btnguyen2k/prom/sql"
 
 	_ "github.com/denisenkom/go-mssqldb"
 	_ "github.com/go-sql-driver/mysql"
@@ -25,105 +26,118 @@ const (
 	testSqlTableVote    = "test_vote"
 )
 
-func sqlInitTableComment(sqlc *prom.SqlConnect, table string) error {
+func sqlInitTableComment(sqlc *promsql.SqlConnect, table string) error {
 	rand.Seed(time.Now().UnixNano())
 	var err error
-	if sqlc.GetDbFlavor() == prom.FlavorCosmosDb {
-		_, err = sqlc.GetDB().Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s WITH MAXRU=10000", cosmosdbDbName))
-		if err != nil {
-			return err
-		}
-	}
 	sqlc.GetDB().Exec(fmt.Sprintf("DROP TABLE %s", table))
+	extraCols := map[string]string{
+		CommentColParentId: "VARCHAR(32)",
+		CommentColPostId:   "VARCHAR(32)",
+		CommentColOwnerId:  "VARCHAR(32)",
+	}
 	switch sqlc.GetDbFlavor() {
-	case prom.FlavorCosmosDb:
+	case promsql.FlavorCosmosDb:
 		spec := &henge.CosmosdbCollectionSpec{Pk: henge.CosmosdbColId}
 		err = henge.InitCosmosdbCollection(sqlc, table, spec)
-	case prom.FlavorPgSql, prom.FlavorSqlite:
-		err = henge.InitPgsqlTable(sqlc, table, map[string]string{
-			CommentColParentId: "VARCHAR(32)",
-			CommentColPostId:   "VARCHAR(32)",
-			CommentColOwnerId:  "VARCHAR(32)",
-		})
+	case promsql.FlavorSqlite:
+		err = henge.InitSqliteTable(sqlc, table, extraCols)
+	case promsql.FlavorMySql:
+		err = henge.InitMysqlTable(sqlc, table, extraCols)
+	case promsql.FlavorPgSql:
+		err = henge.InitPgsqlTable(sqlc, table, extraCols)
 	}
 	return err
 }
 
-func sqlInitTablePost(sqlc *prom.SqlConnect, table string) error {
+func sqlInitTablePost(sqlc *promsql.SqlConnect, table string) error {
 	rand.Seed(time.Now().UnixNano())
 	var err error
-	if sqlc.GetDbFlavor() == prom.FlavorCosmosDb {
-		_, err = sqlc.GetDB().Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s WITH MAXRU=10000", cosmosdbDbName))
-		if err != nil {
-			return err
-		}
-	}
 	sqlc.GetDB().Exec(fmt.Sprintf("DROP TABLE %s", table))
+	extraCols := map[string]string{PostColOwnerId: "VARCHAR(32)", PostColIsPublic: "INT"}
 	switch sqlc.GetDbFlavor() {
-	case prom.FlavorCosmosDb:
+	case promsql.FlavorCosmosDb:
 		spec := &henge.CosmosdbCollectionSpec{Pk: henge.CosmosdbColId}
 		err = henge.InitCosmosdbCollection(sqlc, table, spec)
-	case prom.FlavorPgSql, prom.FlavorSqlite:
-		err = henge.InitPgsqlTable(sqlc, table, map[string]string{PostColOwnerId: "VARCHAR(32)", PostColIsPublic: "INT"})
+	case promsql.FlavorSqlite:
+		err = henge.InitSqliteTable(sqlc, table, extraCols)
+	case promsql.FlavorMySql:
+		err = henge.InitMysqlTable(sqlc, table, extraCols)
+	case promsql.FlavorPgSql:
+		err = henge.InitPgsqlTable(sqlc, table, extraCols)
 	}
 	return err
 }
 
-func sqlInitTableVote(sqlc *prom.SqlConnect, table string) error {
+func sqlInitTableVote(sqlc *promsql.SqlConnect, table string) error {
 	rand.Seed(time.Now().UnixNano())
 	var err error
-	if sqlc.GetDbFlavor() == prom.FlavorCosmosDb {
-		_, err = sqlc.GetDB().Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s WITH MAXRU=10000", cosmosdbDbName))
-		if err != nil {
-			return err
-		}
-	}
 	sqlc.GetDB().Exec(fmt.Sprintf("DROP TABLE %s", table))
+	extraCols := map[string]string{VoteColOwnerId: "VARCHAR(32)", VoteColTargetId: "VARCHAR(32)", VoteColValue: "INT"}
 	switch sqlc.GetDbFlavor() {
-	case prom.FlavorCosmosDb:
+	case promsql.FlavorCosmosDb:
 		spec := &henge.CosmosdbCollectionSpec{Pk: henge.CosmosdbColId}
 		err = henge.InitCosmosdbCollection(sqlc, table, spec)
-	case prom.FlavorPgSql, prom.FlavorSqlite:
-		err = henge.InitPgsqlTable(sqlc, table, map[string]string{VoteColOwnerId: "VARCHAR(32)", VoteColTargetId: "VARCHAR(32)", VoteColValue: "INT"})
+	case promsql.FlavorSqlite:
+		err = henge.InitSqliteTable(sqlc, table, extraCols)
+	case promsql.FlavorMySql:
+		err = henge.InitMysqlTable(sqlc, table, extraCols)
+	case promsql.FlavorPgSql:
+		err = henge.InitPgsqlTable(sqlc, table, extraCols)
 	}
 	return err
 }
 
-func newSqlConnect(t *testing.T, testName string, driver, url, timezone string, flavor prom.DbFlavor) (*prom.SqlConnect, error) {
+func newSqlConnect(t *testing.T, testName string, driver, url, timezone string, flavor promsql.DbFlavor) (*promsql.SqlConnect, error) {
 	driver = strings.Trim(driver, "\"")
 	url = strings.Trim(url, "\"")
 	if driver == "" || url == "" {
 		t.Skipf("%s skipped", testName)
 	}
 
+	cosmosdb := cosmosdbDbName
+	if flavor == promsql.FlavorCosmosDb {
+		dbre := regexp.MustCompile(`(?i);db=(\w+)`)
+		findResult := dbre.FindAllStringSubmatch(url, -1)
+		if findResult == nil {
+			url += ";Db=" + cosmosdb
+		} else {
+			cosmosdb = findResult[0][1]
+		}
+	}
+
 	urlTimezone := strings.ReplaceAll(timezone, "/", "%2f")
 	url = strings.ReplaceAll(url, "${loc}", urlTimezone)
 	url = strings.ReplaceAll(url, "${tz}", urlTimezone)
 	url = strings.ReplaceAll(url, "${timezone}", urlTimezone)
-	sqlc, err := prom.NewSqlConnectWithFlavor(driver, url, 10000, nil, flavor)
+	sqlc, err := promsql.NewSqlConnectWithFlavor(driver, url, 10000, nil, flavor)
 	if err == nil && sqlc != nil {
 		loc, _ := time.LoadLocation(timezone)
 		sqlc.SetLocation(loc)
 	}
+
+	if flavor == promsql.FlavorCosmosDb {
+		sqlc.GetDB().Exec("CREATE DATABASE IF NOT EXISTS " + cosmosdb + " WITH maxru=10000")
+	}
+
 	return sqlc, err
 }
 
-func initBlogCommentDaoSql(sqlc *prom.SqlConnect) BlogCommentDao {
-	if sqlc.GetDbFlavor() == prom.FlavorCosmosDb {
+func initBlogCommentDaoSql(sqlc *promsql.SqlConnect) BlogCommentDao {
+	if sqlc.GetDbFlavor() == promsql.FlavorCosmosDb {
 		return NewBlogCommentDaoCosmosdb(sqlc, testSqlTableComment, true)
 	}
 	return NewBlogCommentDaoSql(sqlc, testSqlTableComment, true)
 }
 
-func initBlogPostDaoSql(sqlc *prom.SqlConnect) BlogPostDao {
-	if sqlc.GetDbFlavor() == prom.FlavorCosmosDb {
+func initBlogPostDaoSql(sqlc *promsql.SqlConnect) BlogPostDao {
+	if sqlc.GetDbFlavor() == promsql.FlavorCosmosDb {
 		return NewBlogPostDaoCosmosdb(sqlc, testSqlTablePost, true)
 	}
 	return NewBlogPostDaoSql(sqlc, testSqlTablePost, true)
 }
 
-func initBlogVoteDaoSql(sqlc *prom.SqlConnect) BlogVoteDao {
-	if sqlc.GetDbFlavor() == prom.FlavorCosmosDb {
+func initBlogVoteDaoSql(sqlc *promsql.SqlConnect) BlogVoteDao {
+	if sqlc.GetDbFlavor() == promsql.FlavorCosmosDb {
 		return NewBlogVoteDaoCosmosdb(sqlc, testSqlTableVote, true)
 	}
 	return NewBlogVoteDaoSql(sqlc, testSqlTableVote, true)
@@ -173,20 +187,20 @@ func sqlGetUrlFromEnv() map[string]sqlDriverAndUrl {
 	return urlMap
 }
 
-func initSqlConnect(t *testing.T, testName string, dbtype string, info sqlDriverAndUrl) (*prom.SqlConnect, error) {
+func initSqlConnect(t *testing.T, testName string, dbtype string, info sqlDriverAndUrl) (*promsql.SqlConnect, error) {
 	switch dbtype {
 	case "sqlite", "sqlite3":
-		return newSqlConnect(t, testName, info.driver, info.url, testTimeZone, prom.FlavorSqlite)
+		return newSqlConnect(t, testName, info.driver, info.url, testTimeZone, promsql.FlavorSqlite)
 	case "mssql":
-		return newSqlConnect(t, testName, info.driver, info.url, testTimeZone, prom.FlavorMsSql)
+		return newSqlConnect(t, testName, info.driver, info.url, testTimeZone, promsql.FlavorMsSql)
 	case "mysql":
-		return newSqlConnect(t, testName, info.driver, info.url, testTimeZone, prom.FlavorMySql)
+		return newSqlConnect(t, testName, info.driver, info.url, testTimeZone, promsql.FlavorMySql)
 	case "oracle":
-		return newSqlConnect(t, testName, info.driver, info.url, testTimeZone, prom.FlavorOracle)
+		return newSqlConnect(t, testName, info.driver, info.url, testTimeZone, promsql.FlavorOracle)
 	case "pgsql", "postgresql":
-		return newSqlConnect(t, testName, info.driver, info.url, testTimeZone, prom.FlavorPgSql)
+		return newSqlConnect(t, testName, info.driver, info.url, testTimeZone, promsql.FlavorPgSql)
 	case "cosmos", "cosmosdb":
-		return newSqlConnect(t, testName, info.driver, info.url, testTimeZone, prom.FlavorCosmosDb)
+		return newSqlConnect(t, testName, info.driver, info.url, testTimeZone, promsql.FlavorCosmosDb)
 	default:
 		t.Fatalf("%s failed: unknown database type [%s]", testName, dbtype)
 	}
@@ -202,21 +216,23 @@ func TestNewCommentDaoSql(t *testing.T) {
 		t.Skipf("%s skipped", name)
 	}
 	for dbtype, info := range urlMap {
-		sqlc, err := initSqlConnect(t, name, dbtype, info)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
-		} else if sqlc == nil {
-			t.Fatalf("%s failed: nil", name+"/"+dbtype)
-		}
-		err = sqlInitTableComment(sqlc, testSqlTableComment)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTableComment/"+dbtype, err)
-		}
-		dao := initBlogCommentDaoSql(sqlc)
-		if dao == nil {
-			t.Fatalf("%s failed: nil", name+"/initBlogCommentDaoSql")
-		}
-		sqlc.Close()
+		t.Run(dbtype, func(t *testing.T) {
+			sqlc, err := initSqlConnect(t, name, dbtype, info)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
+			} else if sqlc == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			defer sqlc.Close()
+			err = sqlInitTableComment(sqlc, testSqlTableComment)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype+"/sqlInitTableComment/"+dbtype, err)
+			}
+			dao := initBlogCommentDaoSql(sqlc)
+			if dao == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype+"/initBlogCommentDaoSql")
+			}
+		})
 	}
 }
 
@@ -227,22 +243,24 @@ func TestCommentDaoSql_CreateGet(t *testing.T) {
 		t.Skipf("%s skipped", name)
 	}
 	for dbtype, info := range urlMap {
-		sqlc, err := initSqlConnect(t, name, dbtype, info)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
-		} else if sqlc == nil {
-			t.Fatalf("%s failed: nil", name+"/"+dbtype)
-		}
-		err = sqlInitTableComment(sqlc, testSqlTableComment)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTableComment/"+dbtype, err)
-		}
-		dao := initBlogCommentDaoSql(sqlc)
-		if dao == nil {
-			t.Fatalf("%s failed: nil", name)
-		}
-		doTestCommentDaoCreateGet(t, name, dao)
-		sqlc.Close()
+		t.Run(dbtype, func(t *testing.T) {
+			sqlc, err := initSqlConnect(t, name, dbtype, info)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
+			} else if sqlc == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			defer sqlc.Close()
+			err = sqlInitTableComment(sqlc, testSqlTableComment)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype+"/sqlInitTableComment/"+dbtype, err)
+			}
+			dao := initBlogCommentDaoSql(sqlc)
+			if dao == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			doTestCommentDaoCreateGet(t, name+"/"+dbtype, dao)
+		})
 	}
 }
 
@@ -253,22 +271,24 @@ func TestCommentDaoSql_CreateUpdateGet(t *testing.T) {
 		t.Skipf("%s skipped", name)
 	}
 	for dbtype, info := range urlMap {
-		sqlc, err := initSqlConnect(t, name, dbtype, info)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
-		} else if sqlc == nil {
-			t.Fatalf("%s failed: nil", name+"/"+dbtype)
-		}
-		err = sqlInitTableComment(sqlc, testSqlTableComment)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTableComment/"+dbtype, err)
-		}
-		dao := initBlogCommentDaoSql(sqlc)
-		if dao == nil {
-			t.Fatalf("%s failed: nil", name)
-		}
-		doTestCommentDaoCreateUpdateGet(t, name, dao)
-		sqlc.Close()
+		t.Run(dbtype, func(t *testing.T) {
+			sqlc, err := initSqlConnect(t, name, dbtype, info)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
+			} else if sqlc == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			defer sqlc.Close()
+			err = sqlInitTableComment(sqlc, testSqlTableComment)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype+"/sqlInitTableComment/"+dbtype, err)
+			}
+			dao := initBlogCommentDaoSql(sqlc)
+			if dao == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			doTestCommentDaoCreateUpdateGet(t, name+"/"+dbtype, dao)
+		})
 	}
 }
 
@@ -279,19 +299,24 @@ func TestCommentDaoSql_CreateDelete(t *testing.T) {
 		t.Skipf("%s skipped", name)
 	}
 	for dbtype, info := range urlMap {
-		sqlc, err := initSqlConnect(t, name, dbtype, info)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
-		} else if sqlc == nil {
-			t.Fatalf("%s failed: nil", name+"/"+dbtype)
-		}
-		err = sqlInitTableComment(sqlc, testSqlTableComment)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTableComment/"+dbtype, err)
-		}
-		dao := initBlogCommentDaoSql(sqlc)
-		doTestCommentDaoCreateDelete(t, name, dao)
-		sqlc.Close()
+		t.Run(dbtype, func(t *testing.T) {
+			sqlc, err := initSqlConnect(t, name, dbtype, info)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
+			} else if sqlc == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			defer sqlc.Close()
+			err = sqlInitTableComment(sqlc, testSqlTableComment)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype+"/sqlInitTableComment/"+dbtype, err)
+			}
+			dao := initBlogCommentDaoSql(sqlc)
+			if dao == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			doTestCommentDaoCreateDelete(t, name+"/"+dbtype, dao)
+		})
 	}
 }
 
@@ -302,19 +327,24 @@ func TestCommentDaoSql_GetAll(t *testing.T) {
 		t.Skipf("%s skipped", name)
 	}
 	for dbtype, info := range urlMap {
-		sqlc, err := initSqlConnect(t, name, dbtype, info)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
-		} else if sqlc == nil {
-			t.Fatalf("%s failed: nil", name+"/"+dbtype)
-		}
-		err = sqlInitTableComment(sqlc, testSqlTableComment)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTableComment/"+dbtype, err)
-		}
-		dao := initBlogCommentDaoSql(sqlc)
-		doTestCommentDaoGetAll(t, name, dao)
-		sqlc.Close()
+		t.Run(dbtype, func(t *testing.T) {
+			sqlc, err := initSqlConnect(t, name, dbtype, info)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
+			} else if sqlc == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			defer sqlc.Close()
+			err = sqlInitTableComment(sqlc, testSqlTableComment)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype+"/sqlInitTableComment/"+dbtype, err)
+			}
+			dao := initBlogCommentDaoSql(sqlc)
+			if dao == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			doTestCommentDaoGetAll(t, name+"/"+dbtype, dao)
+		})
 	}
 }
 
@@ -325,19 +355,24 @@ func TestCommentDaoSql_GetN(t *testing.T) {
 		t.Skipf("%s skipped", name)
 	}
 	for dbtype, info := range urlMap {
-		sqlc, err := initSqlConnect(t, name, dbtype, info)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
-		} else if sqlc == nil {
-			t.Fatalf("%s failed: nil", name+"/"+dbtype)
-		}
-		err = sqlInitTableComment(sqlc, testSqlTableComment)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTableComment/"+dbtype, err)
-		}
-		dao := initBlogCommentDaoSql(sqlc)
-		doTestCommentDaoGetN(t, name, dao)
-		sqlc.Close()
+		t.Run(dbtype, func(t *testing.T) {
+			sqlc, err := initSqlConnect(t, name, dbtype, info)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
+			} else if sqlc == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			defer sqlc.Close()
+			err = sqlInitTableComment(sqlc, testSqlTableComment)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype+"/sqlInitTableComment/"+dbtype, err)
+			}
+			dao := initBlogCommentDaoSql(sqlc)
+			if dao == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			doTestCommentDaoGetN(t, name+"/"+dbtype, dao)
+		})
 	}
 }
 
@@ -350,21 +385,23 @@ func TestNewPostDaoSql(t *testing.T) {
 		t.Skipf("%s skipped", name)
 	}
 	for dbtype, info := range urlMap {
-		sqlc, err := initSqlConnect(t, name, dbtype, info)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
-		} else if sqlc == nil {
-			t.Fatalf("%s failed: nil", name+"/"+dbtype)
-		}
-		err = sqlInitTablePost(sqlc, testSqlTablePost)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTablePost/"+dbtype, err)
-		}
-		dao := initBlogPostDaoSql(sqlc)
-		if dao == nil {
-			t.Fatalf("%s failed: nil", name+"/initBlogPostDaoSql")
-		}
-		sqlc.Close()
+		t.Run(dbtype, func(t *testing.T) {
+			sqlc, err := initSqlConnect(t, name, dbtype, info)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
+			} else if sqlc == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			defer sqlc.Close()
+			err = sqlInitTablePost(sqlc, testSqlTablePost)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype+"/sqlInitTablePost/"+dbtype, err)
+			}
+			dao := initBlogPostDaoSql(sqlc)
+			if dao == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype+"/initBlogPostDaoSql")
+			}
+		})
 	}
 }
 
@@ -375,22 +412,24 @@ func TestPostDaoSql_CreateGet(t *testing.T) {
 		t.Skipf("%s skipped", name)
 	}
 	for dbtype, info := range urlMap {
-		sqlc, err := initSqlConnect(t, name, dbtype, info)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
-		} else if sqlc == nil {
-			t.Fatalf("%s failed: nil", name+"/"+dbtype)
-		}
-		err = sqlInitTablePost(sqlc, testSqlTablePost)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTablePost/"+dbtype, err)
-		}
-		dao := initBlogPostDaoSql(sqlc)
-		if dao == nil {
-			t.Fatalf("%s failed: nil", name)
-		}
-		doTestPostDaoCreateGet(t, name, dao)
-		sqlc.Close()
+		t.Run(dbtype, func(t *testing.T) {
+			sqlc, err := initSqlConnect(t, name, dbtype, info)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
+			} else if sqlc == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			defer sqlc.Close()
+			err = sqlInitTablePost(sqlc, testSqlTablePost)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype+"/sqlInitTablePost/"+dbtype, err)
+			}
+			dao := initBlogPostDaoSql(sqlc)
+			if dao == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			doTestPostDaoCreateGet(t, name+"/"+dbtype, dao)
+		})
 	}
 }
 
@@ -401,22 +440,24 @@ func TestPostDaoSql_CreateUpdateGet(t *testing.T) {
 		t.Skipf("%s skipped", name)
 	}
 	for dbtype, info := range urlMap {
-		sqlc, err := initSqlConnect(t, name, dbtype, info)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
-		} else if sqlc == nil {
-			t.Fatalf("%s failed: nil", name+"/"+dbtype)
-		}
-		err = sqlInitTablePost(sqlc, testSqlTablePost)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTablePost/"+dbtype, err)
-		}
-		dao := initBlogPostDaoSql(sqlc)
-		if dao == nil {
-			t.Fatalf("%s failed: nil", name)
-		}
-		doTestPostDaoCreateUpdateGet(t, name, dao)
-		sqlc.Close()
+		t.Run(dbtype, func(t *testing.T) {
+			sqlc, err := initSqlConnect(t, name, dbtype, info)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
+			} else if sqlc == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			defer sqlc.Close()
+			err = sqlInitTablePost(sqlc, testSqlTablePost)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype+"/sqlInitTablePost/"+dbtype, err)
+			}
+			dao := initBlogPostDaoSql(sqlc)
+			if dao == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			doTestPostDaoCreateUpdateGet(t, name+"/"+dbtype, dao)
+		})
 	}
 }
 
@@ -427,19 +468,24 @@ func TestPostDaoSql_CreateDelete(t *testing.T) {
 		t.Skipf("%s skipped", name)
 	}
 	for dbtype, info := range urlMap {
-		sqlc, err := initSqlConnect(t, name, dbtype, info)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
-		} else if sqlc == nil {
-			t.Fatalf("%s failed: nil", name+"/"+dbtype)
-		}
-		err = sqlInitTablePost(sqlc, testSqlTablePost)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTablePost/"+dbtype, err)
-		}
-		dao := initBlogPostDaoSql(sqlc)
-		doTestPostDaoCreateDelete(t, name, dao)
-		sqlc.Close()
+		t.Run(dbtype, func(t *testing.T) {
+			sqlc, err := initSqlConnect(t, name, dbtype, info)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
+			} else if sqlc == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			defer sqlc.Close()
+			err = sqlInitTablePost(sqlc, testSqlTablePost)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype+"/sqlInitTablePost/"+dbtype, err)
+			}
+			dao := initBlogPostDaoSql(sqlc)
+			if dao == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			doTestPostDaoCreateDelete(t, name+"/"+dbtype, dao)
+		})
 	}
 }
 
@@ -450,19 +496,25 @@ func TestPostDaoSql_GetUserPostsAll(t *testing.T) {
 		t.Skipf("%s skipped", name)
 	}
 	for dbtype, info := range urlMap {
-		sqlc, err := initSqlConnect(t, name, dbtype, info)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
-		} else if sqlc == nil {
-			t.Fatalf("%s failed: nil", name+"/"+dbtype)
-		}
-		err = sqlInitTablePost(sqlc, testSqlTablePost)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTablePost/"+dbtype, err)
-		}
-		dao := initBlogPostDaoSql(sqlc)
-		doTestPostDaoGetUserPostsAll(t, name, dao)
-		sqlc.Close()
+		t.Run(dbtype, func(t *testing.T) {
+			sqlc, err := initSqlConnect(t, name, dbtype, info)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
+			} else if sqlc == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			defer sqlc.Close()
+			err = sqlInitTablePost(sqlc, testSqlTablePost)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype+"/sqlInitTablePost/"+dbtype, err)
+			}
+			dao := initBlogPostDaoSql(sqlc)
+			if dao == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			doTestPostDaoGetUserPostsAll(t, name+"/"+dbtype, dao)
+
+		})
 	}
 }
 
@@ -473,19 +525,24 @@ func TestPostDaoSql_GetUserPostsN(t *testing.T) {
 		t.Skipf("%s skipped", name)
 	}
 	for dbtype, info := range urlMap {
-		sqlc, err := initSqlConnect(t, name, dbtype, info)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
-		} else if sqlc == nil {
-			t.Fatalf("%s failed: nil", name+"/"+dbtype)
-		}
-		err = sqlInitTablePost(sqlc, testSqlTablePost)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTablePost/"+dbtype, err)
-		}
-		dao := initBlogPostDaoSql(sqlc)
-		doTestPostDaoGetUserPostsN(t, name, dao)
-		sqlc.Close()
+		t.Run(dbtype, func(t *testing.T) {
+			sqlc, err := initSqlConnect(t, name, dbtype, info)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
+			} else if sqlc == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			defer sqlc.Close()
+			err = sqlInitTablePost(sqlc, testSqlTablePost)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype+"/sqlInitTablePost/"+dbtype, err)
+			}
+			dao := initBlogPostDaoSql(sqlc)
+			if dao == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			doTestPostDaoGetUserPostsN(t, name+"/"+dbtype, dao)
+		})
 	}
 }
 
@@ -496,19 +553,24 @@ func TestPostDaoSql_GetUserFeedAll(t *testing.T) {
 		t.Skipf("%s skipped", name)
 	}
 	for dbtype, info := range urlMap {
-		sqlc, err := initSqlConnect(t, name, dbtype, info)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
-		} else if sqlc == nil {
-			t.Fatalf("%s failed: nil", name+"/"+dbtype)
-		}
-		err = sqlInitTablePost(sqlc, testSqlTablePost)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTablePost/"+dbtype, err)
-		}
-		dao := initBlogPostDaoSql(sqlc)
-		doTestPostDaoGetUserFeedAll(t, name, dao)
-		sqlc.Close()
+		t.Run(dbtype, func(t *testing.T) {
+			sqlc, err := initSqlConnect(t, name, dbtype, info)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
+			} else if sqlc == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			defer sqlc.Close()
+			err = sqlInitTablePost(sqlc, testSqlTablePost)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype+"/sqlInitTablePost/"+dbtype, err)
+			}
+			dao := initBlogPostDaoSql(sqlc)
+			if dao == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			doTestPostDaoGetUserFeedAll(t, name+"/"+dbtype, dao)
+		})
 	}
 }
 
@@ -519,19 +581,24 @@ func TestPostDaoSql_GetUserFeedN(t *testing.T) {
 		t.Skipf("%s skipped", name)
 	}
 	for dbtype, info := range urlMap {
-		sqlc, err := initSqlConnect(t, name, dbtype, info)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
-		} else if sqlc == nil {
-			t.Fatalf("%s failed: nil", name+"/"+dbtype)
-		}
-		err = sqlInitTablePost(sqlc, testSqlTablePost)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTablePost/"+dbtype, err)
-		}
-		dao := initBlogPostDaoSql(sqlc)
-		doTestPostDaoGetUserFeedN(t, name, dao)
-		sqlc.Close()
+		t.Run(dbtype, func(t *testing.T) {
+			sqlc, err := initSqlConnect(t, name, dbtype, info)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
+			} else if sqlc == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			defer sqlc.Close()
+			err = sqlInitTablePost(sqlc, testSqlTablePost)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype+"/sqlInitTablePost/"+dbtype, err)
+			}
+			dao := initBlogPostDaoSql(sqlc)
+			if dao == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			doTestPostDaoGetUserFeedN(t, name+"/"+dbtype, dao)
+		})
 	}
 }
 
@@ -544,21 +611,23 @@ func TestNewVoteDaoSql(t *testing.T) {
 		t.Skipf("%s skipped", name)
 	}
 	for dbtype, info := range urlMap {
-		sqlc, err := initSqlConnect(t, name, dbtype, info)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
-		} else if sqlc == nil {
-			t.Fatalf("%s failed: nil", name+"/"+dbtype)
-		}
-		err = sqlInitTableVote(sqlc, testSqlTableVote)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTableVote/"+dbtype, err)
-		}
-		dao := initBlogVoteDaoSql(sqlc)
-		if dao == nil {
-			t.Fatalf("%s failed: nil", name+"/initBlogVoteDaoSql")
-		}
-		sqlc.Close()
+		t.Run(dbtype, func(t *testing.T) {
+			sqlc, err := initSqlConnect(t, name, dbtype, info)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
+			} else if sqlc == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			defer sqlc.Close()
+			err = sqlInitTableVote(sqlc, testSqlTableVote)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype+"/sqlInitTableVote/"+dbtype, err)
+			}
+			dao := initBlogVoteDaoSql(sqlc)
+			if dao == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype+"/initBlogVoteDaoSql")
+			}
+		})
 	}
 }
 
@@ -569,22 +638,24 @@ func TestVoteDaoSql_CreateGet(t *testing.T) {
 		t.Skipf("%s skipped", name)
 	}
 	for dbtype, info := range urlMap {
-		sqlc, err := initSqlConnect(t, name, dbtype, info)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
-		} else if sqlc == nil {
-			t.Fatalf("%s failed: nil", name+"/"+dbtype)
-		}
-		err = sqlInitTableVote(sqlc, testSqlTableVote)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTableVote/"+dbtype, err)
-		}
-		dao := initBlogVoteDaoSql(sqlc)
-		if dao == nil {
-			t.Fatalf("%s failed: nil", name)
-		}
-		doTestVoteDaoCreateGet(t, name, dao)
-		sqlc.Close()
+		t.Run(dbtype, func(t *testing.T) {
+			sqlc, err := initSqlConnect(t, name, dbtype, info)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
+			} else if sqlc == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			defer sqlc.Close()
+			err = sqlInitTableVote(sqlc, testSqlTableVote)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype+"/sqlInitTableVote/"+dbtype, err)
+			}
+			dao := initBlogVoteDaoSql(sqlc)
+			if dao == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			doTestVoteDaoCreateGet(t, name+"/"+dbtype, dao)
+		})
 	}
 }
 
@@ -595,22 +666,24 @@ func TestVoteDaoSql_CreateUpdateGet(t *testing.T) {
 		t.Skipf("%s skipped", name)
 	}
 	for dbtype, info := range urlMap {
-		sqlc, err := initSqlConnect(t, name, dbtype, info)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
-		} else if sqlc == nil {
-			t.Fatalf("%s failed: nil", name+"/"+dbtype)
-		}
-		err = sqlInitTableVote(sqlc, testSqlTableVote)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTableVote/"+dbtype, err)
-		}
-		dao := initBlogVoteDaoSql(sqlc)
-		if dao == nil {
-			t.Fatalf("%s failed: nil", name)
-		}
-		doTestVoteDaoCreateUpdateGet(t, name, dao)
-		sqlc.Close()
+		t.Run(dbtype, func(t *testing.T) {
+			sqlc, err := initSqlConnect(t, name, dbtype, info)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
+			} else if sqlc == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			defer sqlc.Close()
+			err = sqlInitTableVote(sqlc, testSqlTableVote)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype+"/sqlInitTableVote/"+dbtype, err)
+			}
+			dao := initBlogVoteDaoSql(sqlc)
+			if dao == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			doTestVoteDaoCreateUpdateGet(t, name+"/"+dbtype, dao)
+		})
 	}
 }
 
@@ -621,19 +694,24 @@ func TestVoteDaoSql_CreateDelete(t *testing.T) {
 		t.Skipf("%s skipped", name)
 	}
 	for dbtype, info := range urlMap {
-		sqlc, err := initSqlConnect(t, name, dbtype, info)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
-		} else if sqlc == nil {
-			t.Fatalf("%s failed: nil", name+"/"+dbtype)
-		}
-		err = sqlInitTableVote(sqlc, testSqlTableVote)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTableVote/"+dbtype, err)
-		}
-		dao := initBlogVoteDaoSql(sqlc)
-		doTestVoteDaoCreateDelete(t, name, dao)
-		sqlc.Close()
+		t.Run(dbtype, func(t *testing.T) {
+			sqlc, err := initSqlConnect(t, name, dbtype, info)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
+			} else if sqlc == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			defer sqlc.Close()
+			err = sqlInitTableVote(sqlc, testSqlTableVote)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype+"/sqlInitTableVote/"+dbtype, err)
+			}
+			dao := initBlogVoteDaoSql(sqlc)
+			if dao == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			doTestVoteDaoCreateDelete(t, name+"/"+dbtype, dao)
+		})
 	}
 }
 
@@ -644,19 +722,24 @@ func TestVoteDaoSql_GetAll(t *testing.T) {
 		t.Skipf("%s skipped", name)
 	}
 	for dbtype, info := range urlMap {
-		sqlc, err := initSqlConnect(t, name, dbtype, info)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
-		} else if sqlc == nil {
-			t.Fatalf("%s failed: nil", name+"/"+dbtype)
-		}
-		err = sqlInitTableVote(sqlc, testSqlTableVote)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTableVote/"+dbtype, err)
-		}
-		dao := initBlogVoteDaoSql(sqlc)
-		doTestVoteDaoGetAll(t, name, dao)
-		sqlc.Close()
+		t.Run(dbtype, func(t *testing.T) {
+			sqlc, err := initSqlConnect(t, name, dbtype, info)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
+			} else if sqlc == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			defer sqlc.Close()
+			err = sqlInitTableVote(sqlc, testSqlTableVote)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype+"/sqlInitTableVote/"+dbtype, err)
+			}
+			dao := initBlogVoteDaoSql(sqlc)
+			if dao == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			doTestVoteDaoGetAll(t, name+"/"+dbtype, dao)
+		})
 	}
 }
 
@@ -667,19 +750,24 @@ func TestVoteDaoSql_GetN(t *testing.T) {
 		t.Skipf("%s skipped", name)
 	}
 	for dbtype, info := range urlMap {
-		sqlc, err := initSqlConnect(t, name, dbtype, info)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
-		} else if sqlc == nil {
-			t.Fatalf("%s failed: nil", name+"/"+dbtype)
-		}
-		err = sqlInitTableVote(sqlc, testSqlTableVote)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTableVote/"+dbtype, err)
-		}
-		dao := initBlogVoteDaoSql(sqlc)
-		doTestVoteDaoGetN(t, name, dao)
-		sqlc.Close()
+		t.Run(dbtype, func(t *testing.T) {
+			sqlc, err := initSqlConnect(t, name, dbtype, info)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
+			} else if sqlc == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			defer sqlc.Close()
+			err = sqlInitTableVote(sqlc, testSqlTableVote)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype+"/sqlInitTableVote/"+dbtype, err)
+			}
+			dao := initBlogVoteDaoSql(sqlc)
+			if dao == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			doTestVoteDaoGetN(t, name+"/"+dbtype, dao)
+		})
 	}
 }
 
@@ -690,18 +778,23 @@ func TestVoteDaoSql_GetUserVoteForTarget(t *testing.T) {
 		t.Skipf("%s skipped", name)
 	}
 	for dbtype, info := range urlMap {
-		sqlc, err := initSqlConnect(t, name, dbtype, info)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
-		} else if sqlc == nil {
-			t.Fatalf("%s failed: nil", name+"/"+dbtype)
-		}
-		err = sqlInitTableVote(sqlc, testSqlTableVote)
-		if err != nil {
-			t.Fatalf("%s failed: error [%s]", name+"/sqlInitTableVote/"+dbtype, err)
-		}
-		dao := initBlogVoteDaoSql(sqlc)
-		doTestVoteDaoGetUserVoteForTarget(t, name, dao)
-		sqlc.Close()
+		t.Run(dbtype, func(t *testing.T) {
+			sqlc, err := initSqlConnect(t, name, dbtype, info)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype, err)
+			} else if sqlc == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			defer sqlc.Close()
+			err = sqlInitTableVote(sqlc, testSqlTableVote)
+			if err != nil {
+				t.Fatalf("%s failed: error [%s]", name+"/"+dbtype+"/sqlInitTableVote/"+dbtype, err)
+			}
+			dao := initBlogVoteDaoSql(sqlc)
+			if dao == nil {
+				t.Fatalf("%s failed: nil", name+"/"+dbtype)
+			}
+			doTestVoteDaoGetUserVoteForTarget(t, name+"/"+dbtype, dao)
+		})
 	}
 }

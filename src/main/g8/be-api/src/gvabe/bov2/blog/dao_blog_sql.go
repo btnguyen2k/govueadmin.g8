@@ -2,13 +2,13 @@ package blog
 
 import (
 	"github.com/btnguyen2k/henge"
-	"github.com/btnguyen2k/prom"
+	promsql "github.com/btnguyen2k/prom/sql"
 )
 
 // NewBlogCommentDaoSql is helper method to create SQL-implementation of BlogCommentDao.
 //
 // Available since template-v0.2.0
-func NewBlogCommentDaoSql(sqlc *prom.SqlConnect, tableName string, txModeOnWrite bool) BlogCommentDao {
+func NewBlogCommentDaoSql(sqlc *promsql.SqlConnect, tableName string, txModeOnWrite bool) BlogCommentDao {
 	dao := &BaseBlogCommentDaoImpl{}
 	dao.UniversalDao = henge.NewUniversalDaoSql(
 		sqlc, tableName, txModeOnWrite,
@@ -23,7 +23,7 @@ func NewBlogCommentDaoSql(sqlc *prom.SqlConnect, tableName string, txModeOnWrite
 // NewBlogPostDaoSql is helper method to create SQL-implementation of BlogPostDao.
 //
 // Available since template-v0.2.0
-func NewBlogPostDaoSql(sqlc *prom.SqlConnect, tableName string, txModeOnWrite bool) BlogPostDao {
+func NewBlogPostDaoSql(sqlc *promsql.SqlConnect, tableName string, txModeOnWrite bool) BlogPostDao {
 	dao := &BaseBlogPostDaoImpl{}
 	dao.UniversalDao = henge.NewUniversalDaoSql(
 		sqlc, tableName, txModeOnWrite,
@@ -37,7 +37,7 @@ func NewBlogPostDaoSql(sqlc *prom.SqlConnect, tableName string, txModeOnWrite bo
 // NewBlogVoteDaoSql is helper method to create SQL-implementation of BlogVoteDao.
 //
 // Available since template-v0.2.0
-func NewBlogVoteDaoSql(sqlc *prom.SqlConnect, tableName string, txModeOnWrite bool) BlogVoteDao {
+func NewBlogVoteDaoSql(sqlc *promsql.SqlConnect, tableName string, txModeOnWrite bool) BlogVoteDao {
 	dao := &BaseBlogVoteDaoImpl{}
 	dao.UniversalDao = henge.NewUniversalDaoSql(
 		sqlc, tableName, txModeOnWrite,

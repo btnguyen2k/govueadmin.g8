@@ -8,29 +8,29 @@ import (
 	"time"
 
 	"github.com/btnguyen2k/henge"
-	"github.com/btnguyen2k/prom"
+	prommongo "github.com/btnguyen2k/prom/mongo"
 )
 
 const (
 	testMongoCollection = "test_user"
 )
 
-func mongoInitCollection(mc *prom.MongoConnect, collection string) error {
+func mongoInitCollection(mc *prommongo.MongoConnect, collection string) error {
 	rand.Seed(time.Now().UnixNano())
 	mc.GetCollection(collection).Drop(nil)
 	return henge.InitMongoCollection(mc, collection)
 }
 
-func newMongoConnect(t *testing.T, testName string, db, url string) (*prom.MongoConnect, error) {
+func newMongoConnect(t *testing.T, testName string, db, url string) (*prommongo.MongoConnect, error) {
 	db = strings.Trim(db, "\"")
 	url = strings.Trim(url, "\"")
 	if db == "" || url == "" {
 		t.Skipf("%s skipped", testName)
 	}
-	return prom.NewMongoConnect(url, db, 10000)
+	return prommongo.NewMongoConnect(url, db, 10000)
 }
 
-func initDaoMongo(mc *prom.MongoConnect) UserDao {
+func initDaoMongo(mc *prommongo.MongoConnect) UserDao {
 	return NewUserDaoMongo(mc, testMongoCollection, strings.Index(mc.GetUrl(), "replicaSet=") >= 0)
 }
 

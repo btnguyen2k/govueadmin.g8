@@ -59,9 +59,9 @@
                 </CForm>
               </CCardBody>
             </CCard>
-            <CCard color="primary" text-color="white" class="py-5 d-md-down-none" body-wrapper>
+            <CCard v-if="demoMode" color="primary" text-color="white" class="py-5 d-md-down-none" body-wrapper>
               <CCardBody>
-                <h2>Demo</h2>
+                <h2>{{ $t('_demo') }}</h2>
                 <p v-html="$t('_demo_msg')"></p>
               </CCardBody>
             </CCard>
@@ -93,6 +93,11 @@ export default {
           this.exterAppId = apiRes.data.exter.app_id
           this.exterBaseUrl = apiRes.data.exter.base_url
           this.infoMsgSwitch = 2
+          this.demoMode = apiRes.data.demo_mode
+          if (apiRes.data.demo_mode) {
+            this.form.username = apiRes.data.demo.user_id
+            this.form.password = apiRes.data.demo.user_pwd
+          }
         }
       },
       (err) => {
@@ -131,6 +136,7 @@ export default {
       errorMsg: '',
       infoMsgSwitch: 0,
       form: { username: '', password: '' },
+      demoMode: false,
     }
   },
   methods: {
@@ -199,13 +205,6 @@ export default {
         mode: 'form',
       }
       this._doLogin(data)
-    },
-    switchlanguage() {
-      // console.log(this.$refs.languageSelection)
-      // console.log(this.$i18n.locale)
-    },
-    hehe(el) {
-      // console.log(el.modelValue)
     },
   },
 }

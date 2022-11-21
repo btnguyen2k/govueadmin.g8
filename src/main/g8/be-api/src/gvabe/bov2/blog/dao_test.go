@@ -3,7 +3,9 @@ package blog
 import (
 	"testing"
 
-	"github.com/btnguyen2k/prom"
+	promdynamodb "github.com/btnguyen2k/prom/dynamodb"
+	prommongo "github.com/btnguyen2k/prom/mongo"
+	promsql "github.com/btnguyen2k/prom/sql"
 )
 
 type TestSetupOrTeardownFunc func(t *testing.T, testName string)
@@ -20,14 +22,10 @@ func setupTest(t *testing.T, testName string, extraSetupFunc, extraTeardownFunc 
 }
 
 var (
-	testAdc        *prom.AwsDynamodbConnect
-	testMc         *prom.MongoConnect
-	testSqlc       *prom.SqlConnect
+	testAdc        *promdynamodb.AwsDynamodbConnect
+	testMc         *prommongo.MongoConnect
+	testSqlc       *promsql.SqlConnect
 	testDaoComment BlogCommentDao
 	testDaoPost    BlogPostDao
 	testDaoVote    BlogVoteDao
-)
-
-const (
-	testTable = "table_temp"
 )
