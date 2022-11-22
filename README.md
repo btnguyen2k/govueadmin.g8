@@ -1,10 +1,12 @@
 # govueadmin.g8
 
+[![Actions Status](https://github.com/btnguyen2k/govueadmin.g8/workflows/govueadmin/badge.svg)](https://github.com/btnguyen2k/govueadmin.g8/actions)
+[![codecov](https://codecov.io/gh/btnguyen2k/govueadmin.g8/branch/master/graph/badge.svg?token=HVAP5A0R2Z)](https://codecov.io/gh/btnguyen2k/govueadmin.g8)
 [![Release](https://img.shields.io/github/release/btnguyen2k/govueadmin.g8.svg?style=flat-square)](RELEASE-NOTES.md)
 
 Giter8 template to develop `Admin Control Panel` in Go with VueJS-based frontend.
 
-Demo: https://demo-govueadmin.herokuapp.com/.
+Demo: https://demo-govueadmin.gpvcloud.com/
 
 ## Features
 
