@@ -12,6 +12,7 @@ import (
 	"github.com/btnguyen2k/henge"
 	promsql "github.com/btnguyen2k/prom/sql"
 
+	_ "github.com/btnguyen2k/gocosmos"
 	_ "github.com/denisenkom/go-mssqldb"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/godror/godror"
