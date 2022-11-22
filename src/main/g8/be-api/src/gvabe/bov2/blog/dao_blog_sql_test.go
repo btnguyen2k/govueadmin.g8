@@ -89,8 +89,8 @@ func sqlInitTableVote(sqlc *promsql.SqlConnect, table string) error {
 }
 
 func newSqlConnect(t *testing.T, testName string, driver, url, timezone string, flavor promsql.DbFlavor) (*promsql.SqlConnect, error) {
-	driver = strings.Trim(driver, "\"")
-	url = strings.Trim(url, "\"")
+	driver = strings.Trim(driver, "'\"")
+	url = strings.Trim(url, "'\"")
 	if driver == "" || url == "" {
 		t.Skipf("%s skipped", testName)
 	}
