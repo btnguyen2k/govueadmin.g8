@@ -12,6 +12,7 @@ import (
 	"github.com/btnguyen2k/henge"
 	promsql "github.com/btnguyen2k/prom/sql"
 
+	_ "github.com/btnguyen2k/gocosmos"
 	_ "github.com/denisenkom/go-mssqldb"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/godror/godror"
@@ -44,8 +45,8 @@ func sqlInitTable(sqlc *promsql.SqlConnect, table string) error {
 }
 
 func newSqlConnect(t *testing.T, testName string, driver, url, timezone string, flavor promsql.DbFlavor) (*promsql.SqlConnect, error) {
-	driver = strings.Trim(driver, "\"")
-	url = strings.Trim(url, "\"")
+	driver = strings.Trim(driver, "'\"")
+	url = strings.Trim(url, "'\"")
 	if driver == "" || url == "" {
 		t.Skipf("%s skipped", testName)
 	}
@@ -71,7 +72,7 @@ func newSqlConnect(t *testing.T, testName string, driver, url, timezone string, 
 		sqlc.SetLocation(loc)
 	}
 
-	if flavor == promsql.FlavorCosmosDb {
+	if err == nil && flavor == promsql.FlavorCosmosDb {
 		sqlc.GetDB().Exec("CREATE DATABASE IF NOT EXISTS " + cosmosdb + " WITH maxru=10000")
 	}
 
