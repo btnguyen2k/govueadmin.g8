@@ -71,7 +71,7 @@ func newSqlConnect(t *testing.T, testName string, driver, url, timezone string, 
 		sqlc.SetLocation(loc)
 	}
 
-	if flavor == promsql.FlavorCosmosDb {
+	if err == nil && flavor == promsql.FlavorCosmosDb {
 		sqlc.GetDB().Exec("CREATE DATABASE IF NOT EXISTS " + cosmosdb + " WITH maxru=10000")
 	}
 
