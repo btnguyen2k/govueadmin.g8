@@ -4,6 +4,10 @@
 
 - AB#54: Frontend migrated to [CoreUI for Vue.js](https://coreui.io/vue/) `v4.1.0`.
 - AB#55: I18n support in BE using [goyai](https://github.com/btnguyen2k/goyai).
+- AB#56: Migrate `dgrijalva/jwt-go` to `golang-jwt/jwt`.
+- Others:
+  - BO & DAO: add MySQL support.
+  - Go libs update.
 
 ## 2021-07-17: template-v0.3.0
 

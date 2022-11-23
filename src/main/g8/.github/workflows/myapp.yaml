@@ -1,4 +1,4 @@
-name: govueadmin
+name: myapp
 
 on:
   push:
@@ -7,8 +7,8 @@ on:
     branches: [ master ]
 
 env:
-  FE_ROOT: './src/main/g8/fe-gui'
-  BE_ROOT: './src/main/g8/be-api'
+  FE_ROOT: './fe-gui'
+  BE_ROOT: './be-api'
   BE_GO_TEST_PATH: './src/gvabe/bov2/user ./src/gvabe/bov2/blog'
 
 jobs:
@@ -198,8 +198,8 @@ jobs:
         flags: cosmosdb_sql
         name: cosmosdb_sql
 
-  testG8AndDockerBuild:
-    name: Test with go-giter8 and Docker build
+  testDockerBuild:
+    name: Test with Docker build
     runs-on: ubuntu-latest
     steps:
     - name: Set up Go env
@@ -210,22 +210,14 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: "12"
-    - name: Install go-giter8
-      run: |
-        # minimum go-giter8 v0.5.1 for "quiet" mode
-        go install github.com/btnguyen2k/go-giter8/g8@v0.5.1
     - name: Check out code
       uses: actions/checkout@v2
-    - name: Generate project via g8
-      run: |
-        mkdir -p $GITHUB_WORKSPACE/../temp
-        cd $GITHUB_WORKSPACE/../temp && g8 new --no-inputs file://$GITHUB_WORKSPACE
     - name: Build FE
       run: |
-        cd $GITHUB_WORKSPACE/../temp/govueadmincp-seed/fe-gui && npm install && npm run build
+        cd $GITHUB_WORKSPACE/fe-gui && npm install && npm run build
     - name: Build BE
       run: |
-        cd $GITHUB_WORKSPACE/../temp/govueadmincp-seed/be-api && go build -tags netgo -a
+        cd $GITHUB_WORKSPACE/be-api && go build -tags netgo -a
     - name: Build Docker image
       run: |
-        cd $GITHUB_WORKSPACE/../temp/govueadmincp-seed && docker build -t test .
+        cd $GITHUB_WORKSPACE && docker build -t test .
