@@ -1,6 +1,6 @@
 # govueadmin.g8 Release Notes
 
-## 2022-11-xx: template-v0.4.0
+## 2022-11-23: template-v0.4.0
 
 - AB#54: Frontend migrated to [CoreUI for Vue.js](https://coreui.io/vue/) `v4.1.0`.
 - AB#55: I18n support in BE using [goyai](https://github.com/btnguyen2k/goyai).
