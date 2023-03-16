@@ -2,7 +2,7 @@ name: govueadmin
 
 on:
   push:
-    branches-ignore: [ 'azure-pipelines' ]
+    branches-ignore: [ 'azure-pipelines', 'demo-build' ]
   pull_request:
     branches: [ master ]
 
